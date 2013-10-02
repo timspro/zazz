@@ -2,19 +2,51 @@ $(document).ready(function() {
 
 	/*---------------------------------------Foundational Code--------------------------------------*/
 
+/**
+ * Centers an object relative to parent div. Useful for centering on a div on screen as long as that
+ * div is a direct child of body.
+ * @returns {$.fn}
+ */
+	$.fn.center = function() {
+		this.css("position", "absolute");
+		this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) +
+						$(window).scrollTop()) + "px");
+		this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) +
+						$(window).scrollLeft()) + "px");
+		return this;
+	};
+
+	/**
+	 * Prototype for action associated with view divs and buttons. Registers three functions for a 
+	 * button: a function to be called on click (initialize), a function to be called when a view div 
+	 * is clicked (action), and a function to be called when another button is clicked (clean). action 
+	 * is the only one that is passed arguments, which are: (1) the jQuery object of the clicked div,
+	 * (2) the Click Event as in .click(function(event){...}), (3) a boolean denoting if this is the
+	 * first click while this button has been selected.
+	 * 
+	 * @param {function} initialize
+	 * @param {function} action
+	 * @param {function} clean
+	 * @returns {$.fn}
+	 */
 	$.fn.register = function(initialize, action, clean) {
 		var myClass = $(this).attr('class').split(' ')[0];
+		//Save functions.
 		$.fn.register.initialize[myClass] = initialize;
 		$.fn.register.action[myClass] = action;
 		$.fn.register.clean[myClass] = clean;
+		//Register click event for button.
 		$(this).click(function() {
 			var myClass = $(this).attr('class').split(' ')[0];
+			//We want to check to see if this button is already selected and don't do anything if it is.
 			if (myClass !== $.fn.register.current) {
 				$.fn.register.first = true;
+				//Remove the active-btn class from the old button if possible.
 				if ($.fn.register.current !== null) {
 					$('.' + $.fn.register.current).removeClass('-zazz-active-btn');
 					$(this).register.clean[$.fn.register.current]();
 				}
+				//Make button "active".
 				$.fn.register.current = myClass;
 				$(this).addClass('-zazz-active-btn');
 				$(this).register.initialize[$.fn.register.current]();
@@ -28,33 +60,53 @@ $(document).ready(function() {
 	$.fn.register.initialize = [];
 	$.fn.register.action = [];
 	$.fn.register.clean = [];
+
+	/**
+	 * A function to reset application back to no buttons being selected.
+	 * @returns {$.fn.register}
+	 */
 	$.fn.register.reset = function() {
 		if ($.fn.register.current !== null) {
 			$.fn.register.clean[$.fn.register.current]();
 			$.fn.register.current = null;
 		}
+		return this;
 	};
-	$('.-zazz-element').click(function(e) {
+
+	//Register the click event for the actions.
+	$('.-zazz-content').click(function(e) {
 		if ($.fn.register.current !== null) {
-			$.fn.register.action[$.fn.register.current]($(this), e, $.fn.register.first);
+			$.fn.register.action[$.fn.register.current]($(e.target), e, $.fn.register.first);
 			$.fn.register.first = false;
 		}
 	});
 
+	/**
+	 * A hekoer function to specify a drag action on an object. All functions take as a parameter a
+	 * Click Event.
+	 * @param {function} start
+	 * @param {function} during
+	 * @param {function} stop
+	 * @returns {$.fn}
+	 */
 	$.fn.drag = function(start, during, stop) {
 		var myClass = $(this).attr('class').split(' ')[0];
 		$(this).mousedown(function(e) {
-			var myClass = $(this).attr('class').split(' ')[0];
-			$.fn.drag.condition[myClass] = true;
-			$(document).on('mousemove', $.fn.drag.during[myClass]);
-			start(e);
-			//e.originalEvent.preventDefault();
+			//This if statement is to prevent text boxes from being unselectable.
+			if(!$(e.target).is('input')) {
+				var myClass = $(this).attr('class').split(' ')[0];
+				$.fn.drag.condition[myClass] = true;
+				$(document).on('mousemove', $.fn.drag.during[myClass]);
+				start(e);
+				return false;
+			}
 		});
 		$(this).mouseup(function(e) {
 			var myClass = $(this).attr('class').split(' ')[0];
 			$.fn.drag.condition[myClass] = false;
 			$(document).off('mousemove', $.fn.drag.during[myClass]);
 			stop(e);
+			return false;
 		});
 		$.fn.drag.during[myClass] = during;
 		return this;
@@ -62,14 +114,90 @@ $(document).ready(function() {
 	$.fn.drag.condition = [];
 	$.fn.drag.during = [];
 
+	function updateLayout() {
+		var code = $('.-zazz-content').attr('_zazz-rid', $.row_id).attr('_zazz-gid', $.group_id)
+			.attr('_zazz-eid', $.element_id)[0].outerHTML;
+		$.ajax('/zazz/ajax/layout.php', {
+			data : {
+				page_id: $('#-zazz-page-id').val(),
+				layout: code
+			}
+		});
+	}
+	
+	function updateCode(zazz_id, $block, type) {
+		$.ajax('/zazz/ajax/code.php', {
+			data : {
+				zazz_id: zazz_id,
+				type: type,
+				code: $block.val(),
+				page_id: $('#-zazz-page-id').val(),
+				zazz_order: $block.attr('_zazz-order')
+			},
+			success : function(data) {
+				$('#' + zazz_id).html(data);
+			}
+		});
+	}
+	
+	function getBlockType($this) {
+		var type;
+		if($this.hasClass('-zazz-html-code')) {
+			type = 'html';
+		} else if($this.hasClass('-zazz-css-code')) {
+			type = 'css';
+		} else if($this.hasClass('-zazz-mysql-code')) {
+			type = 'mysql';
+		} else if($this.hasClass('-zazz-php-code')) {
+			type = 'php';
+		} else if($this.hasClass('-zazz-js-code')) {
+			type = 'js'; 
+		}
+		return type;
+	}
+
+	//A somewhat fix for textarea scrolling.
 	function textareaScroll() {
 		$(this)[0].scrollIntoView();
 	}
-
 	$(document).on('focus', 'textarea', textareaScroll);
+	$(document).on('blur', '.-zazz-css-code', function(){
+		var id = "-zazz-css-code-" + $.last_div.attr("_zazz-id");
+		if($('#' + id).length === 0) {
+			var $style = $('<style></style>').attr("id", id).html($(this).val());
+			$('head').append($style);
+		} else  {
+			$('#' + id).html($(this).val());
+		}
+	});
+	$(document).on('blur', '.-zazz-js-code', function(){
+		var id = "-zazz-js-code-" + $.last_div.attr("_zazz-id");
+		if($('#' + id).length === 0) {
+			var $style = $('<script></script>').attr("id", id).html($(this).val());
+			$('body').append($style);
+		} else  {
+			$('#' + id).html($(this).val());
+		}
+	});
+	$(document).on('blur', '.-zazz-html-code', function(){
+		//$('#' + $.last_div.attr('_zazz-id')).html($(this).val());
+	});
+	$(document).on('blur', '.-zazz-code-block', function(){
+		var type;
+		var $this = $(this);
+		var type = getBlockType($this);
+		
+		var zazz_id = $.last_div.attr('_zazz-id');
+		updateCode(zazz_id, $this, type);
+		updateLayout();
+	});
 
-	$(document).on('focus', '.-zazz-content-view div', function() {
+
+	//The callback for when the focus is changed among divs.
+	$(document).on('focus', '.-zazz-content, .-zazz-row-group, .-zazz-row, .-zazz-element', function() {
 		var $div = $(this);
+		//Set up the outline. Unfortunately, this is the best way to do this so that children elements
+		//aren't moved.
 		var $container = $(".-zazz-outline-top").parent();
 		var offset_top = $div.offset().top - $container.offset().top;
 		var offset_left = $div.offset().left;
@@ -82,12 +210,21 @@ $(document).ready(function() {
 			.css("left", offset_left).css("width", $div.outerWidth());
 		$(".-zazz-outline-bottom").css("top", offset_top + $div.outerHeight() - 4)
 			.css("left", offset_left).css("width", $div.outerWidth());
+		var id = $div.attr('_zazz-id');
+		//Change the ID and class text boxes.
 		$(".-zazz-id-input").val($div.attr('id'));
 		$(".-zazz-class-input").val($div.attr('class'));
+		//Show the correct code boxes.
+		if(typeof $.last_div === "undefined" || $div.attr('_zazz-id') !== $.last_div.attr('_zazz-id')) {
+			$(".-zazz-code-block").hide();
+			$(".-zazz-code-block-" + id).fadeIn(300);
+		}
 		$.last_div = $div;
 		return false;
-	}).on('blur', '.-zazz-content-view div', function() {
-		//$(".-zazz-outline").hide();
+	});
+	
+	$('.-zazz-modal-close').click(function(){
+		$(this).closest('.-zazz-modal').fadeOut(300);
 	});
 
 	/*--------------------------------------------Mouse Code----------------------------------------*/
@@ -97,11 +234,12 @@ $(document).ready(function() {
 		$.mouse_y = e.pageY;
 	});
 	
-	$('.-zazz-element').mousemove(function(e) {
+	$('.-zazz-content').mousemove(function(e) {
 		var offset_x = (e.offsetX || e.clientX - $(e.target).offset().left);
 		var offset_y = (e.offsetY || e.clientY - $(e.target).offset().top);
 		$('.-zazz-offset-btn').html('Offset: ( T' + offset_y + ', L' + offset_x + ', B' + 
-			($(this).outerHeight() - offset_y) + ', R' + ($(this).outerWidth() - offset_x) + ' )');
+			($(e.target).outerHeight() - offset_y) + ', R' 
+			+ ($(e.target).outerWidth() - offset_x) + ' )');
 		$('.-zazz-location-btn').html('Location: ( T' + e.pageY + ' , L' + e.pageX + ', B' +
 			($('body').outerHeight() - e.pageY) + ', R' + ($('body').outerWidth() - e.pageX) + ' )');
 	});
@@ -138,17 +276,37 @@ $(document).ready(function() {
 	function textareaClick(e) {
 		var myPos = $(this).offset();
 		myPos.right = $(this).offset().left + $(this).outerWidth();
-		if (15 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.right > e.pageX &&
-			e.pageX > myPos.right - 15) {
+		if (30 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.right > e.pageX &&
+			e.pageX > myPos.right - 30) {
+			var $block = $(this);
+			var classes = $block.attr('class').split(/\s+/);
+			var id;
+			for(var i = 0; i < classes.length; i++) {
+				if(classes[i].indexOf('-zazz-code-block-') >= 0) {
+					id = classes[i].substring(17);
+				}
+			}
+			$.ajax('/zazz/ajax/code.php', {
+				data : {
+					zazz_id: id,
+					type: getBlockType($block),
+					page_id: $('#-zazz-page-id').val(),
+					zazz_order: $block.attr('_zazz-order'),
+					delete: true
+				}
+			});
 			$(this).remove();
 		}
 	}
+
+	$(".-zazz-code-blocks").on('focus', 'textarea', textareaScroll).on('mousemove', 'textarea', textareaMouseMove)
+		.on('click', 'textarea', textareaClick);
 
 	$(".-zazz-css-code").mousemove(textareaMouseMoveNoRemove);
 	//$("textarea").mousemove(textareaMouseMove);
 	//$("textarea").click(textareaClick);
 
-	$(".-zazz-code-area .-zazz-navbar").drag(
+	$(".-zazz-code-area .-zazz-navbar").not('input[type="text"]').drag(
 		function() {
 		},
 		function(e) {
@@ -176,7 +334,7 @@ $(document).ready(function() {
 		$(".-zazz-horizontal-line-left").show();
 		$(".-zazz-horizontal-line-right").show();
 		$('body').css('cursor','crosshair');
-		$(".-zazz-display").css('display','inline-block');
+		$(".-zazz-display").css('display','block');
 	}
 
 	function acrossMouseLeave() {
@@ -196,7 +354,7 @@ $(document).ready(function() {
 		$(".-zazz-vertical-line-top").show();
 		$(".-zazz-vertical-line-bottom").show();
 		$('body').css('cursor','crosshair');
-		$(".-zazz-display").css('display','inline-block');
+		$(".-zazz-display").css('display','block');
 	}
 
 	function verticalMouseLeave() {
@@ -208,7 +366,7 @@ $(document).ready(function() {
 	
 	$('.-zazz-id-input').blur(function() {
 		if(typeof $.last_div !== "undefined") {
-			$.last_div.attr("id", $(this).val());
+			$.last_div.attr("_zazz-id", $(this).val());
 		}
 	});
 	
@@ -221,9 +379,9 @@ $(document).ready(function() {
 	/*-----------------------------------------Compatibility----------------------------------------*/
 
 	//< IE10 needs this.
-	$('.-zazz-navbar span, .-zazz-navbar').each(function() {
-		$(this).attr('unselectable', 'on');
-	});
+	//$('.-zazz-navbar span, .-zazz-navbar').each(function() {
+	//	$(this).attr('unselectable', 'on');
+	//});
 
 	/*------------------------------------------Button Code-----------------------------------------*/
 
@@ -233,7 +391,12 @@ $(document).ready(function() {
 		function(){}
 	);
 		
-	$('.-zazz-select-btn').click();
+	function createDiv(id, type) {
+		var div = $('<div></div>').addClass(type).attr('tabindex','1').attr("_zazz-id", id)
+			.attr("id", id).attr('_zazz-order','0');
+		addCSSCodeBlock(id);
+		return div;
+	}
 
 	$('.-zazz-vertical-btn').register(
 		function() {
@@ -242,13 +405,16 @@ $(document).ready(function() {
 			$('.-zazz-content-view').on('mouseleave', verticalMouseLeave);
 		},
 		function($div, e) {
-			var $other_div = $div.clone(true);
+			var $other_div = createDiv('element-' + $.element_id, '-zazz-element');
 			var left = $div.offset().left;
 			var old_width = $div.outerWidth();
 			$div.css('width', e.pageX - left);
 			$other_div.css('width', old_width - (e.pageX - left));
+			$.element_id++;
 			$other_div.insertAfter($div);
 			$div.focus();
+			
+			updateLayout();
 		},
 		function() {
 			verticalMouseLeave();
@@ -279,8 +445,10 @@ $(document).ready(function() {
 				//Otherwise we need to create a new row group and insert it where the div was with the right
 				//width. This also requires creating a new row to place the div into and placing that row 
 				//into the row group.
-				$row_group = $('<div></div>').width(width).addClass("-zazz-row-group").attr("tabindex","1");
-				$row = $('<div></div>').addClass("-zazz-row").attr("tabindex","1");
+				$.group_id++;
+				$.row_id++;
+				$row_group = createDiv('row-group-' + $.group_id, '-zazz-row-group').width(width);
+				$row = createDiv('row-' + $.row_id, '-zazz-row');
 				$row_group.append($row);
 				$row_group.insertAfter($div);
 				$row.append($div);
@@ -288,9 +456,11 @@ $(document).ready(function() {
 				$div.css('width', '100%');
 			}
 
-			//Clone the current row and insert the clone into the row group.
-			$other_row = $row.clone(true);
-			$other_row.children().removeAttr('id');
+			//Make a new row and insert the new row into the row group.
+			$.row_id++;
+			$.element_id++;
+			$other_row = createDiv('row-' + $.row_id, '-zazz-row');
+			$other_row.append(createDiv('element-' + $.row_id, '-zazz-element'));
 			$other_row.insertAfter($row);
 
 			//Now we need to fix the heights of the divs by splitting across the point that was clicked.
@@ -302,6 +472,8 @@ $(document).ready(function() {
 			$row.height(new_height);
 
 			$div.focus();
+			
+			updateLayout();
 		},
 		function() {
 			acrossMouseLeave();
@@ -345,7 +517,7 @@ $(document).ready(function() {
 					//a row that just contains a div.
 					//Check that the row that contains the column doesn't just contain the column (also checks
 					//corner case of having only one div on entire page).
-					while ($good_parent.children().length === 1 && $good_parent.attr('id') !== 'content') {
+					while ($good_parent.children().length === 1 && $good_parent.attr('_zazz-id') !== 'content') {
 						$old_parent = $good_parent;
 						$good_parent = $good_parent.parent();
 					}
@@ -357,12 +529,15 @@ $(document).ready(function() {
 					}
 					//Else give error message.
 				} else {
-					$('#modal-alert .modal-body').html("These elements are neither in the same row or column.");
-					$('#modal-alert').modal();
+					$('#-zazz-modal-alert .-zazz-modal-body').html(
+						"These elements are neither in the same row or column.");
+					$('#-zazz-modal-alert').center().fadeIn(300);
 				}
 				//Set focus and delete the stored first div.
 				$first_div.focus();
 				delete this.first_div;
+				
+				updateLayout();
 			}
 		},
 		function() {
@@ -370,34 +545,70 @@ $(document).ready(function() {
 		}
 	);
 		
-	function addCodeBlock(className) {
+	$('.-zazz-settings-btn').click(function(){
+			$('#-zazz-modal-settings').show().center();
+	});
+	
+	$('.-zazz-project-btn').click(function(){
+			$('#-zazz-modal-project').show().center();
+	});
+		
+	function addCodeBlock(className, forID) {
+		var $forID = $('#' + forID);
+		var order;
+		if($forID.length === 0) {
+			order = '0'; 
+		} else {
+			order = $forID.attr('_zazz-order');
+		}
 		var $textarea = $('<textarea></textarea>').addClass('-zazz-code-block')
-			.addClass(className).attr('spellcheck', false).attr('tabindex', '1')
-			.on('focus', textareaScroll).on('mousemove', textareaMouseMove).click(textareaClick);
+			.addClass(className).addClass('-zazz-code-block-' + forID).attr('spellcheck', false)
+			.attr('tabindex', '1').attr('_zazz-order', order);
+		$forID.attr('_zazz-order', parseInt($forID.attr('_zazz-order')) + 1);
 		return $textarea;
 	}
 		
 	$('.-zazz-html-btn').click(function(){
-		var $block = addCodeBlock('-zazz-html-code');
+		var $block = addCodeBlock('-zazz-html-code', $.last_div.attr("_zazz-id"));
 		$('.-zazz-code-blocks').append($block);
-		$block.focus();
+		$block.fadeIn(300).focus();
 	});
 	$('.-zazz-php-btn').click(function(){
-		var $block = addCodeBlock('-zazz-php-code');
+		var $block = addCodeBlock('-zazz-php-code', $.last_div.attr("_zazz-id"));
 		$('.-zazz-code-blocks').append($block);
-		$block.focus();
+		$block.fadeIn(300).focus();
 	});
 	$('.-zazz-mysql-btn').click(function(){
-		var $block = addCodeBlock('-zazz-mysql-code');
+		var $block = addCodeBlock('-zazz-mysql-code', $.last_div.attr("_zazz-id"));
 		$('.-zazz-code-blocks').append($block);
-		$block.focus();
+		$block.fadeIn(300).focus();
 	});
 	$('.-zazz-js-btn').click(function(){
-		var $block = addCodeBlock('-zazz-js-code');
+		var $block = addCodeBlock('-zazz-js-code', $.last_div.attr("_zazz-id"));
 		$('.-zazz-code-blocks').append($block);
-		$block.focus();
+		$block.fadeIn(300).focus();
 	});
 
+	function addCSSCodeBlock(id) {
+			var $block = addCodeBlock('-zazz-css-code', id);
+			$block.val('#' + id + ' {\n\n' + '}');
+			$('.-zazz-code-blocks').append($block);
+			updateCode(id, $block, 'css');
+	}
+
+	function start() {
+		//$('.-zazz-content, .-zazz-row-group, .-zazz-row, .-zazz-element').each(function(){
+		//	addCSSCodeBlock($(this).attr("_zazz-id"));
+		//});
+		var $content = $('.-zazz-content');
+		$('.-zazz-element').first().focus();
+		$('.-zazz-select-btn').click();
+		$.row_id = $content.attr('_zazz-rid');
+		$.group_id = $content.attr('_zazz-gid');
+		$.element_id = $content.attr('_zazz-eid');
+	}
+	
+	start();
 
 	/*--------------------------------------Keyboard Shortcuts--------------------------------------*/
 

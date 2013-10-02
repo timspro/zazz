@@ -14,12 +14,6 @@
 	outline: none;
 }
 
-input {
-	border-radius: 5px;
-	border: none;
-	padding: 5px;
-}
-
 /*-----------------------------------------SETUP--------------------------------------------------*/
 
 body {
@@ -82,7 +76,78 @@ body {
 	background-color: #ffff00;
 }
 
+.-zazz-modal {
+	position: absolute;
+	width: 350px;
+	height: 150px;
+	display: none;
+	z-index: 50;
+	background-color: black;
+	text-align: center;
+	border-radius: 10px;
+	box-shadow: 0px 0px 20px white;
+}
+
+.-zazz-modal table {
+	width: 100%;
+}
+
+.-zazz-modal-header {
+	background-color: #202020;
+	color: white;
+	font-family: arial;
+	font-size: 20px;
+	height: 35px;
+	padding: 5px;
+	position: absolute;
+	top: 0px;
+	width: 100%;
+}
+
+.-zazz-modal-body {
+	position: absolute;
+	top: 35px;
+	padding: 5px;
+	bottom: 35px;
+	width: 100%;
+	color: white;
+	font-family: arial;
+}
+
+.-zazz-modal-footer {
+	position: absolute;
+	height: 35px;
+	bottom: 0px;
+	width: 100%;
+	padding: 5px;
+}
+
+.-zazz-modal input {
+	border-radius: 5px;
+	border: none;
+	padding: 5px;
+}
+
+.-zazz-modal input[type="text"], *.-zazz-modal input[type="password"] {
+	margin: 5px;
+}
+
+.-zazz-modal-footer input[type="button"], .-zazz-modal-footer input[type="submit"] {
+	min-width: 80px;
+	cursor: pointer;
+}
+
+.-zazz-modal-footer input[type="button"]:hover, .-zazz-modal-footer input[type="submit"]:hover {
+	background-color: #cfcfcf;
+}
+
 /*------------------------------------------NAVBAR------------------------------------------------*/
+
+.-zazz-navbar input {
+	border-radius: 5px;
+	border: none;
+	padding: 5px;
+}
 
 .-zazz-navbar {
 	background-color: #202020;
@@ -96,10 +161,12 @@ body {
 }
 
 .-zazz-btn {
+	/*
 	-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
 	-ms-user-select: none;
+ */
 	min-width: 50px;
 	width: 70px;
 	height: 35px;
@@ -155,6 +222,7 @@ body {
 	top: 35px;
 	bottom: 0px;
 	overflow-y: auto;
+	background-color: #6699ff;
 }
 
 body, html {
@@ -170,7 +238,7 @@ body, html {
 .-zazz-element {
 	height: 100%;
 	width: 100%;
-	background-color: #6699ff;
+	/*background-image: url("img/blue.png");*/
 	border: #0000cc dashed 2px;
 	display: inline-block;
 }
@@ -265,6 +333,7 @@ body, html {
 	background-image: url("img/x.png");
 	background-position: 100% 0%;
 	background-repeat: no-repeat;
+	display: none;
 }
 
 .-zazz-html-btn {
@@ -324,9 +393,13 @@ body, html {
 }
 
 .-zazz-offset-btn, .-zazz-location-btn {
-	width: 300px;
+	width: 50%;
 }
 
 .-zazz-display {
 	display: none;
+	position: absolute;
+	top: 0px;
+	left: 280px;
+	right: 280px;
 }

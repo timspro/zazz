@@ -1,0 +1,36 @@
+#php_flag display_errors off
+php_flag magic_quotes_gpc Off
+php_value date.timezone "America/New_York"
+php_value upload_max_filesize 1M
+php_value post_max_size 1M
+php_value max_execution_time 500
+php_value max_input_time 500
+php_value memory_limit 256M
+
+DirectoryIndex index.php
+
+Options -Indexes
+Options +FollowSymlinks
+RewriteEngine On
+RewriteBase /
+
+# Rewrite file system-like URLs to something that Zazz can understand.
+RewriteRule ^zazz/build/(.*?)/(.*?)$ zazz/index.php?project=$1&page=$2 [QSA]
+
+#RewriteCond %{REQUEST_FILENAME} !-f
+#RewriteCond %{REQUEST_FILENAME} !-d
+
+# Remove PHP extension for all.
+#RewriteRule ^(.*)$ $1.php [L] # Remove PHP extension.
+
+
+# compress text, html, javascript, css, xml:
+# AddOutputFilterByType DEFLATE text/plain
+# AddOutputFilterByType DEFLATE text/html
+# AddOutputFilterByType DEFLATE text/xml
+# AddOutputFilterByType DEFLATE text/css
+# AddOutputFilterByType DEFLATE application/xml
+# AddOutputFilterByType DEFLATE application/xhtml+xml
+# AddOutputFilterByType DEFLATE application/rss+xml
+# AddOutputFilterByType DEFLATE application/javascript
+# AddOutputFilterByType DEFLATE application/x-javascript
