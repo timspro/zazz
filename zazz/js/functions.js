@@ -155,29 +155,49 @@ $(document).ready(function() {
 		}
 		return type;
 	}
+	
+	function getZazzID($block) {
+		var classes = $block.attr('class').split(/\s+/);
+		var id;
+		for(var i = 0; i < classes.length; i++) {
+			if(classes[i].indexOf('-zazz-code-block-') >= 0) {
+				id = classes[i].substring(17);
+			}
+		}
+		return id;
+	}
 
 	//A somewhat fix for textarea scrolling.
 	function textareaScroll() {
 		$(this)[0].scrollIntoView();
 	}
-	$(document).on('focus', 'textarea', textareaScroll);
-	$(document).on('blur', '.-zazz-css-code', function(){
-		var id = "-zazz-css-code-" + $.last_div.attr("_zazz-id");
+
+	function addCSSCode(zazz_id, code) {
+		var id = "-zazz-css-code-" + zazz_id;
 		if($('#' + id).length === 0) {
-			var $style = $('<style></style>').attr("id", id).html($(this).val());
+			var $style = $('<style></style>').attr("id", id).html(code);
 			$('head').append($style);
 		} else  {
-			$('#' + id).html($(this).val());
+			$('#' + id).html(code);
 		}
-	});
-	$(document).on('blur', '.-zazz-js-code', function(){
-		var id = "-zazz-js-code-" + $.last_div.attr("_zazz-id");
+	}
+	
+	function addJSCode(zazz_id, code) {
+		var id = "-zazz-js-code-" + zazz_id;
 		if($('#' + id).length === 0) {
-			var $style = $('<script></script>').attr("id", id).html($(this).val());
+			var $style = $('<script></script>').attr("id", id).html(code);
 			$('body').append($style);
 		} else  {
-			$('#' + id).html($(this).val());
+			$('#' + id).html(code);
 		}
+	}
+	
+	$(document).on('focus', 'textarea', textareaScroll);
+	$(document).on('blur', '.-zazz-css-code', function(){
+		addCSSCode($.last_div.attr("_zazz-id"), $(this).val());
+	});
+	$(document).on('blur', '.-zazz-js-code', function(){
+		addJSCode($.last_div.attr("_zazz-id"), $(this).val());
 	});
 	$(document).on('blur', '.-zazz-html-code', function(){
 		//$('#' + $.last_div.attr('_zazz-id')).html($(this).val());
@@ -279,13 +299,7 @@ $(document).ready(function() {
 		if (30 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.right > e.pageX &&
 			e.pageX > myPos.right - 30) {
 			var $block = $(this);
-			var classes = $block.attr('class').split(/\s+/);
-			var id;
-			for(var i = 0; i < classes.length; i++) {
-				if(classes[i].indexOf('-zazz-code-block-') >= 0) {
-					id = classes[i].substring(17);
-				}
-			}
+			var id = getZazzID($block);
 			$.ajax('/zazz/ajax/code.php', {
 				data : {
 					zazz_id: id,
@@ -606,6 +620,14 @@ $(document).ready(function() {
 		$.row_id = $content.attr('_zazz-rid');
 		$.group_id = $content.attr('_zazz-gid');
 		$.element_id = $content.attr('_zazz-eid');
+		$('.-zazz-css-code').each(function(){
+			var $this = $(this);
+			addCSSCode(getZazzID($this),$this.val());
+		});
+		$('.-zazz-js-code').each(function(){
+			var $this = $(this);
+			addJSCode(getZazzID($this),$this.val());
+		});
 	}
 	
 	start();
