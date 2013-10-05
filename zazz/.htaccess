@@ -15,7 +15,8 @@ RewriteEngine On
 RewriteBase /
 
 # Rewrite file system-like URLs to something that Zazz can understand.
-RewriteRule ^zazz/build/(.*?)/(.*?)$ zazz/index.php?project=$1&page=$2 [QSA]
+RewriteRule ^build/(.*?)/(.*?)$ zazz/index.php?project=$1&page=$2 [QSA]
+#RewriteRule ^view/(.*?)/(.*?)$ zazz/view.php?project=$1&page=$2 [QSA]
 
 #RewriteCond %{REQUEST_FILENAME} !-f
 #RewriteCond %{REQUEST_FILENAME} !-d

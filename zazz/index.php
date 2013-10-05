@@ -2,7 +2,7 @@
 
 function getCodeBlocks($page_id) {
 	$rows = _Code::get()->retrieve(array('zazz_id', 'code', 'type', 'zazz_order'), array(),
-		array('page_id' => $page_id));
+		array('page_id' => $page_id),'zazz_order');
 	foreach ($rows as $row) {
 		echo '<textarea class="-zazz-code-block -zazz-' . $row["type"] . '-code 
 							-zazz-code-block-' . $row['zazz_id'] . '" 
@@ -11,23 +11,12 @@ function getCodeBlocks($page_id) {
 	}
 }
 
-function getLayout($page_id) {
-	$result = _Layout::get()->retrieve('layout', array(), array('page_id' => $page_id));
-	echo $result[0]['layout'];
-}
-
-function getPageID($project, $page) {
-	$user_id = Authenticate::get()->getUser('user_id');
-	$id = _Page::get()->retrieve('page_id', new Join('project_id', _Project::get()),
-		array('project' => $project, 'page' => $page, 'user_id' => $user_id));
-	return $id[0]['page_id'];
-}
-
 require_once dirname(__FILE__) . '/includes/standard/initialize.php';
 require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Code.php';
 require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Project.php';
 require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Page.php';
 require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Layout.php';
+require_once dirname(__FILE__) . '/includes/custom/functions.php';
 
 Authenticate::get()->check();
 
@@ -66,7 +55,7 @@ $page_id = getPageID($project, $page);
 				<table>
 					<tr>
 						<td>Page Name: </td>
-						<td><input id="-zazz-page" type="text" value="<?= $page ?>" /></td>
+						<td><input id="-zazz-page-name" type="text" value="<?= $page ?>" /></td>
 					</tr>
 					<tr>
 						<td>Background Image: </td>
@@ -81,7 +70,12 @@ $page_id = getPageID($project, $page);
 		<div id="-zazz-modal-project" class="-zazz-modal">
 			<div class="-zazz-modal-header">Project</div>
 			<div class="-zazz-modal-body">
-				<span>Project ID: </span><input id="-zazz-project-name" type="text" value="<?= $project ?>" />
+				<table>
+					<tr>
+						<td>Project ID:</td>
+						<td><input id="-zazz-project-name" type="text" value="<?= $project ?>"/></td>
+					</tr>
+				</table>
 			</div>
 			<div class="-zazz-modal-footer">
 				<input type="button" class="-zazz-modal-close" value="Close" />
@@ -106,13 +100,14 @@ $page_id = getPageID($project, $page);
 				</span>
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span class="-zazz-divider"></span
+					><span tabindex="3" class="-zazz-save-all-btn -zazz-btn">Layer</span
+					><span tabindex="3" class="-zazz-settings-btn -zazz-btn">Page</span
 					><span tabindex="3" class="-zazz-project-btn -zazz-btn">Project</span
-					><span tabindex="3" class="-zazz-settings-btn -zazz-btn">Settings</span
-					><span tabindex="3" class="-zazz-save-all-btn -zazz-btn">Publish</span
+					><span class="-zazz-divider"></span
 					><span tabindex="3" class="-zazz-view-btn -zazz-btn">View</span>
 				</span>
 			</div>
-			<div class="-zazz-content-view"><?php getLayout($page_id) ?></div>
+			<div class="-zazz-content-view"><?= getLayout($page_id) ?></div>
 		</div>
 		<div class="-zazz-code-area">
 			<div class="-zazz-navbar">
@@ -129,9 +124,9 @@ $page_id = getPageID($project, $page);
 					><span tabindex="2" class="-zazz-js-btn -zazz-btn">JS</span
 					><span tabindex="2" class="-zazz-php-btn -zazz-btn">PHP</span
 					><span tabindex="2" class="-zazz-mysql-btn -zazz-btn">MySQL</span
-					><span class="-zazz-divider"></span
+					><span class="-zazz-divider"><!--</span
 					><span tabindex="2" class="-zazz-import-btn -zazz-btn">Import</span
-					><span tabindex="2" class="-zazz-export-btn -zazz-btn">Export</span></span>
+					><span tabindex="2" class="-zazz-export-btn -zazz-btn">Export</span>--></span>
 			</div>
 			<div class="-zazz-code-blocks"><?php getCodeBlocks($page_id) ?></div>
 		</div>

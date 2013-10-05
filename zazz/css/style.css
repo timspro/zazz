@@ -79,7 +79,7 @@ body {
 .-zazz-modal {
 	position: absolute;
 	width: 350px;
-	height: 150px;
+	height: auto;
 	display: none;
 	z-index: 50;
 	background-color: black;
@@ -99,27 +99,21 @@ body {
 	font-size: 20px;
 	height: 35px;
 	padding: 5px;
-	position: absolute;
-	top: 0px;
 	width: 100%;
 }
 
 .-zazz-modal-body {
-	position: absolute;
-	top: 35px;
-	padding: 5px;
-	bottom: 35px;
+	padding: 10px;
 	width: 100%;
+	height: auto;
 	color: white;
 	font-family: arial;
 }
 
 .-zazz-modal-footer {
-	position: absolute;
 	height: 35px;
-	bottom: 0px;
 	width: 100%;
-	padding: 5px;
+	padding: 0px;
 }
 
 .-zazz-modal input {
@@ -326,12 +320,12 @@ body, html {
 	resize: horizontal;
 	overflow: auto;
 	color: white;
-	padding: 8px;
+	padding: 8px 8px 8px 18px;
 	border-style: solid;
 	border-width: 6px 0px 0px 0px;
 	margin-right: 4px;
 	background-image: url("img/x.png");
-	background-position: 100% 0%;
+	background-position: 0% 0%;
 	background-repeat: no-repeat;
 	display: none;
 }

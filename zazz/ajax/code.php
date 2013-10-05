@@ -29,6 +29,7 @@ function zazzGetParameters($string) {
 			}
 		}
 	}
+	return $params;
 }
 
 if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && 
@@ -36,7 +37,13 @@ if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) &&
 	if(isset($_REQUEST['delete'])) {
 		_Code::get()->delete($_REQUEST);
 	} else if(isset($_REQUEST['code'])) {
-		_Code::get()->create($_REQUEST, true);
+		if($_REQUEST['insert'] === 'true') {
+			_Code::get()->create($_REQUEST);
+		} else {
+			_Code::get()->update(array('code' => $_REQUEST['code']), 
+				array('zazz_id' => $_REQUEST['zazz_id'], 'page_id' => $_REQUEST['page_id'], 'type' => 
+					$_REQUEST['type'], 'zazz_order' => $_REQUEST['zazz_order']));
+		}
 	}
 	$_zazz_results = _Code::get()->retrieve(array('code', 'type'), array(),
 		array('zazz_id' => $_REQUEST['zazz_id'], 'page_id' => $_REQUEST['page_id']), 'zazz_order');
@@ -55,8 +62,11 @@ if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) &&
 				foreach ($params as $param) {
 					$q->bindValue(':' . $param, $$param);
 				}
-				$r = $q->execute();
-				echo $r;
+				$q->execute();
+				$_ROWS = $q->fetchAll(PDO::FETCH_ASSOC);
+				unset($q);
+				unset($params);
+				//print_r($r);
 				break;
 			case 'php':
 				eval($_zazz_result['code']);

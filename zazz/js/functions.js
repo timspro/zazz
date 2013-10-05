@@ -2,17 +2,17 @@ $(document).ready(function() {
 
 	/*---------------------------------------Foundational Code--------------------------------------*/
 
-/**
- * Centers an object relative to parent div. Useful for centering on a div on screen as long as that
- * div is a direct child of body.
- * @returns {$.fn}
- */
+	/**
+	 * Centers an object relative to parent div. Useful for centering on a div on screen as long as that
+	 * div is a direct child of body.
+	 * @returns {$.fn}
+	 */
 	$.fn.center = function() {
 		this.css("position", "absolute");
 		this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) +
-						$(window).scrollTop()) + "px");
+			$(window).scrollTop()) + "px");
 		this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) +
-						$(window).scrollLeft()) + "px");
+			$(window).scrollLeft()) + "px");
 		return this;
 	};
 
@@ -82,7 +82,7 @@ $(document).ready(function() {
 	});
 
 	/**
-	 * A hekoer function to specify a drag action on an object. All functions take as a parameter a
+	 * A helper function to specify a drag action on an object. All functions take as a parameter a
 	 * Click Event.
 	 * @param {function} start
 	 * @param {function} during
@@ -93,7 +93,7 @@ $(document).ready(function() {
 		var myClass = $(this).attr('class').split(' ')[0];
 		$(this).mousedown(function(e) {
 			//This if statement is to prevent text boxes from being unselectable.
-			if(!$(e.target).is('input')) {
+			if (!$(e.target).is('input')) {
 				var myClass = $(this).attr('class').split(' ')[0];
 				$.fn.drag.condition[myClass] = true;
 				$(document).on('mousemove', $.fn.drag.during[myClass]);
@@ -114,53 +114,55 @@ $(document).ready(function() {
 	$.fn.drag.condition = [];
 	$.fn.drag.during = [];
 
+	/*-------------------------------------FUNCTIONS-----------------------------------------*/
+
 	function updateLayout() {
 		var code = $('.-zazz-content').attr('_zazz-rid', $.row_id).attr('_zazz-gid', $.group_id)
 			.attr('_zazz-eid', $.element_id)[0].outerHTML;
-		$.ajax('/zazz/ajax/layout.php', {
-			data : {
-				page_id: $('#-zazz-page-id').val(),
-				layout: code
-			}
+		$.post('/zazz/ajax/layout.php', {
+			page_id: $('#-zazz-page-id').val(),
+			layout: code
 		});
 	}
-	
-	function updateCode(zazz_id, $block, type) {
-		$.ajax('/zazz/ajax/code.php', {
-			data : {
-				zazz_id: zazz_id,
-				type: type,
-				code: $block.val(),
-				page_id: $('#-zazz-page-id').val(),
-				zazz_order: $block.attr('_zazz-order')
-			},
-			success : function(data) {
-				$('#' + zazz_id).html(data);
-			}
+
+	function updateCode(zazz_id, $block, type, insert) {
+		$.post('/zazz/ajax/code.php', {
+			zazz_id: zazz_id,
+			type: type,
+			code: $block.val(),
+			page_id: $('#-zazz-page-id').val(),
+			zazz_order: $block.attr('_zazz-order'),
+			insert: insert
+		},
+		function(data) {
+			$('#' + zazz_id).html(data);
+			$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function(){
+				addJSCode($(this).val());
+			});
 		});
 	}
-	
+
 	function getBlockType($this) {
 		var type;
-		if($this.hasClass('-zazz-html-code')) {
+		if ($this.hasClass('-zazz-html-code')) {
 			type = 'html';
-		} else if($this.hasClass('-zazz-css-code')) {
+		} else if ($this.hasClass('-zazz-css-code')) {
 			type = 'css';
-		} else if($this.hasClass('-zazz-mysql-code')) {
+		} else if ($this.hasClass('-zazz-mysql-code')) {
 			type = 'mysql';
-		} else if($this.hasClass('-zazz-php-code')) {
+		} else if ($this.hasClass('-zazz-php-code')) {
 			type = 'php';
-		} else if($this.hasClass('-zazz-js-code')) {
-			type = 'js'; 
+		} else if ($this.hasClass('-zazz-js-code')) {
+			type = 'js';
 		}
 		return type;
 	}
-	
+
 	function getZazzID($block) {
 		var classes = $block.attr('class').split(/\s+/);
 		var id;
-		for(var i = 0; i < classes.length; i++) {
-			if(classes[i].indexOf('-zazz-code-block-') >= 0) {
+		for (var i = 0; i < classes.length; i++) {
+			if (classes[i].indexOf('-zazz-code-block-') >= 0) {
 				id = classes[i].substring(17);
 			}
 		}
@@ -174,41 +176,49 @@ $(document).ready(function() {
 
 	function addCSSCode(zazz_id, code) {
 		var id = "-zazz-css-code-" + zazz_id;
-		if($('#' + id).length === 0) {
+		if ($('#' + id).length === 0) {
 			var $style = $('<style></style>').attr("id", id).html(code);
 			$('head').append($style);
-		} else  {
+		} else {
 			$('#' + id).html(code);
 		}
 	}
-	
-	function addJSCode(zazz_id, code) {
+
+	function addJSCode(code) {
+		/*
 		var id = "-zazz-js-code-" + zazz_id;
-		if($('#' + id).length === 0) {
-			var $style = $('<script></script>').attr("id", id).html(code);
-			$('body').append($style);
-		} else  {
-			$('#' + id).html(code);
-		}
+		var script = document.createElement("script");
+		script.id = id;
+		script.type = "text/javascript";
+		script.text = code;
+		document.body.appendChild(script);
+		*/
+		eval(code);
 	}
-	
+
+	$('.-zazz-modal-close').click(function() {
+		$(this).closest('.-zazz-modal').fadeOut(300);
+	});
+
+	/*-----------------------------------------FOCUS CODE------------------------------------------*/
+
 	$(document).on('focus', 'textarea', textareaScroll);
-	$(document).on('blur', '.-zazz-css-code', function(){
+	$(document).on('blur', '.-zazz-css-code', function() {
 		addCSSCode($.last_div.attr("_zazz-id"), $(this).val());
 	});
-	$(document).on('blur', '.-zazz-js-code', function(){
-		addJSCode($.last_div.attr("_zazz-id"), $(this).val());
+	$(document).on('blur', '.-zazz-js-code', function() {
+		//addJSCode($.last_div.attr("_zazz-id"), $(this).val());
 	});
-	$(document).on('blur', '.-zazz-html-code', function(){
+	$(document).on('blur', '.-zazz-html-code', function() {
 		//$('#' + $.last_div.attr('_zazz-id')).html($(this).val());
 	});
-	$(document).on('blur', '.-zazz-code-block', function(){
+	$(document).on('blur', '.-zazz-code-block', function() {
 		var type;
 		var $this = $(this);
 		var type = getBlockType($this);
-		
+
 		var zazz_id = $.last_div.attr('_zazz-id');
-		updateCode(zazz_id, $this, type);
+		updateCode(zazz_id, $this, type, false);
 		updateLayout();
 	});
 
@@ -235,30 +245,30 @@ $(document).ready(function() {
 		$(".-zazz-id-input").val($div.attr('id'));
 		$(".-zazz-class-input").val($div.attr('class'));
 		//Show the correct code boxes.
-		if(typeof $.last_div === "undefined" || $div.attr('_zazz-id') !== $.last_div.attr('_zazz-id')) {
+		if (typeof $.last_div === "undefined" || $div.attr('_zazz-id') !== $.last_div.attr('_zazz-id')) {
 			$(".-zazz-code-block").hide();
 			$(".-zazz-code-block-" + id).fadeIn(300);
 		}
 		$.last_div = $div;
 		return false;
 	});
-	
-	$('.-zazz-modal-close').click(function(){
-		$(this).closest('.-zazz-modal').fadeOut(300);
-	});
 
+	$('#-zazz-background-image').blur(function() {
+		$('.-zazz-content-view').first().css('background-image', 'url(' + $(this).val() + ')');
+	});
+	
 	/*--------------------------------------------Mouse Code----------------------------------------*/
 
 	$(document).mousemove(function(e) {
 		$.mouse_x = e.pageX;
 		$.mouse_y = e.pageY;
 	});
-	
+
 	$('.-zazz-content').mousemove(function(e) {
 		var offset_x = (e.offsetX || e.clientX - $(e.target).offset().left);
 		var offset_y = (e.offsetY || e.clientY - $(e.target).offset().top);
-		$('.-zazz-offset-btn').html('Offset: ( T' + offset_y + ', L' + offset_x + ', B' + 
-			($(e.target).outerHeight() - offset_y) + ', R' 
+		$('.-zazz-offset-btn').html('Offset: ( T' + offset_y + ', L' + offset_x + ', B' +
+			($(e.target).outerHeight() - offset_y) + ', R'
 			+ ($(e.target).outerWidth() - offset_x) + ' )');
 		$('.-zazz-location-btn').html('Location: ( T' + e.pageY + ' , L' + e.pageX + ', B' +
 			($('body').outerHeight() - e.pageY) + ', R' + ($('body').outerWidth() - e.pageX) + ' )');
@@ -268,55 +278,61 @@ $(document).ready(function() {
 		var myPos = $(this).offset();
 		myPos.bottom = $(this).offset().top + $(this).outerHeight();
 		myPos.right = $(this).offset().left + $(this).outerWidth();
+		myPos.left = $(this).offset().left;
 
-		if (myPos.bottom > e.pageY && e.pageY > myPos.bottom - 16 && myPos.right > e.pageX &&
-			e.pageX > myPos.right - 16) {
-			$(this).css({cursor: "e-resize"});
-		} else if (15 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.right > e.pageX && 
+		if (myPos.bottom > e.pageY && e.pageY > myPos.bottom - 15 && myPos.right > e.pageX &&
 			e.pageX > myPos.right - 15) {
+			$(this).css({cursor: "e-resize"});
+		} else if (18 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.left + 18 > e.pageX &&
+			e.pageX > myPos.left) {
 			$(this).css({cursor: "pointer"});
 		} else {
 			$(this).css({cursor: "text"});
 		}
 	}
-	
+
 	function textareaMouseMoveNoRemove(e) {
 		var myPos = $(this).offset();
 		myPos.bottom = $(this).offset().top + $(this).outerHeight();
 		myPos.right = $(this).offset().left + $(this).outerWidth();
 
-		if (myPos.bottom > e.pageY && e.pageY > myPos.bottom - 16 && myPos.right > e.pageX &&
-			e.pageX > myPos.right - 16) {
+		if (myPos.bottom > e.pageY && e.pageY > myPos.bottom - 15 && myPos.right > e.pageX &&
+			e.pageX > myPos.right - 15) {
 			$(this).css({cursor: "e-resize"});
 		} else {
 			$(this).css({cursor: "text"});
 		}
-	}	
-	
+	}
+
 	function textareaClick(e) {
 		var myPos = $(this).offset();
-		myPos.right = $(this).offset().left + $(this).outerWidth();
-		if (30 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.right > e.pageX &&
-			e.pageX > myPos.right - 30) {
+		myPos.left = $(this).offset().left;
+		if (18 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.left + 18 > e.pageX &&
+			e.pageX > myPos.left) {
 			var $block = $(this);
 			var id = getZazzID($block);
-			$.ajax('/zazz/ajax/code.php', {
-				data : {
-					zazz_id: id,
-					type: getBlockType($block),
-					page_id: $('#-zazz-page-id').val(),
-					zazz_order: $block.attr('_zazz-order'),
-					delete: true
-				}
+			$.post('/zazz/ajax/code.php', {
+				zazz_id: id,
+				type: getBlockType($block),
+				page_id: $('#-zazz-page-id').val(),
+				zazz_order: $block.attr('_zazz-order'),
+				delete: true
+			},
+			function(data) {
+				$('#' + id).html(data);
+				$('.-zazz-code-block-' + id).filter('.-zazz-js-code').each(function(){
+					addJSCode($(this).val());
+				});
 			});
 			$(this).remove();
 		}
 	}
 
-	$(".-zazz-code-blocks").on('focus', 'textarea', textareaScroll).on('mousemove', 'textarea', textareaMouseMove)
-		.on('click', 'textarea', textareaClick);
-
-	$(".-zazz-css-code").mousemove(textareaMouseMoveNoRemove);
+	var noCSS = ".-zazz-html-code, .-zazz-php-code, .-zazz-mysql-code, .-zazz-js-code";
+	$(".-zazz-code-blocks").on('focus', noCSS, textareaScroll)
+		.on('mousemove', noCSS, textareaMouseMove)
+		.on('click', noCSS, textareaClick)
+		.on('mousemove', ".-zazz-css-code", textareaMouseMoveNoRemove);
 	//$("textarea").mousemove(textareaMouseMove);
 	//$("textarea").click(textareaClick);
 
@@ -325,7 +341,7 @@ $(document).ready(function() {
 		},
 		function(e) {
 			var offset = 8;
-			if($('.-zazz-divide-navbar').is(":visible")) {
+			if ($('.-zazz-divide-navbar').is(":visible")) {
 				offset = 40;
 			}
 			$(".-zazz-code-area").height(
@@ -347,14 +363,14 @@ $(document).ready(function() {
 	function acrossMouseEnter() {
 		$(".-zazz-horizontal-line-left").show();
 		$(".-zazz-horizontal-line-right").show();
-		$('body').css('cursor','crosshair');
-		$(".-zazz-display").css('display','block');
+		$('body').css('cursor', 'crosshair');
+		$(".-zazz-display").css('display', 'block');
 	}
 
 	function acrossMouseLeave() {
 		$(".-zazz-horizontal-line-left").hide();
 		$(".-zazz-horizontal-line-right").hide();
-		$('body').css('cursor','default');
+		$('body').css('cursor', 'default');
 		$(".-zazz-display").hide();
 	}
 
@@ -367,25 +383,25 @@ $(document).ready(function() {
 	function verticalMouseEnter() {
 		$(".-zazz-vertical-line-top").show();
 		$(".-zazz-vertical-line-bottom").show();
-		$('body').css('cursor','crosshair');
-		$(".-zazz-display").css('display','block');
+		$('body').css('cursor', 'crosshair');
+		$(".-zazz-display").css('display', 'block');
 	}
 
 	function verticalMouseLeave() {
 		$(".-zazz-vertical-line-top").hide();
 		$(".-zazz-vertical-line-bottom").hide();
-		$('body').css('cursor','default');
+		$('body').css('cursor', 'default');
 		$(".-zazz-display").hide();
 	}
-	
+
 	$('.-zazz-id-input').blur(function() {
-		if(typeof $.last_div !== "undefined") {
+		if (typeof $.last_div !== "undefined") {
 			$.last_div.attr("_zazz-id", $(this).val());
 		}
 	});
-	
+
 	$('.-zazz-class-input').blur(function() {
-		if(typeof $.last_div !== "undefined") {
+		if (typeof $.last_div !== "undefined") {
 			$.last_div.attr("class", $(this).val());
 		}
 	});
@@ -400,14 +416,17 @@ $(document).ready(function() {
 	/*------------------------------------------Button Code-----------------------------------------*/
 
 	$('.-zazz-select-btn').register(
-		function(){},
-		function(){},
-		function(){}
+		function() {
+		},
+		function() {
+		},
+		function() {
+		}
 	);
-		
+
 	function createDiv(id, type) {
-		var div = $('<div></div>').addClass(type).attr('tabindex','1').attr("_zazz-id", id)
-			.attr("id", id).attr('_zazz-order','0');
+		var div = $('<div></div>').addClass(type).attr('tabindex', '1').attr("_zazz-id", id)
+			.attr("id", id).attr('_zazz-order', '0');
 		addCSSCodeBlock(id);
 		return div;
 	}
@@ -427,7 +446,7 @@ $(document).ready(function() {
 			$.element_id++;
 			$other_div.insertAfter($div);
 			$div.focus();
-			
+
 			updateLayout();
 		},
 		function() {
@@ -486,7 +505,7 @@ $(document).ready(function() {
 			$row.height(new_height);
 
 			$div.focus();
-			
+
 			updateLayout();
 		},
 		function() {
@@ -520,7 +539,7 @@ $(document).ready(function() {
 					$second_div.parent().children().length === 1 &&
 					$first_div.parent().children().length === 1) {
 					//Remove the second div clicked on and expand the first div.
-					$first_div.parent().css("height", $second_div.parent().outerHeight() + 
+					$first_div.parent().css("height", $second_div.parent().outerHeight() +
 						$first_div.parent().outerHeight());
 					$second_div.parent().remove();
 					//Get the column that contains the row that contains the first div.
@@ -550,7 +569,7 @@ $(document).ready(function() {
 				//Set focus and delete the stored first div.
 				$first_div.focus();
 				delete this.first_div;
-				
+
 				updateLayout();
 			}
 		},
@@ -558,20 +577,25 @@ $(document).ready(function() {
 			$('.-zazz-element').css('cursor', '');
 		}
 	);
-		
-	$('.-zazz-settings-btn').click(function(){
-			$('#-zazz-modal-settings').show().center();
+
+	$('.-zazz-settings-btn').click(function() {
+		$('#-zazz-modal-settings').show().center();
 	});
-	
-	$('.-zazz-project-btn').click(function(){
-			$('#-zazz-modal-project').show().center();
+
+	$('.-zazz-project-btn').click(function() {
+		$('#-zazz-modal-project').show().center();
 	});
-		
+
+	$('.-zazz-view-btn').click(function() {
+		window.location.href = "/zazz/view.php?project=" + $('#-zazz-project-name').val() + '&page=' +
+			$('#-zazz-page-name').val();
+	});
+
 	function addCodeBlock(className, forID) {
 		var $forID = $('#' + forID);
 		var order;
-		if($forID.length === 0) {
-			order = '0'; 
+		if ($forID.length === 0) {
+			order = '0';
 		} else {
 			order = $forID.attr('_zazz-order');
 		}
@@ -581,33 +605,41 @@ $(document).ready(function() {
 		$forID.attr('_zazz-order', parseInt($forID.attr('_zazz-order')) + 1);
 		return $textarea;
 	}
-		
-	$('.-zazz-html-btn').click(function(){
-		var $block = addCodeBlock('-zazz-html-code', $.last_div.attr("_zazz-id"));
+
+	$('.-zazz-html-btn').click(function() {
+		var id = $.last_div.attr("_zazz-id");
+		var $block = addCodeBlock('-zazz-html-code', id);
 		$('.-zazz-code-blocks').append($block);
 		$block.fadeIn(300).focus();
+		updateCode(id, $block, 'html', true);
 	});
-	$('.-zazz-php-btn').click(function(){
-		var $block = addCodeBlock('-zazz-php-code', $.last_div.attr("_zazz-id"));
+	$('.-zazz-php-btn').click(function() {
+		var id = $.last_div.attr("_zazz-id");
+		var $block = addCodeBlock('-zazz-php-code', id);
 		$('.-zazz-code-blocks').append($block);
 		$block.fadeIn(300).focus();
+		updateCode(id, $block, 'php', true);
 	});
-	$('.-zazz-mysql-btn').click(function(){
-		var $block = addCodeBlock('-zazz-mysql-code', $.last_div.attr("_zazz-id"));
+	$('.-zazz-mysql-btn').click(function() {
+		var id = $.last_div.attr("_zazz-id");
+		var $block = addCodeBlock('-zazz-mysql-code');
 		$('.-zazz-code-blocks').append($block);
 		$block.fadeIn(300).focus();
+		updateCode(id, $block, 'mysql', true);
 	});
-	$('.-zazz-js-btn').click(function(){
-		var $block = addCodeBlock('-zazz-js-code', $.last_div.attr("_zazz-id"));
+	$('.-zazz-js-btn').click(function() {
+		var id = $.last_div.attr("_zazz-id");
+		var $block = addCodeBlock('-zazz-js-code');
 		$('.-zazz-code-blocks').append($block);
 		$block.fadeIn(300).focus();
+		updateCode(id, $block, 'js', true);
 	});
 
 	function addCSSCodeBlock(id) {
-			var $block = addCodeBlock('-zazz-css-code', id);
-			$block.val('#' + id + ' {\n\n' + '}');
-			$('.-zazz-code-blocks').append($block);
-			updateCode(id, $block, 'css');
+		var $block = addCodeBlock('-zazz-css-code', id);
+		$block.val('#' + id + ' {\n\n' + '}');
+		$('.-zazz-code-blocks').append($block);
+		updateCode(id, $block, 'css', true);
 	}
 
 	function start() {
@@ -620,16 +652,16 @@ $(document).ready(function() {
 		$.row_id = $content.attr('_zazz-rid');
 		$.group_id = $content.attr('_zazz-gid');
 		$.element_id = $content.attr('_zazz-eid');
-		$('.-zazz-css-code').each(function(){
+		$('.-zazz-css-code').each(function() {
 			var $this = $(this);
-			addCSSCode(getZazzID($this),$this.val());
+			addCSSCode(getZazzID($this), $this.val());
 		});
-		$('.-zazz-js-code').each(function(){
+		$('.-zazz-js-code').each(function() {
 			var $this = $(this);
-			addJSCode(getZazzID($this),$this.val());
+			addJSCode($this.val());
 		});
 	}
-	
+
 	start();
 
 	/*--------------------------------------Keyboard Shortcuts--------------------------------------*/

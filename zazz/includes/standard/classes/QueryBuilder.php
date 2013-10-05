@@ -56,7 +56,7 @@ abstract class QueryBuilder extends Object {
 			}
 		}
 		if(count($goodWhere) > 0) {
-			$options .= ' WHERE 1 ';
+			$options .= ' WHERE 1';
 			$i = 0;
 			foreach($goodWhere as $key => $value) {
 				$options .= ' AND ' . $key . ' = :' . $i;
@@ -86,7 +86,8 @@ abstract class QueryBuilder extends Object {
 			$i++;
 		}
 		$q->execute();
-		return $q->fetchAll(PDO::FETCH_ASSOC);
+		$result = $q->fetchAll(PDO::FETCH_ASSOC);
+		return $result;
 	}
 	
 	/**
@@ -206,7 +207,7 @@ abstract class QueryBuilder extends Object {
 			return;
 		}
 		
-		$options .= ' WHERE 1 ';
+		$options = ' WHERE 1 ';
 		$i = 0;
 		foreach($goodWhere as $key => $value) {
 			$options .= ' AND ' . $key . ' = :' . $i;
