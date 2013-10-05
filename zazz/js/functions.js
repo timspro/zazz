@@ -135,10 +135,11 @@ $(document).ready(function() {
 			insert: insert
 		},
 		function(data) {
-			$('#' + zazz_id).html(data);
+			$('.-zazz-element[_zazz-id="' + zazz_id + '"]').html(data);
 			$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function(){
 				addJSCode($(this).val());
 			});
+			updateLayout();
 		});
 	}
 
@@ -202,6 +203,14 @@ $(document).ready(function() {
 
 	/*-----------------------------------------FOCUS CODE------------------------------------------*/
 
+	$('.-zazz-code-block').on('input propertychange', function() {
+		$.changed = true;
+	}).on('keypress', function(e) {
+		if (e.keyCode === 8 || e.which === 8 || e.keyCode === 46 || e.which === 46) {
+			$.changed = true;
+		}
+	});
+
 	$(document).on('focus', 'textarea', textareaScroll);
 	$(document).on('blur', '.-zazz-css-code', function() {
 		addCSSCode($.last_div.attr("_zazz-id"), $(this).val());
@@ -218,13 +227,15 @@ $(document).ready(function() {
 		var type = getBlockType($this);
 
 		var zazz_id = $.last_div.attr('_zazz-id');
-		updateCode(zazz_id, $this, type, false);
-		updateLayout();
+		if($.changed) {
+			updateCode(zazz_id, $this, type, false);
+			$.changed = false;
+		}
 	});
 
 
 	//The callback for when the focus is changed among divs.
-	$(document).on('focus', '.-zazz-content, .-zazz-row-group, .-zazz-row, .-zazz-element', function() {
+	$(document).on('focus', '.-zazz-element', function() {
 		var $div = $(this);
 		//Set up the outline. Unfortunately, this is the best way to do this so that children elements
 		//aren't moved.
@@ -243,7 +254,7 @@ $(document).ready(function() {
 		var id = $div.attr('_zazz-id');
 		//Change the ID and class text boxes.
 		$(".-zazz-id-input").val($div.attr('id'));
-		$(".-zazz-class-input").val($div.attr('class'));
+		$(".-zazz-class-input").val($div.attr('class').replace('-zazz-element', ''));
 		//Show the correct code boxes.
 		if (typeof $.last_div === "undefined" || $div.attr('_zazz-id') !== $.last_div.attr('_zazz-id')) {
 			$(".-zazz-code-block").hide();
@@ -323,6 +334,7 @@ $(document).ready(function() {
 				$('.-zazz-code-block-' + id).filter('.-zazz-js-code').each(function(){
 					addJSCode($(this).val());
 				});
+				updateLayout();
 			});
 			$(this).remove();
 		}
@@ -396,13 +408,13 @@ $(document).ready(function() {
 
 	$('.-zazz-id-input').blur(function() {
 		if (typeof $.last_div !== "undefined") {
-			$.last_div.attr("_zazz-id", $(this).val());
+			$.last_div.attr("id", $(this).val());
 		}
 	});
 
 	$('.-zazz-class-input').blur(function() {
 		if (typeof $.last_div !== "undefined") {
-			$.last_div.attr("class", $(this).val());
+			$.last_div.attr("class", $(this).val() + ' -zazz-element');
 		}
 	});
 
@@ -425,9 +437,11 @@ $(document).ready(function() {
 	);
 
 	function createDiv(id, type) {
-		var div = $('<div></div>').addClass(type).attr('tabindex', '1').attr("_zazz-id", id)
-			.attr("id", id).attr('_zazz-order', '0');
-		addCSSCodeBlock(id);
+		var div = $('<div></div>').addClass(type).attr("id", id);
+		if(type === "-zazz-element") {
+			div.attr('tabindex', '1').attr('_zazz-order', '1').attr("_zazz-id", id);
+			addCSSCodeBlock(id);
+		}
 		return div;
 	}
 
@@ -478,10 +492,10 @@ $(document).ready(function() {
 				//Otherwise we need to create a new row group and insert it where the div was with the right
 				//width. This also requires creating a new row to place the div into and placing that row 
 				//into the row group.
-				$.group_id++;
-				$.row_id++;
 				$row_group = createDiv('row-group-' + $.group_id, '-zazz-row-group').width(width);
 				$row = createDiv('row-' + $.row_id, '-zazz-row');
+				$.group_id++;
+				$.row_id++;
 				$row_group.append($row);
 				$row_group.insertAfter($div);
 				$row.append($div);
@@ -490,10 +504,10 @@ $(document).ready(function() {
 			}
 
 			//Make a new row and insert the new row into the row group.
+			$other_row = createDiv('row-' + $.row_id, '-zazz-row');
+			$other_row.append(createDiv('element-' + $.element_id, '-zazz-element'));
 			$.row_id++;
 			$.element_id++;
-			$other_row = createDiv('row-' + $.row_id, '-zazz-row');
-			$other_row.append(createDiv('element-' + $.row_id, '-zazz-element'));
 			$other_row.insertAfter($row);
 
 			//Now we need to fix the heights of the divs by splitting across the point that was clicked.
@@ -592,7 +606,7 @@ $(document).ready(function() {
 	});
 
 	function addCodeBlock(className, forID) {
-		var $forID = $('#' + forID);
+		var $forID = $('.-zazz-element[_zazz-id="' + forID + '"]');
 		var order;
 		if ($forID.length === 0) {
 			order = '0';
@@ -606,33 +620,25 @@ $(document).ready(function() {
 		return $textarea;
 	}
 
-	$('.-zazz-html-btn').click(function() {
+	function addCodeButton(type) {
 		var id = $.last_div.attr("_zazz-id");
-		var $block = addCodeBlock('-zazz-html-code', id);
+		var $block = addCodeBlock('-zazz-' + type + '-code', id);
 		$('.-zazz-code-blocks').append($block);
 		$block.fadeIn(300).focus();
-		updateCode(id, $block, 'html', true);
+		updateCode(id, $block, type, true);
+	}
+
+	$('.-zazz-html-btn').click(function() {
+		addCodeButton('html');
 	});
 	$('.-zazz-php-btn').click(function() {
-		var id = $.last_div.attr("_zazz-id");
-		var $block = addCodeBlock('-zazz-php-code', id);
-		$('.-zazz-code-blocks').append($block);
-		$block.fadeIn(300).focus();
-		updateCode(id, $block, 'php', true);
+		addCodeButton('php');
 	});
 	$('.-zazz-mysql-btn').click(function() {
-		var id = $.last_div.attr("_zazz-id");
-		var $block = addCodeBlock('-zazz-mysql-code');
-		$('.-zazz-code-blocks').append($block);
-		$block.fadeIn(300).focus();
-		updateCode(id, $block, 'mysql', true);
+		addCodeButton('mysql');
 	});
 	$('.-zazz-js-btn').click(function() {
-		var id = $.last_div.attr("_zazz-id");
-		var $block = addCodeBlock('-zazz-js-code');
-		$('.-zazz-code-blocks').append($block);
-		$block.fadeIn(300).focus();
-		updateCode(id, $block, 'js', true);
+		addCodeButton('js');
 	});
 
 	function addCSSCodeBlock(id) {

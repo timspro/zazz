@@ -51,7 +51,10 @@ abstract class QueryBuilder extends Object {
 				}
 				$joinColumn = $element->getColumn();
 				$joinTable = $element->getTable();
-				$options .= $joinTable . ' ON ' . $joinTable . '.' . $joinColumn . '=' . $table . '.' .
+				$joinTableColumns = $element->getTableColumns();
+				$goodData = array_merge($goodData, array_intersect_key($data, $joinTableColumns));
+				$goodWhere = array_merge($goodWhere, array_intersect_key($where, $joinTableColumns));
+				$options .= $joinTable . ' ON ' . $joinTable . '.' . $joinColumn . ' = ' . $table . '.' .
 					$joinColumn . ' ';  
 			}
 		}

@@ -72,7 +72,7 @@ class Logger extends Object {
 				$query = CustomPDO::getLastQuery();
 				$errstr = "Query:\n" . $query . "\nError:\n" . $errstr;
 				if(defined('DEVELOPER')) {
-					echo '<div style="background-color:#E01B1B;border: 1px solid black;padding:5px"> Query: ' . 
+					echo '<div style="background-color:#f57900;border: 1px solid black;padding:5px"> Query: ' . 
 							$query . '</div>';
 				}
 			}

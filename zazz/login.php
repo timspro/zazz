@@ -24,21 +24,24 @@ function createUser($auth) {
 	_User::get()->update(array('active_project' => $id), array('user_id' => $user_id));
 	_Code::get()->create(array('zazz_id' => 'element-0', 'page_id' => $page_id, 'type' => 'css',
 		'code' => "#element-0 {\n\n}", 'zazz_order' => '0'));
+	/*
 	_Code::get()->create(array('zazz_id' => 'row-0', 'page_id' => $page_id, 'type' => 'css',
 		'code' => "#row-0 {\n\n}", 'zazz_order' => '0'));
 	_Code::get()->create(array('zazz_id' => 'row-group-0', 'page_id' => $page_id, 'type' => 'css',
 		'code' => "#row-group-0 {\n\n}", 'zazz_order' => '0'));
+	 *
+	 */
 	ob_start();
 	?>
-	<div id="content" _zazz-order="0" tabindex="1" class="-zazz-content" _zazz-id="content" 
+	<div id="content" class="-zazz-content"
 			 _zazz-rid='1' _zazz-gid='1' _zazz-eid='1'><div 
 			class="-zazz-outline-right -zazz-outline"> </div><div 
 			class="-zazz-outline-top -zazz-outline"> </div><div 
 			class="-zazz-outline-bottom -zazz-outline"> </div><div 
 			class="-zazz-outline-left -zazz-outline"> </div><div 
-			id="row-group-0" _zazz-order="0" tabindex="1" class="-zazz-row-group" _zazz-id="row-group-0"><div 
-				id="row-0" _zazz-order="0" tabindex="1" class="-zazz-row" _zazz-id="row-0"><div 
-					id="element-0" _zazz-order="0" tabindex="1" class="-zazz-element" _zazz-id="element-0"></div
+			id="row-group-0" class="-zazz-row-group"><div 
+				id="row-0" class="-zazz-row"><div 
+					id="element-0" _zazz-order="1" tabindex="1" class="-zazz-element" _zazz-id="element-0"></div
 				></div
 			></div
 		></div>
