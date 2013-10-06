@@ -23,7 +23,8 @@ if (!isset($_GET['page'])) {
 }
 $page = $_GET['page'];
 
-$page_id = getPageID($project, $page);
+$page_info = getPageInformation($project, $page);
+$page_id = $page_info['page_id'];
 if (empty($page_id)) {
 	$project = _Project::get()->retrieve('project', array(),
 		array('project_id' =>
@@ -155,6 +156,16 @@ foreach ($blocks as $block) {
 foreach ($html->find('.-zazz-outline') as $outline) {
 	$outline->outertext = "";
 }
+
+foreach ($html->find('.-zazz-element') as $outline) {
+	$outline->setAttribute('_zazz-id', null);
+	$outline->setAttribute('_zazz-order', null);
+}
+
+$content = $html->find('#content', 0);
+$content->setAttribute('_zazz-rid', null);
+$content->setAttribute('_zazz-gid', null);
+$content->setAttribute('_zazz-eid', null);
 
 $js .= "});";
 mkdir($filename . 'js/');

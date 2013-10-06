@@ -35,7 +35,8 @@ if (!isset($_GET['page'])) {
 }
 $page = $_GET['page'];
 
-$page_id = getPageID($project, $page);
+$page_info = getPageInformation($project, $page);
+$page_id = $page_info['page_id'];
 ?>
 
 <!DOCTYPE html>
@@ -50,7 +51,7 @@ $page_id = getPageID($project, $page);
 			</div>
 		</div>
 		<div id="-zazz-modal-settings" class="-zazz-modal">
-			<div class="-zazz-modal-header">Settings</div>
+			<div class="-zazz-modal-header">Page</div>
 			<div class="-zazz-modal-body">
 				<table>
 					<tr>
@@ -59,7 +60,8 @@ $page_id = getPageID($project, $page);
 					</tr>
 					<tr>
 						<td>Background Image: </td>
-						<td><input id="-zazz-background-image" type="text" /></td>						
+						<td><input id="-zazz-background-image" type="text" 
+											 value="<?= $page_info['background_image'] ?>" /></td>						
 					</tr>
 				</table>
 			</div>

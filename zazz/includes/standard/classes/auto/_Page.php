@@ -32,6 +32,15 @@ array (
     'Default' => NULL,
     'Extra' => '',
   ),
+  'background_image' => 
+  array (
+    'Field' => 'background_image',
+    'Type' => 'varchar(50)',
+    'Null' => 'YES',
+    'Key' => '',
+    'Default' => NULL,
+    'Extra' => '',
+  ),
 ); 
 }
 }

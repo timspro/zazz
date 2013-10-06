@@ -203,7 +203,7 @@ $(document).ready(function() {
 
 	/*-----------------------------------------FOCUS CODE------------------------------------------*/
 
-	$('.-zazz-code-block').on('input propertychange', function() {
+	$(document).on('input propertychange', '.-zazz-code-block', function() {
 		$.changed = true;
 	}).on('keypress', function(e) {
 		if (e.keyCode === 8 || e.which === 8 || e.keyCode === 46 || e.which === 46) {
@@ -264,8 +264,43 @@ $(document).ready(function() {
 		return false;
 	});
 
+	function updatePageInfo(redirect) {
+		var page = $('#-zazz-page-name').val();
+		$.post('/zazz/ajax/page.php',{
+			page: page,
+			background_image: $('#-zazz-background-image').val(),
+			page_id: $('#-zazz-page-id').val()
+		}, function() {
+			if(redirect) {
+				window.location.replace('/zazz/build/' +  $('#-zazz-project-name').val() + '/' + page);
+			}
+		});
+	}
+	
+	function updateProjectInfo(redirect) {
+		var project = $('#-zazz-project-name').val();
+		$.post('/zazz/ajax/project.php',{
+			project: project,
+			page_id: $('#-zazz-page-id').val()		
+		}, function() {
+			if(redirect) {
+				window.location.replace('/zazz/build/' + project + '/' + $('#-zazz-page-name').val());
+			}
+		});
+	}
+
+	$('#-zazz-project-name').blur(function() {
+		updateProjectInfo(true);
+	});	
+	
+	$('#-zazz-page-name').blur(function() {
+		updatePageInfo(true);
+	});	
+	
 	$('#-zazz-background-image').blur(function() {
 		$('.-zazz-content-view').first().css('background-image', 'url(' + $(this).val() + ')');
+		updateLayout();
+		updatePageInfo(false);
 	});
 	
 	/*--------------------------------------------Mouse Code----------------------------------------*/
@@ -666,6 +701,9 @@ $(document).ready(function() {
 			var $this = $(this);
 			addJSCode($this.val());
 		});
+		
+		$('.-zazz-content-view').first().css('background-image', 
+			'url(' + $('#-zazz-background-image').val() + ')');
 	}
 
 	start();

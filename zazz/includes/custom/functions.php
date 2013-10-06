@@ -11,12 +11,12 @@ function getLayout($page_id) {
 	return $result[0]['layout'];
 }
 
-function getPageID($project, $page) {
+function getPageInformation($project, $page) {
 	$user_id = Authenticate::get()->getUser('user_id');
-	$id = _Page::get()->retrieve('page_id', new Join('project_id', _Project::get()),
+	$id = _Page::get()->retrieve(array(), new Join('project_id', _Project::get()),
 		array('project' => $project, 'page' => $page, 'user_id' => $user_id));
 	if (count($id) === 1) {
-		return $id[0]['page_id'];
+		return $id[0];
 	}
 	return null;
 }

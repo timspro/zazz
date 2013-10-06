@@ -93,7 +93,7 @@ body {
 }
 
 .-zazz-modal-header {
-	background-color: #202020;
+	background-color: #303030;
 	color: white;
 	font-family: arial;
 	font-size: 20px;
@@ -144,7 +144,7 @@ body {
 }
 
 .-zazz-navbar {
-	background-color: #202020;
+	background-color: #303030;
 	color: #ffffff;
 	height: 35px;
 	-moz-user-select: none;
