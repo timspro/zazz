@@ -27,6 +27,7 @@ class Authenticate extends Object {
 	const ACTIVE_FIELD = 'active';
 	const FIRST_NAME_FIELD = 'first_name';
 	const LAST_NAME_FIELD = 'last_name';
+	const OTHER_ID = 'active_project';
 	const MAX_LOGIN_COUNT = 10;
 	const COOKIE_LIFETIME = 88600;
 	const REDIRECT = '/zazz/login.php';
@@ -264,7 +265,9 @@ class Authenticate extends Object {
 				self::LAST_NAME_FIELD . ' VARCHAR(60), ' .
 				self::LAST_LOGIN_FIELD . ' TIMESTAMP DEFAULT CURRENT_TIMESTAMP, ' .
 				self::LOGIN_ERROR_FIELD . ' INT, ' .
-				self::ACTIVE_FIELD . ' BIT DEFAULT 0 );
+				self::ACTIVE_FIELD . ' BIT DEFAULT 0, ' .
+				self::OTHER_ID . ' INT
+				);
 				CREATE UNIQUE INDEX USERNAME ON ' . PREFIX . self::USERS_TABLE . 
 					' (' . self::USERNAME_FIELD . ');');
 		$q->execute();

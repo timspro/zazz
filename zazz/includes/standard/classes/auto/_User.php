@@ -95,6 +95,15 @@ array (
     'Default' => 'b\'0\'',
     'Extra' => '',
   ),
+  'active_project' => 
+  array (
+    'Field' => 'active_project',
+    'Type' => 'int(11)',
+    'Null' => 'YES',
+    'Key' => '',
+    'Default' => NULL,
+    'Extra' => '',
+  ),
 ); 
 }
 }
