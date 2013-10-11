@@ -188,6 +188,7 @@ file_put_contents($filename . $page, $php);
 
 
 if(isset($_GET['deploy'])) {
+	deleteFilesIn(dirname(__FILE__) . '/../', array('zazz', 'nbproject', '.git', '.gitignore'));
 	recursiveCopy(dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/', 
 		 dirname(__FILE__) . '/../');
 	header('Location: /' . $page);
