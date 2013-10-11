@@ -2,7 +2,7 @@
 
 function getCodeBlocks($page_id) {
 	$rows = _Code::get()->retrieve(array('zazz_id', 'code', 'type', 'zazz_order'), array(),
-		array('page_id' => $page_id),'zazz_order');
+		array('page_id' => $page_id), 'zazz_order');
 	foreach ($rows as $row) {
 		echo '<textarea class="-zazz-code-block -zazz-' . $row["type"] . '-code 
 							-zazz-code-block-' . $row['zazz_id'] . '" 
@@ -50,6 +50,14 @@ $page_id = $page_info['page_id'];
 				<input type="button" class="-zazz-modal-close" value="Close" />
 			</div>
 		</div>
+		<div id="-zazz-modal-confirm" class="-zazz-modal">
+			<div id='-zazz-modal-confirm-header' class="-zazz-modal-header">Confirm</div>
+			<div id='-zazz-modal-confirm-message' class="-zazz-modal-body">Are you sure you want to do this?</div>
+			<div class="-zazz-modal-footer">
+				<input type="button" class="-zazz-modal-close" value="Cancel" />
+				<input type="button" id="-zazz-modal-confirm-button" value="Continue" />
+			</div>
+		</div>
 		<div id="-zazz-modal-settings" class="-zazz-modal">
 			<div class="-zazz-modal-header">Page</div>
 			<div class="-zazz-modal-body">
@@ -81,6 +89,8 @@ $page_id = $page_info['page_id'];
 			</div>
 			<div class="-zazz-modal-footer">
 				<input type="button" class="-zazz-modal-close" value="Close" />
+				<input type="button" class="-zazz-deploy" value="Deploy" />
+				<input type="button" class="-zazz-switch" value="Switch" />
 			</div>
 		</div>
 		<div class="-zazz-horizontal-line-left -zazz-line"> </div>

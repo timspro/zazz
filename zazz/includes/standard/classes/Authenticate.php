@@ -27,7 +27,9 @@ class Authenticate extends Object {
 	const ACTIVE_FIELD = 'active';
 	const FIRST_NAME_FIELD = 'first_name';
 	const LAST_NAME_FIELD = 'last_name';
+	
 	const OTHER_ID = 'active_project';
+	
 	const MAX_LOGIN_COUNT = 10;
 	const COOKIE_LIFETIME = 88600;
 	const REDIRECT = '/zazz/login.php';

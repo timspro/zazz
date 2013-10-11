@@ -1,1 +1,3 @@
-/zazz/view/*
+*
+!zazz*
+zazz/view*

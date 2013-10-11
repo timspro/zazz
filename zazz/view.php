@@ -185,5 +185,13 @@ $php .= $html->save() . '
 
 file_put_contents($filename . $page, $php);
 
-header('Location: /zazz/view/' . $user_id . '/' . $project . '/' . $page);
+
+
+if(isset($_GET['deploy'])) {
+	recursiveCopy(dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/', 
+		 dirname(__FILE__) . '/../');
+	header('Location: /' . $page);
+} else {
+	header('Location: /zazz/view/' . $user_id . '/' . $project . '/' . $page);
+}
 ?>

@@ -1,6 +1,4 @@
 <?php
-
-
 require_once dirname(__FILE__) . '/../standard/classes/auto/_Layout.php';
 require_once dirname(__FILE__) . '/../standard/classes/auto/_Project.php';
 require_once dirname(__FILE__) . '/../standard/classes/auto/_Code.php';
@@ -21,15 +19,29 @@ function getPageInformation($project, $page) {
 	return null;
 }
 
-function deleteFilesIn($folder) {
+function deleteFilesIn($folder, $exclude = '') {
 	foreach (new DirectoryIterator($folder) as $item) {
-		if (!$item->isDot()) {
+		if (!$item->isDot() && $item->getFilename() !== $exclude) {
 			if ($item->isDir()) {
 				deleteFilesIn($folder . $item->getFilename() . '/');
 				rmdir($folder . $item->getFilename());
 			} else {
 				unlink($folder . $item->getFilename());
 			}
+		}
+	}
+}
+
+function recursiveCopy($source, $dest) {
+	foreach (
+	$iterator = new RecursiveIteratorIterator(
+	new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS),
+	RecursiveIteratorIterator::SELF_FIRST) as $item
+	) {
+		if ($item->isDir()) {
+			mkdir($dest . DIRECTORY_SEPARATOR . $iterator->getSubPathName());
+		} else {
+			copy($item, $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathName());
 		}
 	}
 }

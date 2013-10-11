@@ -135,6 +135,10 @@ body {
 	background-color: #cfcfcf;
 }
 
+#-zazz-modal-confirm {
+	z-index: 100;
+}
+
 /*------------------------------------------NAVBAR------------------------------------------------*/
 
 .-zazz-navbar input {
