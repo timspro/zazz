@@ -9,45 +9,11 @@ if ($auth->loggedIn()) {
 	header('Location: ' . $valid);
 }
 
-function createUser($auth) {
-	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Project.php';
-	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Page.php';
-	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_User.php';
-	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Code.php';
-	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Layout.php';
+function createFirstProject($user_id) {
+	require_once dirname(__FILE__) . '/includes/custom/functions.php';
 
 	$firstProject = 'project-1';
-	$firstPage = 'index.php';
-	$user_id = $auth->getUser('user_id');
-	$id = _Project::get()->create(array('project' => $firstProject, 'user_id' => $user_id));
-	$page_id = _Page::get()->create(array('page' => $firstPage, 'project_id' => $id));
-	_User::get()->update(array('active_project' => $id), array('user_id' => $user_id));
-	_Code::get()->create(array('zazz_id' => 'element-0', 'page_id' => $page_id, 'type' => 'css',
-		'code' => "#element-0 {\n\n}", 'zazz_order' => '0'));
-	/*
-	_Code::get()->create(array('zazz_id' => 'row-0', 'page_id' => $page_id, 'type' => 'css',
-		'code' => "#row-0 {\n\n}", 'zazz_order' => '0'));
-	_Code::get()->create(array('zazz_id' => 'row-group-0', 'page_id' => $page_id, 'type' => 'css',
-		'code' => "#row-group-0 {\n\n}", 'zazz_order' => '0'));
-	 *
-	 */
-	ob_start();
-	?>
-	<div id="content" class="-zazz-content"
-			 _zazz-rid='1' _zazz-gid='1' _zazz-eid='1'><div 
-			class="-zazz-outline-right -zazz-outline"> </div><div 
-			class="-zazz-outline-top -zazz-outline"> </div><div 
-			class="-zazz-outline-bottom -zazz-outline"> </div><div 
-			class="-zazz-outline-left -zazz-outline"> </div><div 
-			id="row-group-0" class="-zazz-row-group"><div 
-				id="row-0" class="-zazz-row"><div 
-					id="element-0" _zazz-order="1" tabindex="1" class="-zazz-element" _zazz-id="element-0"></div
-				></div
-			></div
-		></div>
-	<?php
-	$layout = ob_get_flush();
-	_Layout::get()->create(array('page_id' => $page_id, 'layout' => $layout));
+	createProject($firstProject, $user_id);
 }
 
 $error = '';
@@ -67,7 +33,7 @@ if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 		} else {
 			$success = $auth->create(array('username' => $username, 'password' => $password));
 			if ($success && $auth->login($username, $password)) {
-				createUser($auth);
+				createFirstProject(Authenticate::getUser('user_id'));
 				header('Location: ' . $valid);
 			} else {
 				$error = $auth->getError();

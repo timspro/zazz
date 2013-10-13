@@ -88,6 +88,14 @@ body {
 	box-shadow: 0px 0px 20px white;
 }
 
+.-zazz-modal .-zazz-links a:link, .-zazz-modal .-zazz-links a:visited {
+	color: white;
+}
+
+.-zazz-modal .-zazz-links a:hover {
+	color: #bfbfbf;
+}
+
 .-zazz-modal table {
 	width: 100%;
 }
@@ -150,7 +158,10 @@ body {
 .-zazz-navbar {
 	background-color: #303030;
 	color: #ffffff;
-	height: 35px;
+	height: 37px;
+	border-style: solid;
+	border-color: black;
+	border-width: 1px 0px;
 	-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
@@ -217,7 +228,7 @@ body {
 	position: absolute;
 	left: 0px;
 	right: 0px;
-	top: 35px;
+	top: 37px;
 	bottom: 0px;
 	overflow-y: auto;
 	background-color: #6699ff;
@@ -332,6 +343,7 @@ body, html {
 	background-position: 0% 0%;
 	background-repeat: no-repeat;
 	display: none;
+	font-family: 'courier';
 }
 
 .-zazz-html-btn {
@@ -400,4 +412,17 @@ body, html {
 	top: 0px;
 	left: 280px;
 	right: 280px;
+}
+
+.-zazz-dropdown {
+	display: none;
+	position: absolute;
+	background-color: #303030;
+	border: black 1px solid;
+	width: 70px;
+	height: auto;
+	display: none;
+	z-index: 50;
+	text-align: center;
+	color: white;
 }

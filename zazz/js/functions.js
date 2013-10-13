@@ -1,3 +1,7 @@
+function trim(string) {
+	return string.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+}
+
 $(document).ready(function() {
 
 	/*---------------------------------------Foundational Code--------------------------------------*/
@@ -206,16 +210,6 @@ $(document).ready(function() {
 
 	$('.-zazz-modal-close').click(function() {
 		$(this).closest('.-zazz-modal').fadeOut(300);
-	});
-
-	$('.-zazz-deploy').click(function() {
-		confirm('Are you sure?', 'By deploying this project, you will make it publicly visible at the ' +
-			'root URL.',
-			function() {
-				window.location.href = "/zazz/view.php?project=" + $('#-zazz-project-name').val() + '&page=' +
-					$('#-zazz-page-name').val() + '&deploy=true';
-			}
-		);
 	});
 
 	/*-----------------------------------------FOCUS CODE------------------------------------------*/
@@ -644,12 +638,96 @@ $(document).ready(function() {
 		}
 	);
 
-	$('.-zazz-settings-btn').click(function() {
+	$('#-zazz-edit-page-btn').click(function() {
 		$('#-zazz-modal-settings').show().center();
 	});
 
 	$('.-zazz-project-btn').click(function() {
-		$('#-zazz-modal-project').show().center();
+		var pos = $(this).offset();
+		$('#-zazz-dropdown-project').show().css('top', pos.top + $(this).outerHeight())
+			.css('left', pos.left);
+	}).blur(function() {
+		setTimeout(function() {
+			if (document.activeElement.id === '-zazz-edit-project-btn') {
+				$('#-zazz-modal-project').show().center();
+			} else if (document.activeElement.id === '-zazz-new-project-btn') {
+				$('#-zazz-modal-new-project').show().center();
+			} else if (document.activeElement.id === '-zazz-switch-project-btn') {
+				$('#-zazz-modal-view-projects').show().center();
+			} else if (document.activeElement.id === '-zazz-deploy-project-btn') {
+				confirm('Are you sure?', 'By deploying this project, you will make it publicly visible at the ' +
+					'root URL.',
+					function() {
+						window.location.href = "/zazz/view.php?project=" + $('#-zazz-project-name').val() + '&page=' +
+							$('#-zazz-page-name').val() + '&deploy=true';
+					}
+				);
+			} else if (document.activeElement.id === '-zazz-delete-project-btn') {
+				confirm('Are you sure?','By deleting this project, you will remove all code and pages.',
+				function(){
+					$.post('/zazz/ajax/project.php', {
+						page_id: $('#-zazz-page-id').val(),
+						delete: 'true'
+					}, function(){
+						window.location.href = "/zazz/index.php";
+					});
+				});
+			}
+			$('#-zazz-dropdown-project').hide();
+		}, 1);
+	});
+
+	$('#-zazz-make-new-project').click(function() {
+		$.post('/zazz/ajax/project.php', {
+			create: $('#-zazz-new-project-name').val()
+		}, function(data) {
+			if(trim(data) !== "") {
+				$('#-zazz-modal-new-project .-zazz-modal-message').html(data);
+			} else {
+				window.location.href = "/zazz/build/" + $('#-zazz-new-project-name').val() + "/";
+			}
+		});
+	});
+
+	$('.-zazz-page-btn').click(function() {
+		var pos = $(this).offset();
+		$('#-zazz-dropdown-page').show().css('top', pos.top + $(this).outerHeight())
+			.css('left', pos.left);
+	}).blur(function() {
+		setTimeout(function() {
+			if (document.activeElement.id === '-zazz-edit-page-btn') {
+				$('#-zazz-modal-settings').show().center();
+			} else if (document.activeElement.id === '-zazz-new-page-btn') {
+				$('#-zazz-modal-new-page').show().center();
+			} else if (document.activeElement.id === '-zazz-switch-page-btn') {
+				$('#-zazz-modal-view-pages').show().center();
+			} else if (document.activeElement.id === '-zazz-delete-page-btn') {
+				confirm('Are you sure?','By deleting this page, you will remove all code.',
+				function(){
+					$.post('/zazz/ajax/page.php', {
+						page_id: $('#-zazz-page-id').val(),
+						delete: 'true'
+					}, function() {
+						window.location.href = "/zazz/index.php";
+					});
+				});
+			}
+			$('#-zazz-dropdown-page').hide();
+		}, 1);
+	});
+	
+	$('#-zazz-make-new-page').click(function() {
+		$.post('/zazz/ajax/page.php', {
+			page_id: $('#-zazz-page-id').val(),
+			create: $('#-zazz-new-page-name').val()
+		}, function(data) {
+			if(trim(data) !== "") {
+				$('#-zazz-modal-new-page .-zazz-modal-message').html(data);
+			} else {
+				window.location.href = "/zazz/build/" + $('#-zazz-project-name').val() +
+					'/' + $('#-zazz-new-page-name').val();
+			}
+		});
 	});
 
 	$('.-zazz-view-btn').click(function() {

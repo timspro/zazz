@@ -19,23 +19,38 @@ require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Layout.php';
 require_once dirname(__FILE__) . '/includes/custom/functions.php';
 
 Authenticate::get()->check();
+$user_id = Authenticate::get()->getUser('user_id');
 
-if (!isset($_GET['project'])) {
+if (!isset($_GET['project']) || empty($_GET['project'])) {
 	$project = _Project::get()->retrieve('project', array(),
 		array('project_id' =>
 		Authenticate::get()->getUser('active_project')));
-	header('Location: /zazz/build/' . $project[0]['project'] . '/index.php');
+	header('Location: /zazz/build/' . $project[0]['project'] . '/');
 	return;
 }
 $project = $_GET['project'];
+$project_id = _Project::get()->retrieve(array('project_id', 'default_page'), 
+	array(), array('project' => $project));
+$default_page_id = $project_id[0]['default_page'];
+$project_id = $project_id[0]['project_id'];
+$default_page = _Page::get()->retrieve('page', array(), array('page_id' => $default_page_id));
+$default_page = $default_page[0]['page'];
+_User::get()->update(array('active_project' => $project_id), array('user_id' => $user_id));
 
-if (!isset($_GET['page'])) {
-	header('Location: /zazz/build/' . $project . '/index.php');
+if (!isset($_GET['page']) || empty($_GET['page'])) {
+	header('Location: /zazz/build/' . $project . '/' . $default_page);
 	return;
 }
 $page = $_GET['page'];
 
 $page_info = getPageInformation($project, $page);
+if(empty($page_info)) {
+	$project = _Project::get()->retrieve('project', array(),
+		array('project_id' =>
+		Authenticate::get()->getUser('active_project')));
+	header('Location: /zazz/build/' . $project[0]['project'] . '/');
+	return;
+}
 $page_id = $page_info['page_id'];
 ?>
 
@@ -77,20 +92,108 @@ $page_id = $page_info['page_id'];
 				<input type="button" class="-zazz-modal-close" value="Close" />
 			</div>
 		</div>
+		<div id="-zazz-dropdown-project" class="-zazz-dropdown">
+			<span tabindex="3" id="-zazz-edit-project-btn" class="-zazz-btn">Edit</span
+			><span tabindex="3" id="-zazz-new-project-btn" class="-zazz-btn">New</span
+			><span tabindex="3" id="-zazz-switch-project-btn" class="-zazz-btn">Switch</span
+			><span tabindex="3" id="-zazz-deploy-project-btn" class="-zazz-btn">Deploy</span
+			><span tabindex="3" id="-zazz-delete-project-btn" class="-zazz-btn">Delete</span
+			>
+		</div>
+		<div id="-zazz-dropdown-page" class="-zazz-dropdown">
+			<span tabindex="3" id="-zazz-edit-page-btn" class="-zazz-btn">Edit</span
+			><span tabindex="3" id="-zazz-new-page-btn" class="-zazz-btn">New</span
+			><span tabindex="3" id="-zazz-switch-page-btn" class="-zazz-btn">Switch</span
+			><span tabindex="3" id="-zazz-delete-page-btn" class="-zazz-btn">Delete</span
+			>
+		</div>
+		<div id="-zazz-modal-view-projects" class="-zazz-modal">
+			<div class="-zazz-modal-header">All Projects</div>
+			<div class="-zazz-modal-body">
+				<table class="-zazz-links">
+					<?php
+					$viewProjects = _Project::get()->retrieve(array('project'), array(), array('user_id', $user_id));
+					foreach ($viewProjects as $viewProject) {
+						echo '<tr><td><a href="/zazz/build/' . $viewProject['project'] . '/">'
+						. $viewProject['project'] . '</a></tr></td>' . "\n";
+					}
+					?>
+				</table>
+			</div>
+			<div class="-zazz-modal-footer">
+				<input type="button" class="-zazz-modal-close" value="Close" />
+			</div>
+		</div>
+		<div id="-zazz-modal-view-pages" class="-zazz-modal">
+			<div class="-zazz-modal-header">All Pages</div>
+			<div class="-zazz-modal-body">
+				<table class="-zazz-links">
+					<?php
+					$viewPages = _Page::get()->retrieve(array('Page'), new Join('project_id', _Project::get()),
+						array('project' => $project, 'user_id' => $user_id));
+					foreach ($viewPages as $viewPage) {
+						echo '<tr><td><a href="/zazz/build/' . $project . '/' . $viewPage['page'] . '">'
+						. $viewPage['page'] . '</a></tr></td>' . "\n";
+					}
+					?>
+				</table>
+			</div>
+			<div class="-zazz-modal-footer">
+				<input type="button" class="-zazz-modal-close" value="Close" />
+			</div>
+		</div>
 		<div id="-zazz-modal-project" class="-zazz-modal">
 			<div class="-zazz-modal-header">Project</div>
 			<div class="-zazz-modal-body">
 				<table>
 					<tr>
-						<td>Project ID:</td>
+						<td>Project Name:</td>
 						<td><input id="-zazz-project-name" type="text" value="<?= $project ?>"/></td>
+					</tr>
+					<tr>
+						<td>Default Page:</td>
+						<td><input id="-zazz-default-page" type="text" value="<?= $default_page ?>"/></td>
 					</tr>
 				</table>
 			</div>
 			<div class="-zazz-modal-footer">
 				<input type="button" class="-zazz-modal-close" value="Close" />
-				<input type="button" class="-zazz-deploy" value="Deploy" />
-				<input type="button" class="-zazz-switch" value="Switch" />
+			</div>
+		</div>
+		<div id="-zazz-modal-new-project" class="-zazz-modal">
+			<div class="-zazz-modal-header">New Project</div>
+			<div class="-zazz-modal-body">
+				<p class="-zazz-modal-message"></p>
+				<table>
+					<tr>
+						<td>Project Name:</td>
+						<td><input id="-zazz-new-project-name" type="text"/></td>
+					</tr>
+				</table>
+			</div>
+			<div class="-zazz-modal-footer">
+				<input type="button" class="-zazz-modal-close" value="Cancel" />
+				<input type="button" id="-zazz-make-new-project" value="Continue" />
+			</div>
+		</div>
+		<div id="-zazz-modal-new-page" class="-zazz-modal">
+			<div class="-zazz-modal-header">New Page</div>
+			<div class="-zazz-modal-body">
+				<p class="-zazz-modal-message"></p>
+				<table>
+					<tr>
+						<td>Page Name:</td>
+						<td><input id="-zazz-new-page-name" type="text"/></td>
+					</tr>
+					<tr>
+						<td>Template:</td>
+						<td><input id="-zazz-page-template" type="text"/></td>
+					</tr>
+				</table>
+			</div>
+			<div class="-zazz-modal-footer">
+				<input type="button" class="-zazz-modal-close" value="Cancel" />
+				<input type="button" id="-zazz-make-new-page" value="Continue" />
 			</div>
 		</div>
 		<div class="-zazz-horizontal-line-left -zazz-line"> </div>
@@ -113,7 +216,7 @@ $page_id = $page_info['page_id'];
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span class="-zazz-divider"></span
 					><span tabindex="3" class="-zazz-save-all-btn -zazz-btn">Layer</span
-					><span tabindex="3" class="-zazz-settings-btn -zazz-btn">Page</span
+					><span tabindex="3" class="-zazz-page-btn -zazz-btn">Page</span
 					><span tabindex="3" class="-zazz-project-btn -zazz-btn">Project</span
 					><span class="-zazz-divider"></span
 					><span tabindex="3" class="-zazz-view-btn -zazz-btn">View</span>

@@ -19,7 +19,7 @@ array (
     'Field' => 'page',
     'Type' => 'varchar(50)',
     'Null' => 'NO',
-    'Key' => '',
+    'Key' => 'MUL',
     'Default' => NULL,
     'Extra' => '',
   ),
