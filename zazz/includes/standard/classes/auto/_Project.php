@@ -19,7 +19,7 @@ array (
     'Field' => 'project',
     'Type' => 'varchar(50)',
     'Null' => 'NO',
-    'Key' => 'UNI',
+    'Key' => 'PRI',
     'Default' => NULL,
     'Extra' => '',
   ),

@@ -33,10 +33,15 @@ class Database extends Object {
 	 * @param string $password Password
 	 * @param string $database Database
 	 */
-	protected function __construct($server, $username, $password, $database) 
+	protected function __construct($server, $username, $password, $database = '') 
 	{
 		try {
-			$this->pdo = new CustomPDO('mysql:host=' . $server . ';dbname=' .	$database, $username, $password);
+			if(empty($database)) {
+				$configure = 'mysql:host=' . $server;
+			} else {
+				$configure = 'mysql:host=' . $server . ';dbname=' .	$database;
+			}
+			$this->pdo = new CustomPDO($configure, $username, $password);
 		} catch (PDOException $e) {
 			//This could be logged but the logger requires a database connection and making a separate
 			//file just to log this probably obvious error doesn't seem like a good idea.

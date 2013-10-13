@@ -4,15 +4,20 @@
  * This script will configure the database.
  */
 	define('CONFIGURE', true);
-
+	//By making this empty it will cause the Database to just initiate a connection.
+	define('DBNAME', ''); 
+	$dbname = 'zazz';
+	
 	require_once dirname(__FILE__) . '/initialize.php';
 
 	//Note that really ALL queries should operate under 'TRADITIONAL' (strict mode), so this should
 	//be moved into Database.php if it can't be set in the .ini file.
 	$pdo = Database::get()->PDO();
-	$q = $pdo->prepare('SET sql_mode = "TRADITIONAL"');
+	$q = $pdo->prepare('CREATE DATABASE IF NOT EXISTS ' . $dbname . '; USE ' . $dbname . 
+		'; SET sql_mode = "TRADITIONAL";');
 	$q->execute();
-
+	$q->closeCursor(); //Not sure why this is needed.
+	
 	$exclude = array('QueryBuilder.php', 'Object.php');
 	try {
 			$dir = dirname(__FILE__) . '/classes/';

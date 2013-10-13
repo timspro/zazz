@@ -9,9 +9,10 @@ require_once dirname(__FILE__) . '/classes/Logger.php';
 
 define('PREFIX', '');
 define('DEVELOPER', true);
+define('DBNAME', 'zazz');
 
 //Set up the database with the appropiate parameters.
-Database::get(array('localhost', 'root', '', 'zazz'));
+Database::get(array('localhost', 'root', '', DBNAME));
 //Start the logger (necessary due to lazy construction).
 if(!defined('CONFIGURE')) {
 	Logger::get();
