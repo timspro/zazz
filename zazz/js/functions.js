@@ -677,7 +677,7 @@ $(document).ready(function() {
 					'root URL.',
 					function() {
 						window.location.href = "/zazz/view.php?project=" + $('#-zazz-project-name').val() + '&page=' +
-							$('#-zazz-page-name').val() + '&deploy=true';
+							$('#-zazz-default-page').val() + '&deploy=true';
 					}
 				);
 			} else if (document.activeElement.id === '-zazz-delete-project-btn') {

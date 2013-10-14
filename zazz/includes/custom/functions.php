@@ -19,7 +19,7 @@ function getPageInformation($project, $page) {
 	return null;
 }
 
-function deleteFilesIn($folder, $exclude = '') {
+function deleteFilesIn($folder, $exclude = array()) {
 	foreach (new DirectoryIterator($folder) as $item) {
 		$filename = $item->getFilename();
 		if (!$item->isDot() && !in_array($filename, $exclude)) {
