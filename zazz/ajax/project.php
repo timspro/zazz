@@ -24,7 +24,6 @@ if (isset($_REQUEST['page_id']) && verifyPage($_REQUEST['page_id'], $user_id)) {
 			array('page' => $_REQUEST['default_page'], 'project_id' => $result[0]['project_id']));
 		if(!empty($default_page_id)) {
 			$default_page_id = $default_page_id[0]['page_id'];
-			$result = _Page::get()->retrieve('project_id', array(), array('page_id' => $_REQUEST['page_id']));
 			_Project::get()->update(array('default_page' => $default_page_id), 
 				array('project_id' => $result[0]['project_id']));		
 		} else {

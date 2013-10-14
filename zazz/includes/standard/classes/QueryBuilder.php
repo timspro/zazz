@@ -263,8 +263,18 @@ abstract class QueryBuilder extends Object {
 		} else {
 			$options = substr($options, 0, strlen($options) - 1);
 		}
+		
+		$index_query = '';
+		$indexes = $class::get()->getIndexes();
+		foreach($indexes as $key => $value) {
+			if($key !== "PRIMARY") {
+				$index_query .= 'CREATE UNIQUE INDEX ' . $key . ' ON ' . 
+					$class::get()->getTable() . ' ( ' . implode(', ', $value) . ' ); ';
+			}
+		}		
+		
 		$q = Database::get()->PDO()->prepare('CREATE TABLE IF NOT EXISTS ' . 
-			$class::get()->getTable() . ' (' . $options . ')');
+			$class::get()->getTable() . ' (' . $options . '); ' . $index_query);
 		$q->execute();
 	}
 	
