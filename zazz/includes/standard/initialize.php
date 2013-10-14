@@ -9,13 +9,15 @@ require_once dirname(__FILE__) . '/classes/Logger.php';
 
 define('PREFIX', '');
 define('DEVELOPER', true);
-define('DBNAME', 'zazz');
+define('DATABASENAME', 'zazz');
 
-//Set up the database with the appropiate parameters.
-Database::get(array('localhost', 'root', '', DBNAME));
 //Start the logger (necessary due to lazy construction).
 if(!defined('CONFIGURE')) {
+	Database::get(array('localhost', 'root', '', DATABASENAME));
 	Logger::get();
+} else {
+	//Set up the database with the appropiate parameters.
+	Database::get(array('localhost', 'root', '', ''));
 }
 
 require_once dirname(__FILE__) . '/functions.php';

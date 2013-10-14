@@ -281,8 +281,11 @@ $(document).ready(function() {
 			page: page,
 			background_image: $('#-zazz-background-image').val(),
 			page_id: $('#-zazz-page-id').val()
-		}, function() {
-			if (redirect) {
+		}, function(data) {
+			if(trim(data) !== "") {
+				$('#-zazz-modal-settings .-zazz-modal-message').html(data);
+				$('#-zazz-modal-settings').show();
+			} else if (redirect) {
 				window.location.replace('/zazz/build/' + $('#-zazz-project-name').val() + '/' + page);
 			}
 		});
@@ -293,8 +296,11 @@ $(document).ready(function() {
 		$.post('/zazz/ajax/project.php', {
 			project: project,
 			page_id: $('#-zazz-page-id').val()
-		}, function() {
-			if (redirect) {
+		}, function(data) {
+			if(trim(data) !== "") {
+				$('#-zazz-modal-project .-zazz-modal-message').html(data);
+				$('#-zazz-modal-project').show();
+			} else if (redirect) {
 				window.location.replace('/zazz/build/' + project + '/' + $('#-zazz-page-name').val());
 			}
 		});
@@ -302,6 +308,18 @@ $(document).ready(function() {
 
 	$('#-zazz-project-name').blur(function() {
 		updateProjectInfo(true);
+	});
+	
+	$('#-zazz-default-page').blur(function(){
+		$.post('/zazz/ajax/project.php', {
+			page_id: $('#-zazz-page-id').val(),
+			default_page: $('#-zazz-default-page').val()
+		}, function(data) {
+			if(trim(data) !== "") {
+				$('#-zazz-modal-project .-zazz-modal-message').html(data);
+				$('#-zazz-modal-project').show();
+			}
+		});	
 	});
 
 	$('#-zazz-page-name').blur(function() {

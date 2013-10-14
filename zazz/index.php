@@ -22,18 +22,35 @@ Authenticate::get()->check();
 $user_id = Authenticate::get()->getUser('user_id');
 
 if (!isset($_GET['project']) || empty($_GET['project'])) {
-	$project = _Project::get()->retrieve('project', array(),
-		array('project_id' =>
-		Authenticate::get()->getUser('active_project')));
+	$active_id = Authenticate::get()->getUser('active_project');
+	$project = _Project::get()->retrieve('project', array(), array('project_id' => $active_id));
+	if (empty($project[0]['project'])) {
+		echo 'There has been a serious error.';
+		return;
+	}
+	$check = _Project::get()->retrieve('project_id', array(),
+		array('project' => $project[0]['project']));
+	if (empty($check)) {
+		echo 'There has been a serious error.';
+		return;
+	}
 	header('Location: /zazz/build/' . $project[0]['project'] . '/');
 	return;
 }
 $project = $_GET['project'];
-$project_id = _Project::get()->retrieve(array('project_id', 'default_page'), 
-	array(), array('project' => $project));
+$project_id = _Project::get()->retrieve(array('project_id', 'default_page'), array(),
+	array('project' => $project));
+if (empty($project_id)) {
+	header('Location: /zazz/index.php');
+	return;
+}
 $default_page_id = $project_id[0]['default_page'];
 $project_id = $project_id[0]['project_id'];
 $default_page = _Page::get()->retrieve('page', array(), array('page_id' => $default_page_id));
+if (empty($default_page[0]['page'])) {
+	echo 'There has been a serious error.';
+	return;
+}
 $default_page = $default_page[0]['page'];
 _User::get()->update(array('active_project' => $project_id), array('user_id' => $user_id));
 
@@ -44,7 +61,7 @@ if (!isset($_GET['page']) || empty($_GET['page'])) {
 $page = $_GET['page'];
 
 $page_info = getPageInformation($project, $page);
-if(empty($page_info)) {
+if (empty($page_info)) {
 	$project = _Project::get()->retrieve('project', array(),
 		array('project_id' =>
 		Authenticate::get()->getUser('active_project')));
@@ -56,7 +73,7 @@ $page_id = $page_info['page_id'];
 
 <!DOCTYPE html>
 <html>
-	<?php require_once dirname(__FILE__) . '/includes/custom/header.php'; ?>
+<?php require_once dirname(__FILE__) . '/includes/custom/header.php'; ?>
 	<body>
 		<div id="-zazz-modal-alert" class="-zazz-modal">
 			<div class="-zazz-modal-header">Oops...</div>
@@ -76,6 +93,7 @@ $page_id = $page_info['page_id'];
 		<div id="-zazz-modal-settings" class="-zazz-modal">
 			<div class="-zazz-modal-header">Page</div>
 			<div class="-zazz-modal-body">
+				<p class="-zazz-modal-message"></p>
 				<table>
 					<tr>
 						<td>Page Name: </td>
@@ -145,6 +163,7 @@ $page_id = $page_info['page_id'];
 		<div id="-zazz-modal-project" class="-zazz-modal">
 			<div class="-zazz-modal-header">Project</div>
 			<div class="-zazz-modal-body">
+				<p class="-zazz-modal-message"></p>
 				<table>
 					<tr>
 						<td>Project Name:</td>
