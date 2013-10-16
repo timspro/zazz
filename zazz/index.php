@@ -308,7 +308,6 @@ if (!$demo) {
 		</div>
 		<input id="-zazz-page-id" type="hidden" value="<?= $page_id ?>" />
 		<input id="-zazz-is-demo" type="hidden" value="<?= $demo ?>" />
-		<input id="-zazz-user-id" type="hidden" value="<?= $user_id ?>" />
 	</body>
 	<script src="/zazz/js/jquery-1.10.2.js" type="text/javascript"></script>
 	<script src="/zazz/js/functions.js" type="text/javascript"></script>

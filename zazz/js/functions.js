@@ -767,7 +767,7 @@ $(document).ready(function() {
 	});
 
 	$('.-zazz-view-btn').click(function() {
-		window.location.href = "/zazz/view/" + $('#-zazz-user-id').val() + "/" 
+		window.location.href = "/zazz/view/" 
 			+ $('#-zazz-project-name').val() + '/' +	$('#-zazz-page-name').val();
 	});
 
