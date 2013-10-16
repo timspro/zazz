@@ -3,7 +3,7 @@
 require_once dirname(__FILE__) . '/../includes/standard/initialize.php';
 require_once dirname(__FILE__) . '/../includes/custom/functions.php';
 
-Authenticate::get()->check();
+Authenticate::get()->check(false);
 
 if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['zazz_order']) 
 	&& isset($_REQUEST['page_id'])) {

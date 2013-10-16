@@ -2,7 +2,7 @@
 require_once dirname(__FILE__) . '/../includes/standard/initialize.php';
 require_once dirname(__FILE__) . '/../includes/custom/functions.php';
 
-Authenticate::get()->check();
+Authenticate::get()->check(false);
 $user_id = Authenticate::get()->getUser('user_id');
 
 if (isset($_REQUEST['page_id']) && verifyPage($_REQUEST['page_id'], $user_id)) {

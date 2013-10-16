@@ -121,10 +121,19 @@ $(document).ready(function() {
 	/*-------------------------------------FUNCTIONS-----------------------------------------*/
 
 	function confirm(header, message, callback) {
-		document.getElementById('-zazz-modal-confirm-header').innerHTML = header;
-		document.getElementById('-zazz-modal-confirm-message').innerHTML = message;
-		document.getElementById('-zazz-modal-confirm-button').onclick = callback;
+		$('#-zazz-modal-confirm .-zazz-modal-header')[0].innerHTML = header;
+		$('#-zazz-modal-confirm .-zazz-modal-message')[0].innerHTML = message;
+		$('#-zazz-modal-confirm .-zazz-modal-button')[0].onclick = callback;
 		$('#-zazz-modal-confirm').center().show();
+	}
+
+	function warn(header, message, options) {
+		if(typeof options === 'undefined') {
+			options = '';
+		}
+		$('#-zazz-modal-alert .-zazz-modal-body').html(message);
+		$('#-zazz-modal-alert .-zazz-modal-header').html(header);
+		$('#-zazz-modal-alert').attr("style", options).center().show();
 	}
 
 	function updateLayout() {
@@ -137,21 +146,32 @@ $(document).ready(function() {
 	}
 
 	function updateCode(zazz_id, $block, type, insert) {
-		$.post('/zazz/ajax/code.php', {
-			zazz_id: zazz_id,
-			type: type,
-			code: $block.val(),
-			page_id: $('#-zazz-page-id').val(),
-			zazz_order: $block.attr('_zazz-order'),
-			insert: insert
-		},
-		function(data) {
-			$('.-zazz-element[_zazz-id="' + zazz_id + '"]').html(data);
-			$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function() {
-				addJSCode($(this).val());
+		if($('#-zazz-is-demo').val()) {
+				var html = '';
+				$('.-zazz-code-block-' + zazz_id).filter('.-zazz-html-code').each(function() {
+					html += $(this).val();
+				});
+				$('.-zazz-element[_zazz-id="' + zazz_id + '"]').html(html);
+				$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function() {
+					addJSCode($(this).val());			
+				});
+		} else {
+			$.post('/zazz/ajax/code.php', {
+				zazz_id: zazz_id,
+				type: type,
+				code: $block.val(),
+				page_id: $('#-zazz-page-id').val(),
+				zazz_order: $block.attr('_zazz-order'),
+				insert: insert
+			},
+			function(data) {
+				$('.-zazz-element[_zazz-id="' + zazz_id + '"]').html(data);
+				$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function() {
+					addJSCode($(this).val());
+				});
+				updateLayout();
 			});
-			updateLayout();
-		});
+		}
 	}
 
 	function getBlockType($this) {
@@ -640,9 +660,7 @@ $(document).ready(function() {
 					}
 					//Else give error message.
 				} else {
-					$('#-zazz-modal-alert .-zazz-modal-body').html(
-						"These elements are neither in the same row or column.");
-					$('#-zazz-modal-alert').center().fadeIn(300);
+					warn("Error", "These elements are neither in the same row or column.");
 				}
 				//Set focus and delete the stored first div.
 				$first_div.focus();
@@ -749,8 +767,8 @@ $(document).ready(function() {
 	});
 
 	$('.-zazz-view-btn').click(function() {
-		window.location.href = "/zazz/view.php?project=" + $('#-zazz-project-name').val() + '&page=' +
-			$('#-zazz-page-name').val();
+		window.location.href = "/zazz/view/" + $('#-zazz-user-id').val() + "/" 
+			+ $('#-zazz-project-name').val() + '/' +	$('#-zazz-page-name').val();
 	});
 
 	function addCodeBlock(className, forID) {
@@ -834,5 +852,12 @@ $(document).ready(function() {
 			$('.-zazz-select-btn').click();
 		}
 	});
+
+	if($('#-zazz-is-demo').val()) {
+		warn("Welcome!","Thanks for trying out the demo. <br><br> Since this is the demo, many of the features\n\
+		of Zazz have been disabled. However, you can still play around with the layout editing options in the\n\
+		top left corner of the screen, and add HTML, CSS, and JavaScript code to the document! <br><br> Enjoy!",
+		"width: 500px");
+	}
 
 });

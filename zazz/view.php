@@ -55,7 +55,8 @@ foreach ($generate_pages as $generate_page) {
 	$page_info = getPageInformation($project, $page);
 	$page_id = $page_info['page_id'];
 	if (empty($page_id)) {
-		echo 'There was a serious error.';
+		echo 'There was a serious error in getting the page information for ' . $page . 
+			' in ' . $project;
 		return;
 	}
 
@@ -201,6 +202,6 @@ if (isset($_GET['deploy'])) {
 		dirname(__FILE__) . '/../');
 	header('Location: /' . $_GET['page']);
 } else {
-	header('Location: /zazz/view/' . $user_id . '/' . $project . '/' . $_GET['page']);
+	require_once dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/' . $_GET['page'];
 }
 ?>

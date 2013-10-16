@@ -2,7 +2,7 @@
 require_once dirname(__FILE__) . '/../includes/standard/initialize.php';
 require_once dirname(__FILE__) . '/../includes/custom/functions.php';
 
-Authenticate::get()->check();
+Authenticate::get()->check(false);
 if (!verifyPage($_REQUEST['page_id'], Authenticate::get()->getUser('user_id'))) {
 	return;
 }
@@ -30,22 +30,7 @@ if (isset($_REQUEST['create']) && isset($_REQUEST['page_id'])) {
 		_Code::get()->create(array('zazz_id' => 'element-0', 'page_id' => $page_id, 'type' => 'css',
 			'code' => "#element-0 {\n\n}", 'zazz_order' => '0'));
 
-		ob_start();
-		?>
-		<div id="content" class="-zazz-content"
-				 _zazz-rid='1' _zazz-gid='1' _zazz-eid='1'><div 
-				class="-zazz-outline-right -zazz-outline"> </div><div 
-				class="-zazz-outline-top -zazz-outline"> </div><div 
-				class="-zazz-outline-bottom -zazz-outline"> </div><div 
-				class="-zazz-outline-left -zazz-outline"> </div><div 
-				id="row-group-0" class="-zazz-row-group"><div 
-					id="row-0" class="-zazz-row"><div 
-						id="element-0" _zazz-order="1" tabindex="1" class="-zazz-element" _zazz-id="element-0"></div
-					></div
-				></div
-			></div>
-		<?php
-		$layout = ob_get_clean();
+		$layout = getDefaultLayout();
 		_Layout::get()->create(array('page_id' => $page_id, 'layout' => $layout));
 	} catch (PDOException $e) {
 		if ($e->getCode() === '23000') {

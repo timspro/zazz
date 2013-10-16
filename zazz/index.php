@@ -11,69 +11,86 @@ function getCodeBlocks($page_id) {
 	}
 }
 
-require_once dirname(__FILE__) . '/includes/standard/initialize.php';
-require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Code.php';
-require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Project.php';
-require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Page.php';
-require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Layout.php';
+function getDefaultCodeBlock() {
+	echo '<textarea class="-zazz-code-block -zazz-css-code 
+							-zazz-code-block-element-0" 
+							spellcheck="false" tabindex="1" _zazz-order="0" 
+							style="display: none;" >#element-0 { ' . "\n\n" . '}</textarea>';
+}
+
+if (isset($_GET['demo'])) {
+	$demo = true;
+} else {
+	$demo = false;
+}
+
 require_once dirname(__FILE__) . '/includes/custom/functions.php';
 
-Authenticate::get()->check();
-$user_id = Authenticate::get()->getUser('user_id');
+if (!$demo) {
 
-if (!isset($_GET['project']) || empty($_GET['project'])) {
-	$active_id = Authenticate::get()->getUser('active_project');
-	$project = _Project::get()->retrieve('project', array(), array('project_id' => $active_id));
-	if (empty($project[0]['project'])) {
+	require_once dirname(__FILE__) . '/includes/standard/initialize.php';
+	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Code.php';
+	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Project.php';
+	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Page.php';
+	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Layout.php';
+
+	Authenticate::get()->check();
+	$user_id = Authenticate::get()->getUser('user_id');
+
+	if (!isset($_GET['project']) || empty($_GET['project'])) {
+		$active_id = Authenticate::get()->getUser('active_project');
+		$project = _Project::get()->retrieve('project', array(), array('project_id' => $active_id));
+		if (empty($project[0]['project'])) {
+			echo 'There has been a serious error.';
+			return;
+		}
+		$check = _Project::get()->retrieve('project_id', array(),
+			array('project' => $project[0]['project']));
+		if (empty($check)) {
+			echo 'There has been a serious error.';
+			return;
+		}
+		header('Location: /zazz/build/' . $project[0]['project'] . '/');
+		return;
+	}
+	$project = $_GET['project'];
+	$project_id = _Project::get()->retrieve(array('project_id', 'default_page'), array(),
+		array('project' => $project));
+	if (empty($project_id)) {
+		header('Location: /zazz/index.php');
+		return;
+	}
+	$default_page_id = $project_id[0]['default_page'];
+	$project_id = $project_id[0]['project_id'];
+	$default_page = _Page::get()->retrieve('page', array(), array('page_id' => $default_page_id));
+	if (empty($default_page[0]['page'])) {
 		echo 'There has been a serious error.';
 		return;
 	}
-	$check = _Project::get()->retrieve('project_id', array(),
-		array('project' => $project[0]['project']));
-	if (empty($check)) {
-		echo 'There has been a serious error.';
+	$default_page = $default_page[0]['page'];
+	_User::get()->update(array('active_project' => $project_id), array('user_id' => $user_id));
+
+	if (!isset($_GET['page']) || empty($_GET['page'])) {
+		header('Location: /zazz/build/' . $project . '/' . $default_page);
 		return;
 	}
-	header('Location: /zazz/build/' . $project[0]['project'] . '/');
-	return;
-}
-$project = $_GET['project'];
-$project_id = _Project::get()->retrieve(array('project_id', 'default_page'), array(),
-	array('project' => $project));
-if (empty($project_id)) {
-	header('Location: /zazz/index.php');
-	return;
-}
-$default_page_id = $project_id[0]['default_page'];
-$project_id = $project_id[0]['project_id'];
-$default_page = _Page::get()->retrieve('page', array(), array('page_id' => $default_page_id));
-if (empty($default_page[0]['page'])) {
-	echo 'There has been a serious error.';
-	return;
-}
-$default_page = $default_page[0]['page'];
-_User::get()->update(array('active_project' => $project_id), array('user_id' => $user_id));
+	$page = $_GET['page'];
 
-if (!isset($_GET['page']) || empty($_GET['page'])) {
-	header('Location: /zazz/build/' . $project . '/' . $default_page);
-	return;
+	$page_info = getPageInformation($project, $page);
+	if (empty($page_info)) {
+		$project = _Project::get()->retrieve('project', array(),
+			array('project_id' =>
+			Authenticate::get()->getUser('active_project')));
+		header('Location: /zazz/build/' . $project[0]['project'] . '/');
+		return;
+	}
+	$page_id = $page_info['page_id'];
 }
-$page = $_GET['page'];
-
-$page_info = getPageInformation($project, $page);
-if (empty($page_info)) {
-	$project = _Project::get()->retrieve('project', array(),
-		array('project_id' =>
-		Authenticate::get()->getUser('active_project')));
-	header('Location: /zazz/build/' . $project[0]['project'] . '/');
-	return;
-}
-$page_id = $page_info['page_id'];
 ?>
 
 <!DOCTYPE html>
 <html>
-<?php require_once dirname(__FILE__) . '/includes/custom/header.php'; ?>
+	<?php require_once dirname(__FILE__) . '/includes/custom/header.php'; ?>
 	<body>
 		<div id="-zazz-modal-alert" class="-zazz-modal">
 			<div class="-zazz-modal-header">Oops...</div>
@@ -83,11 +100,11 @@ $page_id = $page_info['page_id'];
 			</div>
 		</div>
 		<div id="-zazz-modal-confirm" class="-zazz-modal">
-			<div id='-zazz-modal-confirm-header' class="-zazz-modal-header">Confirm</div>
-			<div id='-zazz-modal-confirm-message' class="-zazz-modal-body">Are you sure you want to do this?</div>
+			<div class="-zazz-modal-header">Confirm</div>
+			<div class="-zazz-modal-body">Are you sure you want to do this?</div>
 			<div class="-zazz-modal-footer">
 				<input type="button" class="-zazz-modal-close" value="Cancel" />
-				<input type="button" id="-zazz-modal-confirm-button" value="Continue" />
+				<input type="button" class="-zazz-modal-button" value="Continue" />
 			</div>
 		</div>
 		<div id="-zazz-modal-settings" class="-zazz-modal">
@@ -130,10 +147,15 @@ $page_id = $page_info['page_id'];
 			<div class="-zazz-modal-body">
 				<table class="-zazz-links">
 					<?php
-					$viewProjects = _Project::get()->retrieve(array('project'), array(), array('user_id', $user_id));
-					foreach ($viewProjects as $viewProject) {
-						echo '<tr><td><a href="/zazz/build/' . $viewProject['project'] . '/">'
-						. $viewProject['project'] . '</a></tr></td>' . "\n";
+					if (!$demo) {
+						$viewProjects = _Project::get()->retrieve(array('project'), array(),
+							array('user_id', $user_id));
+						foreach ($viewProjects as $viewProject) {
+							echo '<tr><td><a href="/zazz/build/' . $viewProject['project'] . '/">'
+							. $viewProject['project'] . '</a></tr></td>' . "\n";
+						}
+					} else {
+						echo 'You can only have one project in the demo.';
 					}
 					?>
 				</table>
@@ -147,11 +169,15 @@ $page_id = $page_info['page_id'];
 			<div class="-zazz-modal-body">
 				<table class="-zazz-links">
 					<?php
-					$viewPages = _Page::get()->retrieve(array('Page'), new Join('project_id', _Project::get()),
-						array('project' => $project, 'user_id' => $user_id));
-					foreach ($viewPages as $viewPage) {
-						echo '<tr><td><a href="/zazz/build/' . $project . '/' . $viewPage['page'] . '">'
-						. $viewPage['page'] . '</a></tr></td>' . "\n";
+					if (!$demo) {
+						$viewPages = _Page::get()->retrieve(array('Page'), new Join('project_id', _Project::get()),
+							array('project' => $project, 'user_id' => $user_id));
+						foreach ($viewPages as $viewPage) {
+							echo '<tr><td><a href="/zazz/build/' . $project . '/' . $viewPage['page'] . '">'
+							. $viewPage['page'] . '</a></tr></td>' . "\n";
+						}
+					} else {
+						echo 'You can only have one page in the demo.';
 					}
 					?>
 				</table>
@@ -241,7 +267,15 @@ $page_id = $page_info['page_id'];
 					><span tabindex="3" class="-zazz-view-btn -zazz-btn">View</span>
 				</span>
 			</div>
-			<div class="-zazz-content-view"><?= getLayout($page_id) ?></div>
+			<div class="-zazz-content-view">
+				<?php
+				if (!$demo) {
+					echo getLayout($page_id);
+				} else {
+					echo getDefaultLayout();
+				}
+				?>
+			</div>
 		</div>
 		<div class="-zazz-code-area">
 			<div class="-zazz-navbar">
@@ -262,9 +296,19 @@ $page_id = $page_info['page_id'];
 					><span tabindex="2" class="-zazz-import-btn -zazz-btn">Import</span
 					><span tabindex="2" class="-zazz-export-btn -zazz-btn">Export</span>--></span>
 			</div>
-			<div class="-zazz-code-blocks"><?php getCodeBlocks($page_id) ?></div>
+			<div class="-zazz-code-blocks">
+				<?php
+				if (!$demo) {
+					getCodeBlocks($page_id);
+				} else {
+					getDefaultCodeBlock();
+				}
+				?>
+			</div>
 		</div>
 		<input id="-zazz-page-id" type="hidden" value="<?= $page_id ?>" />
+		<input id="-zazz-is-demo" type="hidden" value="<?= $demo ?>" />
+		<input id="-zazz-user-id" type="hidden" value="<?= $user_id ?>" />
 	</body>
 	<script src="/zazz/js/jquery-1.10.2.js" type="text/javascript"></script>
 	<script src="/zazz/js/functions.js" type="text/javascript"></script>
