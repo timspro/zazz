@@ -16,6 +16,8 @@ class Authenticate extends Object {
 	private $userData;
 	private $error = '';
 
+	const SESSION = true;
+	
 	const USERS_CLASS = '_User';
 	const USERS_TABLE = 'user';
 	const ID = 'user_id';
@@ -98,18 +100,23 @@ class Authenticate extends Object {
 		$usersClass = self::USERS_CLASS;
 		$this->userQB = $usersClass::get();
 
-		if (!isset($_COOKIE['_thetoken'])) {
+		if ((self::SESSION && !isset($_SESSION['_thetoken'])) ||
+			(!self::SESSION && !isset($_COOKIE['_thetoken']))) {
 			$this->userData = null;
 			return;
 		}
 
-		$token_hash = $_COOKIE['_thetoken'];
+		$token_hash = (self::SESSION ? $_SESSION['_thetoken'] : $_COOKIE['_thetoken']);
 		$r = $this->userQB->retrieve(array(), array(),
 			array(self::TOKEN_FIELD => $token_hash,
 			self::ACTIVE_FIELD => '1'));
 
 		if (count($r) === 0) {
-			setcookie('_thetoken', '', time() - 88000, '/', self::getServerName(), getHTTPS(), true);
+			if(!self::SESSION) {
+				setcookie('_thetoken', '', time() - 88000, '/', self::getServerName(), getHTTPS(), true);
+			} else {
+				unset($_SESSION['_thetoken']);
+			}
 			$this->userData = null;
 			return;
 		}
@@ -118,9 +125,13 @@ class Authenticate extends Object {
 			self::IP_FIELD => $_SERVER['REMOTE_ADDR'], self::LOGIN_ERROR_FIELD => '0'),
 			array(self::TOKEN_FIELD, $token_hash));
 
-		$hour = time() + self::COOKIE_LIFETIME;
-		setcookie('_thetoken', $token_hash, $hour, '/', self::getServerName(), getHTTPS(), true);
-
+		if(!self::SESSION) {
+			$hour = time() + self::COOKIE_LIFETIME;
+			setcookie('_thetoken', $token_hash, $hour, '/', self::getServerName(), getHTTPS(), true);
+		} else {
+			$_SESSION['_thetoken'] = $token_hash;
+		}
+		
 		$this->userData = $r[0];
 	}
 
@@ -152,7 +163,11 @@ class Authenticate extends Object {
 	 */
 	public function logout() {
 		$this->userData = null;
-		setcookie('_thetoken', '', time() - 18000, '/', self::getServerName(), getHTTPS(), true);
+		if(self::SESSION) {
+			unset($_SESSION['_thetoken']);
+		} else {
+			setcookie('_thetoken', '', time() - 18000, '/', self::getServerName(), getHTTPS(), true);
+		}
 	}
 
 	/**
@@ -207,9 +222,13 @@ class Authenticate extends Object {
 			date("Y-m-d H:i:s"), self::IP_FIELD => $_SERVER['REMOTE_ADDR'], self::LOGIN_ERROR_FIELD
 			=> '0'), array(self::USERNAME_FIELD => $username));
 
-		$hour = time() + self::COOKIE_LIFETIME;
-		setcookie('_thetoken', $token_hash, $hour, '/', self::getServerName(), getHTTPS(), true);
-
+		if(!self::SESSION) {
+			$hour = time() + self::COOKIE_LIFETIME;
+			setcookie('_thetoken', $token_hash, $hour, '/', self::getServerName(), getHTTPS(), true);
+		} else {
+			$_SESSION['_thetoken'] = $token_hash;
+		}
+		
 		$this->userData = $r[0];
 
 		return true;

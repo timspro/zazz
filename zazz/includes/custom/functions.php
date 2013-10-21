@@ -114,7 +114,7 @@ function getDefaultLayout() {
 			class="-zazz-outline-left -zazz-outline"> </div><div 
 			id="row-group-0" class="-zazz-row-group"><div 
 				id="row-0" class="-zazz-row"><div 
-					id="element-0" _zazz-order="1" tabindex="1" class="-zazz-element" _zazz-id="element-0"></div
+					id="element-0" _zazz-order="1" tabindex="10" class="-zazz-element" _zazz-id="element-0"></div
 				></div
 			></div
 		></div>
@@ -125,7 +125,7 @@ function getDefaultLayout() {
 function createProject($project_name, $user_id) {
 	$id = _Project::get()->create(array('project' => $project_name, 'user_id' => $user_id));
 	$page_id = _Page::get()->create(array('page' => 'index.php', 'project_id' => $id));
-	_Project::get()->update(array('default_page' => $page_id), array('project_id', $id));
+	_Project::get()->update(array('default_page' => $page_id), array('project_id' => $id));
 	_User::get()->update(array('active_project' => $id), array('user_id' => $user_id));
 	_Code::get()->create(array('zazz_id' => 'element-0', 'page_id' => $page_id, 'type' => 'css',
 		'code' => "#element-0 {\n\n}", 'zazz_order' => '0'));

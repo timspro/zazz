@@ -22,7 +22,7 @@ if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 	$username = $_REQUEST['login_email'];
 	$password = $_REQUEST['login_password'];
 	if (isset($_REQUEST['create'])) {
-		if ($_REQUEST['global'] === '72ns-3k3j#!j9EJ03jJ#0s)(FDajw') {
+		if ($_REQUEST['global'] !== '72ns-3k3j#!j9EJ03jJ#0s)(FDajw') {
 			$error = "The global password is incorrect.";
 		} else if (strlen($username) < 7) {
 			$error = "Your username is too short.";
@@ -33,7 +33,7 @@ if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 		} else {
 			$success = $auth->create(array('username' => $username, 'password' => $password));
 			if ($success && $auth->login($username, $password)) {
-				createFirstProject(Authenticate::getUser('user_id'));
+				createFirstProject(Authenticate::get()->getUser('user_id'));
 				header('Location: ' . $valid);
 			} else {
 				$error = $auth->getError();

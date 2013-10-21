@@ -7,6 +7,8 @@
 require_once dirname(__FILE__) . '/classes/Database.php';
 require_once dirname(__FILE__) . '/classes/Logger.php';
 
+session_start();
+
 define('PREFIX', '');
 define('DEVELOPER', true);
 define('DATABASENAME', 'zazz');

@@ -45,7 +45,7 @@ if (isset($_GET['deploy'])) {
 	$generate_pages = _Page::get()->retrieve('page', new Join('project_id', _Project::get()),
 		array('project' =>
 		$project));
-	deleteFilesIn($filename);
+	deleteFilesIn($filename, array('css'));
 } else {
 	$generate_pages = array(array('page' => $_GET['page']));
 }
@@ -55,9 +55,30 @@ foreach ($generate_pages as $generate_page) {
 	$page_info = getPageInformation($project, $page);
 	$page_id = $page_info['page_id'];
 	if (empty($page_id)) {
-		echo 'There was a serious error in getting the page information for ' . $page . 
+		//Perhaps just a resource file. Still need to check that the user owns the project and that 
+		//$page doesn't have ..
+		$result = _Project::get()->retrieve('user_id', array(), array('project' => $project));
+		if (empty($result) || $result[0]['user_id'] !== $user_id) {
+			echo 'Could not find project specified.';
+			return;
+		}
+		if (strrpos($page, '..') !== false) {
+			echo 'You may not use ".." in the filename.</div>';
+			return;
+		}
+		$resource = $filename . $page;
+		if (file_exists($resource)) {
+			$finfo = finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
+			$mime = finfo_file($finfo, $resource);
+			finfo_close($finfo);
+			header("Content-type: " . $mime);
+			readfile($resource);
+			return;
+		} else {
+			echo 'There was a serious error in getting the page information for ' . $page .
 			' in ' . $project;
-		return;
+			return;
+		}
 	}
 
 //-------------------------------------INITIALIZE------------------------------------------
@@ -107,9 +128,15 @@ body {
 	width: 100%;
 }
 
+.-zazz-row-group {
+	height: 100%;
+	width: 100%;
+	display: inline-block;
+}
+
 ';
 
-	$php = '
+	$php_header_begin = '
 <?php 
 $_PDO = new PDO("mysql:host=localhost;dbname=zazz", "root", "");
 $_PDO->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -118,9 +145,14 @@ $_PDO->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<title>' . $project . '</title>
 	<link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
+	<style>
+';
+	$php_header_end = '
+	</style>
 </head>
 <body>
 ';
+	$php = '';
 
 	$layout = getLayout($page_id);
 	require_once dirname(__FILE__) . '/includes/custom/simple_html_dom.php';
@@ -177,23 +209,26 @@ $_PDO->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	if (!file_exists($filename . 'js/')) {
 		mkdir($filename . 'js/');
 	}
-	file_put_contents($filename . 'js/functions.js', $js);
+	//file_put_contents($filename . 'js/functions.js', $js);
+	//Add src tag for <script>
 	$source = dirname(__FILE__) . '/js/jquery-1.10.2.js';
 	$dest = $filename . 'js/jquery-1.10.2.js';
 	copy($source, $dest);
 	if (!file_exists($filename . 'css/')) {
 		mkdir($filename . 'css/');
 	}
-	file_put_contents($filename . 'css/style.css', $css);
+	//file_put_contents($filename . 'css/style.css', $css);
 
 	$php .= $html->save() . '
 </body>
 	<script src="js/jquery-1.10.2.js" type="text/javascript"></script>
-	<script src="js/functions.js" type="text/javascript"></script>
+	<script type="text/javascript">
+' . $js . '
+	</script>
 </html>
 ';
 
-	file_put_contents($filename . $page, $php);
+	file_put_contents($filename . $page, $php_header_begin . $css . $php_header_end . $php);
 }
 
 if (isset($_GET['deploy'])) {

@@ -122,13 +122,13 @@ $(document).ready(function() {
 
 	function confirm(header, message, callback) {
 		$('#-zazz-modal-confirm .-zazz-modal-header')[0].innerHTML = header;
-		$('#-zazz-modal-confirm .-zazz-modal-message')[0].innerHTML = message;
+		$('#-zazz-modal-confirm .-zazz-modal-body')[0].innerHTML = message;
 		$('#-zazz-modal-confirm .-zazz-modal-button')[0].onclick = callback;
 		$('#-zazz-modal-confirm').center().show();
 	}
 
 	function warn(header, message, options) {
-		if(typeof options === 'undefined') {
+		if (typeof options === 'undefined') {
 			options = '';
 		}
 		$('#-zazz-modal-alert .-zazz-modal-body').html(message);
@@ -146,15 +146,15 @@ $(document).ready(function() {
 	}
 
 	function updateCode(zazz_id, $block, type, insert) {
-		if($('#-zazz-is-demo').val()) {
-				var html = '';
-				$('.-zazz-code-block-' + zazz_id).filter('.-zazz-html-code').each(function() {
-					html += $(this).val();
-				});
-				$('.-zazz-element[_zazz-id="' + zazz_id + '"]').html(html);
-				$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function() {
-					addJSCode($(this).val());			
-				});
+		if ($('#-zazz-is-demo').val()) {
+			var html = '';
+			$('.-zazz-code-block-' + zazz_id).filter('.-zazz-html-code').each(function() {
+				html += $(this).val();
+			});
+			$('.-zazz-element[_zazz-id="' + zazz_id + '"]').html(html);
+			$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function() {
+				addJSCode($(this).val());
+			});
 		} else {
 			$.post('/zazz/ajax/code.php', {
 				zazz_id: zazz_id,
@@ -302,7 +302,7 @@ $(document).ready(function() {
 			background_image: $('#-zazz-background-image').val(),
 			page_id: $('#-zazz-page-id').val()
 		}, function(data) {
-			if(trim(data) !== "") {
+			if (trim(data) !== "") {
 				$('#-zazz-modal-settings .-zazz-modal-message').html(data);
 				$('#-zazz-modal-settings').show();
 			} else if (redirect) {
@@ -317,7 +317,7 @@ $(document).ready(function() {
 			project: project,
 			page_id: $('#-zazz-page-id').val()
 		}, function(data) {
-			if(trim(data) !== "") {
+			if (trim(data) !== "") {
 				$('#-zazz-modal-project .-zazz-modal-message').html(data);
 				$('#-zazz-modal-project').show();
 			} else if (redirect) {
@@ -329,17 +329,17 @@ $(document).ready(function() {
 	$('#-zazz-project-name').blur(function() {
 		updateProjectInfo(true);
 	});
-	
-	$('#-zazz-default-page').blur(function(){
+
+	$('#-zazz-default-page').blur(function() {
 		$.post('/zazz/ajax/project.php', {
 			page_id: $('#-zazz-page-id').val(),
 			default_page: $('#-zazz-default-page').val()
 		}, function(data) {
-			if(trim(data) !== "") {
+			if (trim(data) !== "") {
 				$('#-zazz-modal-project .-zazz-modal-message').html(data);
 				$('#-zazz-modal-project').show();
 			}
-		});	
+		});
 	});
 
 	$('#-zazz-page-name').blur(function() {
@@ -362,11 +362,34 @@ $(document).ready(function() {
 	$('.-zazz-content').mousemove(function(e) {
 		var offset_x = (e.offsetX || e.clientX - $(e.target).offset().left);
 		var offset_y = (e.offsetY || e.clientY - $(e.target).offset().top);
-		$('.-zazz-offset-btn').html('Offset: ( T' + offset_y + ', L' + offset_x + ', B' +
-			($(e.target).outerHeight() - offset_y) + ', R'
-			+ ($(e.target).outerWidth() - offset_x) + ' )');
-		$('.-zazz-location-btn').html('Location: ( T' + e.pageY + ' , L' + e.pageX + ', B' +
-			($('body').outerHeight() - e.pageY) + ', R' + ($('body').outerWidth() - e.pageX) + ' )');
+
+		var bodyHeight = $('body').outerHeight();
+		var bodyWidth = $('body').outerWidth();
+
+		var $modal = $('#-zazz-modal-mouse');
+		var $view = $('.-zazz-content-view');
+
+		var pageHeight = $('.-zazz-content').outerHeight();
+
+		var viewTop = $view.offset().top;
+		var viewHeight = $view.outerHeight();
+		if (e.pageX > bodyWidth / 2) {
+			$modal.css('left', '0').css('right', '');
+		} else {
+			$modal.css('right', '0').css('left', '');
+		}
+		if (e.pageY > viewTop + viewHeight / 2) {
+			$modal.css('top', viewTop).css('bottom', '');
+		} else {
+			$modal.css('bottom', bodyHeight - (viewTop + viewHeight)).css('top', '');
+		}
+
+		$('#-zazz-modal-mouse-offset').html('<td>Offset (px):</td><td>(' + offset_y + ',</td><td>' +
+			offset_x + ',</td><td>' + ($(e.target).outerHeight() - offset_y) + ',</td><td>'
+			+ ($(e.target).outerWidth() - offset_x) + ')</td>');
+		$('#-zazz-modal-mouse-location').html('<td>Page (px):</td><td>(' + (e.pageY - viewTop) +
+			',</td><td>' + e.pageX + ',</td><td>' + (pageHeight - (e.pageY - viewTop)) + ',</td><td>' +
+			(bodyWidth - e.pageX) + ')</td>');
 	});
 
 	function textareaMouseMove(e) {
@@ -460,14 +483,14 @@ $(document).ready(function() {
 		$(".-zazz-horizontal-line-left").show();
 		$(".-zazz-horizontal-line-right").show();
 		$('body').css('cursor', 'crosshair');
-		$(".-zazz-display").css('display', 'block');
+		$("#-zazz-modal-mouse").show();
 	}
 
 	function acrossMouseLeave() {
 		$(".-zazz-horizontal-line-left").hide();
 		$(".-zazz-horizontal-line-right").hide();
 		$('body').css('cursor', 'default');
-		$(".-zazz-display").hide();
+		$("#-zazz-modal-mouse").hide();
 	}
 
 	function verticalMouse(e) {
@@ -480,14 +503,14 @@ $(document).ready(function() {
 		$(".-zazz-vertical-line-top").show();
 		$(".-zazz-vertical-line-bottom").show();
 		$('body').css('cursor', 'crosshair');
-		$(".-zazz-display").css('display', 'block');
+		$("#-zazz-modal-mouse").show();
 	}
 
 	function verticalMouseLeave() {
 		$(".-zazz-vertical-line-top").hide();
 		$(".-zazz-vertical-line-bottom").hide();
 		$('body').css('cursor', 'default');
-		$(".-zazz-display").hide();
+		$("#-zazz-modal-mouse").hide();
 	}
 
 	$('.-zazz-id-input').blur(function() {
@@ -523,7 +546,7 @@ $(document).ready(function() {
 	function createDiv(id, type) {
 		var div = $('<div></div>').addClass(type).attr("id", id);
 		if (type === "-zazz-element") {
-			div.attr('tabindex', '1').attr('_zazz-order', '1').attr("_zazz-id", id);
+			div.attr('tabindex', '10').attr('_zazz-order', '1').attr("_zazz-id", id);
 			addCSSCodeBlock(id);
 		}
 		return div;
@@ -616,7 +639,7 @@ $(document).ready(function() {
 
 	$('.-zazz-absorb-btn').register(
 		function() {
-			$('.-zazz-element').css('cursor', 'pointer');
+			//$('.-zazz-element').css('cursor', 'pointer');
 		},
 		function(div, e, changed) {
 			if (typeof this.first_div === 'undefined' || changed) {
@@ -690,24 +713,20 @@ $(document).ready(function() {
 				$('#-zazz-modal-new-project').show().center();
 			} else if (document.activeElement.id === '-zazz-switch-project-btn') {
 				$('#-zazz-modal-view-projects').show().center();
-			} else if (document.activeElement.id === '-zazz-deploy-project-btn') {
-				confirm('Are you sure?', 'By deploying this project, you will make it publicly visible at the ' +
-					'root URL.',
-					function() {
-						window.location.href = "/zazz/view.php?project=" + $('#-zazz-project-name').val() + '&page=' +
-							$('#-zazz-default-page').val() + '&deploy=true';
-					}
-				);
 			} else if (document.activeElement.id === '-zazz-delete-project-btn') {
-				confirm('Are you sure?','By deleting this project, you will remove all code and pages.',
-				function(){
-					$.post('/zazz/ajax/project.php', {
-						page_id: $('#-zazz-page-id').val(),
-						delete: 'true'
-					}, function(){
-						window.location.href = "/zazz/index.php";
-					});
-				});
+				if ($("#-zazz-modal-view-pages .-zazz-links a").length > 1) {
+					confirm('Are you sure?', 'By deleting this project, you will remove all code and pages.',
+						function() {
+							$.post('/zazz/ajax/project.php', {
+								page_id: $('#-zazz-page-id').val(),
+								delete: 'true'
+							}, function() {
+								window.location.href = "/zazz/index.php";
+							});
+						});
+				} else {
+					warn('Warning', 'You cannot delete your only project.');
+				}
 			}
 			$('#-zazz-dropdown-project').hide();
 		}, 1);
@@ -717,7 +736,7 @@ $(document).ready(function() {
 		$.post('/zazz/ajax/project.php', {
 			create: $('#-zazz-new-project-name').val()
 		}, function(data) {
-			if(trim(data) !== "") {
+			if (trim(data) !== "") {
 				$('#-zazz-modal-new-project .-zazz-modal-message').html(data);
 			} else {
 				window.location.href = "/zazz/build/" + $('#-zazz-new-project-name').val() + "/";
@@ -738,26 +757,30 @@ $(document).ready(function() {
 			} else if (document.activeElement.id === '-zazz-switch-page-btn') {
 				$('#-zazz-modal-view-pages').show().center();
 			} else if (document.activeElement.id === '-zazz-delete-page-btn') {
-				confirm('Are you sure?','By deleting this page, you will remove all code.',
-				function(){
-					$.post('/zazz/ajax/page.php', {
-						page_id: $('#-zazz-page-id').val(),
-						delete: 'true'
-					}, function() {
-						window.location.href = "/zazz/index.php";
-					});
-				});
+				if ($("#-zazz-modal-view-pages .-zazz-links a").length > 1) {
+					confirm('Are you sure?', 'By deleting this page, you will remove all code.',
+						function() {
+							$.post('/zazz/ajax/page.php', {
+								page_id: $('#-zazz-page-id').val(),
+								delete: 'true'
+							}, function() {
+								window.location.href = "/zazz/index.php";
+							});
+						});
+				} else {
+					warn('Warning', 'You cannot delete your only page.');
+				}
 			}
 			$('#-zazz-dropdown-page').hide();
 		}, 1);
 	});
-	
+
 	$('#-zazz-make-new-page').click(function() {
 		$.post('/zazz/ajax/page.php', {
 			page_id: $('#-zazz-page-id').val(),
 			create: $('#-zazz-new-page-name').val()
 		}, function(data) {
-			if(trim(data) !== "") {
+			if (trim(data) !== "") {
 				$('#-zazz-modal-new-page .-zazz-modal-message').html(data);
 			} else {
 				window.location.href = "/zazz/build/" + $('#-zazz-project-name').val() +
@@ -766,9 +789,49 @@ $(document).ready(function() {
 		});
 	});
 
+	$('#-zazz-deploy-project-btn').click(function() {
+		confirm('Are you sure?', 'By deploying this project, you will make it publicly visible at the ' +
+			'root URL.',
+			function() {
+				window.location.href = "/zazz/view.php?project=" + $('#-zazz-project-name').val() + '&page=' +
+					$('#-zazz-default-page').val() + '&deploy=true';
+			}
+		);
+	});
+
+	$('#-zazz-upload-filename').focus(function() {
+		$('#-zazz-upload-file').click();
+		$(this).blur();
+	});
+
+	$('#-zazz-upload-file').change(function() {
+		var filename = $(this).val();
+		$('#-zazz-upload-filename').val(filename);
+		var index = filename.lastIndexOf('/');
+		if (index < 0) {
+			index = filename.lastIndexOf('\\');
+			if (index < 0) {
+				$('#-zazz-upload-filename').val(filename);
+				return;
+			}
+		}
+		filename = filename.slice(index - filename.length + 1);
+		$('#-zazz-upload-server').val(filename);
+	});
+
+	$('.-zazz-upload-btn').click(function() {
+		$('#-zazz-modal-upload').center().show();
+	});
+
+	$('#-zazz-upload-do-it').click(function() {
+		$('#-zazz-upload-name').val($('#-zazz-upload-server').val());
+		$('#-zazz-upload-page-id').val($('#-zazz-page-id').val());
+		$('#-zazz-upload-form').submit();
+	});
+
 	$('.-zazz-view-btn').click(function() {
-		window.location.href = "/zazz/view/" 
-			+ $('#-zazz-project-name').val() + '/' +	$('#-zazz-page-name').val();
+		window.location.href = "/zazz/view/"
+			+ $('#-zazz-project-name').val() + '/' + $('#-zazz-page-name').val();
 	});
 
 	function addCodeBlock(className, forID) {
@@ -781,7 +844,7 @@ $(document).ready(function() {
 		}
 		var $textarea = $('<textarea></textarea>').addClass('-zazz-code-block')
 			.addClass(className).addClass('-zazz-code-block-' + forID).attr('spellcheck', false)
-			.attr('tabindex', '1').attr('_zazz-order', order);
+			.attr('tabindex', '10').attr('_zazz-order', order);
 		$forID.attr('_zazz-order', parseInt($forID.attr('_zazz-order')) + 1);
 		return $textarea;
 	}
@@ -852,12 +915,43 @@ $(document).ready(function() {
 			$('.-zazz-select-btn').click();
 		}
 	});
+	
+	$(document).keyup(function(e) {
+		if ((e.keyCode === 120 || e.which === 120) && e.ctrlKey) {
+			$('.-zazz-select-btn').focus();
+		}
+	});
+	
 
-	if($('#-zazz-is-demo').val()) {
-		warn("Welcome!","Thanks for trying out the demo. <br><br> Since this is the demo, many of the features\n\
+	$(document).keyup(function(e) {
+		if ((e.keyCode === 121 || e.which === 121) && e.ctrlKey) {
+			$.last_div.focus();
+		}
+	});	
+	
+	$(document).keyup(function(e) {
+		if ((e.keyCode === 122 || e.which === 122) && e.ctrlKey) {
+			$('.-zazz-id-input').focus();
+		}
+	});	
+	
+	$(document).keyup(function(e) {
+		if ((e.keyCode === 123 || e.which === 123) && e.ctrlKey) {
+			var $parent = $('.-zazz-code-blocks');
+			var $children = $parent.children(':visible');
+			while($children.length !== 0) {
+				$parent = $children.first();
+				$children = $parent.children(':visible');
+			}
+			$parent.focus();
+		}
+	});	
+
+	if ($('#-zazz-is-demo').val()) {
+		warn("Welcome!", "Thanks for trying out the demo. <br><br> Since this is the demo, many of the features\n\
 		of Zazz have been disabled. However, you can still play around with the layout editing options in the\n\
 		top left corner of the screen, and add HTML, CSS, and JavaScript code to the document! <br><br> Enjoy!",
-		"width: 500px");
+			"width: 500px");
 	}
 
 });
