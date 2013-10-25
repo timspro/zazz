@@ -14,12 +14,11 @@ $(document).ready(function() {
 	$.fn.center = function() {
 		this.css("position", "absolute");
 		this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) +
-			$(window).scrollTop()) + "px");
+				$(window).scrollTop()) + "px");
 		this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) +
-			$(window).scrollLeft()) + "px");
+				$(window).scrollLeft()) + "px");
 		return this;
 	};
-
 	/**
 	 * Prototype for action associated with view divs and buttons. Registers three functions for a 
 	 * button: a function to be called on click (initialize), a function to be called when a view div 
@@ -50,7 +49,7 @@ $(document).ready(function() {
 					$('.' + $.fn.register.current).removeClass('-zazz-active-btn');
 					$(this).register.clean[$.fn.register.current]();
 				}
-				//Make button "active".
+//Make button "active".
 				$.fn.register.current = myClass;
 				$(this).addClass('-zazz-active-btn');
 				$(this).register.initialize[$.fn.register.current]();
@@ -64,7 +63,6 @@ $(document).ready(function() {
 	$.fn.register.initialize = [];
 	$.fn.register.action = [];
 	$.fn.register.clean = [];
-
 	/**
 	 * A function to reset application back to no buttons being selected.
 	 * @returns {$.fn.register}
@@ -76,7 +74,6 @@ $(document).ready(function() {
 		}
 		return this;
 	};
-
 	//Register the click event for the actions.
 	$('.-zazz-content').click(function(e) {
 		if ($.fn.register.current !== null) {
@@ -84,7 +81,6 @@ $(document).ready(function() {
 			$.fn.register.first = false;
 		}
 	});
-
 	/**
 	 * A helper function to specify a drag action on an object. All functions take as a parameter a
 	 * Click Event.
@@ -96,7 +92,7 @@ $(document).ready(function() {
 	$.fn.drag = function(start, during, stop) {
 		var myClass = $(this).attr('class').split(' ')[0];
 		$(this).mousedown(function(e) {
-			//This if statement is to prevent text boxes from being unselectable.
+//This if statement is to prevent text boxes from being unselectable.
 			if (!$(e.target).is('input')) {
 				var myClass = $(this).attr('class').split(' ')[0];
 				$.fn.drag.condition[myClass] = true;
@@ -117,7 +113,6 @@ $(document).ready(function() {
 	};
 	$.fn.drag.condition = [];
 	$.fn.drag.during = [];
-
 	/*-------------------------------------FUNCTIONS-----------------------------------------*/
 
 	function confirm(header, message, callback) {
@@ -138,7 +133,7 @@ $(document).ready(function() {
 
 	function updateLayout() {
 		var code = $('.-zazz-content').attr('_zazz-rid', $.row_id).attr('_zazz-gid', $.group_id)
-			.attr('_zazz-eid', $.element_id)[0].outerHTML;
+				.attr('_zazz-eid', $.element_id)[0].outerHTML;
 		$.post('/zazz/ajax/layout.php', {
 			page_id: $('#-zazz-page-id').val(),
 			layout: code
@@ -231,7 +226,6 @@ $(document).ready(function() {
 	$('.-zazz-modal-close').click(function() {
 		$(this).closest('.-zazz-modal').fadeOut(300);
 	});
-
 	/*-----------------------------------------FOCUS CODE------------------------------------------*/
 
 	$(document).on('input propertychange', '.-zazz-code-block', function() {
@@ -241,7 +235,6 @@ $(document).ready(function() {
 			$.changed = true;
 		}
 	});
-
 	$(document).on('focus', 'textarea', textareaScroll);
 	$(document).on('blur', '.-zazz-css-code', function() {
 		addCSSCode($.last_div.attr("_zazz-id"), $(this).val());
@@ -256,15 +249,24 @@ $(document).ready(function() {
 		var type;
 		var $this = $(this);
 		var type = getBlockType($this);
-
 		var zazz_id = $.last_div.attr('_zazz-id');
 		if ($.changed) {
 			updateCode(zazz_id, $this, type, false);
 			$.changed = false;
 		}
+		$this.attr('_zazz-cursor', $this.prop("selectionStart")).attr('_zazz-scroll', $this.scrollTop());
+	}).on('focus', '.-zazz-code-block', function() {
+		var $textarea = $(this);
+		var position = parseInt($textarea.attr('_zazz-cursor'));
+		setTimeout(function() {
+			var cursor = $textarea.prop("selectionStart");
+			if (cursor === 0) {
+				$textarea[0].setSelectionRange(position, position);
+				//Doesn't appear to update scroll automatically.
+				$textarea.scrollTop(parseInt($textarea.attr('_zazz-scroll')));
+			}
+		}, 1);
 	});
-
-
 	//The callback for when the focus is changed among divs.
 	$(document).on('focus', '.-zazz-element', function() {
 		var $div = $(this);
@@ -273,15 +275,20 @@ $(document).ready(function() {
 		var $container = $(".-zazz-outline-top").parent();
 		var offset_top = $div.offset().top - $container.offset().top;
 		var offset_left = $div.offset().left;
+		var height = $div.outerHeight();
+		var width = $div.outerWidth();
+		var contentHeight = $('.-zazz-content').outerHeight();
+		var contentWidth = $('.-zazz-content').outerWidth();
 		$(".-zazz-outline").show();
 		$(".-zazz-outline-left").css("top", offset_top).css("left", offset_left)
-			.css("height", $div.outerHeight());
+				.css("bottom", contentHeight - height - offset_top);
 		$(".-zazz-outline-right").css("top", offset_top)
-			.css("left", offset_left + $div.outerWidth() - 4).css("height", $div.outerHeight());
+				.css("right", contentWidth - width - offset_left)
+				.css("bottom", contentHeight - height - offset_top);
 		$(".-zazz-outline-top").css("top", offset_top)
-			.css("left", offset_left).css("width", $div.outerWidth());
-		$(".-zazz-outline-bottom").css("top", offset_top + $div.outerHeight() - 4)
-			.css("left", offset_left).css("width", $div.outerWidth());
+				.css("left", offset_left).css("right", contentWidth - width - offset_left);
+		$(".-zazz-outline-bottom").css("bottom", contentHeight - height - offset_top)
+				.css("left", offset_left).css("right", contentWidth - width - offset_left);
 		var id = $div.attr('_zazz-id');
 		//Change the ID and class text boxes.
 		$(".-zazz-id-input").val($div.attr('id'));
@@ -294,7 +301,6 @@ $(document).ready(function() {
 		$.last_div = $div;
 		return false;
 	});
-
 	function updatePageInfo(redirect) {
 		var page = $('#-zazz-page-name').val();
 		$.post('/zazz/ajax/page.php', {
@@ -329,7 +335,6 @@ $(document).ready(function() {
 	$('#-zazz-project-name').blur(function() {
 		updateProjectInfo(true);
 	});
-
 	$('#-zazz-default-page').blur(function() {
 		$.post('/zazz/ajax/project.php', {
 			page_id: $('#-zazz-page-id').val(),
@@ -341,36 +346,36 @@ $(document).ready(function() {
 			}
 		});
 	});
-
 	$('#-zazz-page-name').blur(function() {
 		updatePageInfo(true);
 	});
-
 	$('#-zazz-background-image').blur(function() {
-		$('.-zazz-content').first().css('background-image', 'url(' + $(this).val() + ')');
+		if (trim($(this).val()) !== '') {
+			$('.-zazz-content').first().css('background-image', 'url(' + $(this).val() + ')');
+		}
 		updateLayout();
 		updatePageInfo(false);
 	});
-
 	/*--------------------------------------------Mouse Code----------------------------------------*/
 
 	$(document).mousemove(function(e) {
 		$.mouse_x = e.pageX;
 		$.mouse_y = e.pageY;
 	});
-
 	$('.-zazz-content').mousemove(function(e) {
-		var offset_x = (e.offsetX || e.clientX - $(e.target).offset().left);
-		var offset_y = (e.offsetY || e.clientY - $(e.target).offset().top);
-
+		var $target = $(e.target);
+		if ($target.hasClass('-zazz-outline')) {
+			$target = $.last_div;
+		}
+		var offset_x = (e.offsetX || e.clientX - $target.offset().left);
+		var offset_y = (e.offsetY || e.clientY - $target.offset().top);
+		var targetHeight = $target.outerHeight();
+		var targetWidth = $target.outerWidth();
 		var bodyHeight = $('body').outerHeight();
 		var bodyWidth = $('body').outerWidth();
-
 		var $modal = $('#-zazz-modal-mouse');
 		var $view = $('.-zazz-content-view');
-
 		var pageHeight = $('.-zazz-content').outerHeight();
-
 		var viewTop = $view.offset().top;
 		var viewHeight = $view.outerHeight();
 		if (e.pageX > bodyWidth / 2) {
@@ -385,24 +390,32 @@ $(document).ready(function() {
 		}
 
 		$('#-zazz-modal-mouse-offset').html('<td>Offset (px):</td><td>(' + offset_y + ',</td><td>' +
-			offset_x + ',</td><td>' + ($(e.target).outerHeight() - offset_y) + ',</td><td>'
-			+ ($(e.target).outerWidth() - offset_x) + ')</td>');
+				offset_x + ',</td><td>' + ($(e.target).outerHeight() - offset_y) + ',</td><td>'
+				+ ($target.outerWidth() - offset_x) + ')</td>');
 		$('#-zazz-modal-mouse-location').html('<td>Page (px):</td><td>(' + (e.pageY - viewTop) +
-			',</td><td>' + e.pageX + ',</td><td>' + (pageHeight - (e.pageY - viewTop)) + ',</td><td>' +
-			(bodyWidth - e.pageX) + ')</td>');
+				',</td><td>' + e.pageX + ',</td><td>' + (pageHeight - (e.pageY - viewTop)) + ',</td><td>' +
+				(bodyWidth - e.pageX) + ')</td>');
+		$('#-zazz-modal-mouse-offsetp').html('<td>Offset (%):</td><td>(' +
+				Math.round(offset_y / targetHeight * 10000) / 100 + ',</td><td>' +
+				Math.round(offset_x / targetWidth * 10000) / 100 + ',</td><td>' +
+				Math.round((targetHeight - offset_y) / targetHeight * 10000) / 100 + ',</td><td>' +
+				Math.round((targetWidth - offset_x) / targetWidth * 10000) / 100 + ')</td>');
+		$('#-zazz-modal-mouse-locationp').html('<td>Page (%):</td><td>(' +
+				Math.round((e.pageY - viewTop) / pageHeight * 10000) / 100 + ',</td><td>' +
+				Math.round(e.pageX / bodyWidth * 10000) / 100 + ',</td><td>' +
+				Math.round((pageHeight - (e.pageY - viewTop)) / pageHeight * 10000) / 100 + ',</td><td>' +
+				Math.round((bodyWidth - e.pageX) / bodyWidth * 10000) / 100 + ')</td>');
 	});
-
 	function textareaMouseMove(e) {
 		var myPos = $(this).offset();
 		myPos.bottom = $(this).offset().top + $(this).outerHeight();
 		myPos.right = $(this).offset().left + $(this).outerWidth();
 		myPos.left = $(this).offset().left;
-
 		if (myPos.bottom > e.pageY && e.pageY > myPos.bottom - 15 && myPos.right > e.pageX &&
-			e.pageX > myPos.right - 15) {
+				e.pageX > myPos.right - 15) {
 			$(this).css({cursor: "e-resize"});
 		} else if (18 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.left + 18 > e.pageX &&
-			e.pageX > myPos.left) {
+				e.pageX > myPos.left) {
 			$(this).css({cursor: "pointer"});
 		} else {
 			$(this).css({cursor: "text"});
@@ -413,9 +426,8 @@ $(document).ready(function() {
 		var myPos = $(this).offset();
 		myPos.bottom = $(this).offset().top + $(this).outerHeight();
 		myPos.right = $(this).offset().left + $(this).outerWidth();
-
 		if (myPos.bottom > e.pageY && e.pageY > myPos.bottom - 15 && myPos.right > e.pageX &&
-			e.pageX > myPos.right - 15) {
+				e.pageX > myPos.right - 15) {
 			$(this).css({cursor: "e-resize"});
 		} else {
 			$(this).css({cursor: "text"});
@@ -426,7 +438,7 @@ $(document).ready(function() {
 		var myPos = $(this).offset();
 		myPos.left = $(this).offset().left;
 		if (18 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.left + 18 > e.pageX &&
-			e.pageX > myPos.left) {
+				e.pageX > myPos.left) {
 			var $block = $(this);
 			var id = getZazzID($block);
 			$.post('/zazz/ajax/code.php', {
@@ -449,32 +461,31 @@ $(document).ready(function() {
 
 	var noCSS = ".-zazz-html-code, .-zazz-php-code, .-zazz-mysql-code, .-zazz-js-code";
 	$(".-zazz-code-blocks").on('focus', noCSS, textareaScroll)
-		.on('mousemove', noCSS, textareaMouseMove)
-		.on('click', noCSS, textareaClick)
-		.on('mousemove', ".-zazz-css-code", textareaMouseMoveNoRemove);
+			.on('mousemove', noCSS, textareaMouseMove)
+			.on('click', noCSS, textareaClick)
+			.on('mousemove', ".-zazz-css-code", textareaMouseMoveNoRemove);
 	//$("textarea").mousemove(textareaMouseMove);
 	//$("textarea").click(textareaClick);
 
 	$(".-zazz-code-area .-zazz-navbar").not('input[type="text"]').drag(
-		function() {
-		},
-		function(e) {
-			var offset = 8;
-			if ($('.-zazz-divide-navbar').is(":visible")) {
-				offset = 40;
+			function() {
+			},
+			function(e) {
+				var offset = 8;
+				if ($('.-zazz-divide-navbar').is(":visible")) {
+					offset = 40;
+				}
+				$(".-zazz-code-area").height(
+						($('body').height() - (e.pageY - offset)) / $('body').height() * 100 + '%');
+				$(".-zazz-view").height((e.pageY - offset) / $('body').height() * 100 + '%');
+				$(document).css('cursor: n-resize');
+			},
+			function() {
 			}
-			$(".-zazz-code-area").height(
-				Math.round(($('body').height() - (e.pageY - offset)) / $('body').height() * 100) + '%');
-			$(".-zazz-view").height(Math.round((e.pageY - offset) / $('body').height() * 100) + '%');
-			$(document).css('cursor: n-resize');
-		},
-		function() {
-		}
 	).on("selectstart", false).on("dragstart", false);
-
 	function acrossMouse(e) {
 		$('.-zazz-horizontal-line-left').css('top', e.pageY).css('right', $('body').width() -
-			(e.pageX - 10));
+				(e.pageX - 10));
 		$('.-zazz-horizontal-line-right').css('top', e.pageY).css('left', e.pageX + 10);
 		$('#-zazz-location-display').html('( ' + e.pageX + ' , ' + e.pageY + ' ) ');
 	}
@@ -495,7 +506,7 @@ $(document).ready(function() {
 
 	function verticalMouse(e) {
 		$('.-zazz-vertical-line-top').css('left', e.pageX).css('bottom', $('body').height() -
-			(e.pageY - 10));
+				(e.pageY - 10));
 		$('.-zazz-vertical-line-bottom').css('left', e.pageX).css('top', e.pageY + 10);
 	}
 
@@ -518,13 +529,11 @@ $(document).ready(function() {
 			$.last_div.attr("id", $(this).val());
 		}
 	});
-
 	$('.-zazz-class-input').blur(function() {
 		if (typeof $.last_div !== "undefined") {
 			$.last_div.attr("class", $(this).val() + ' -zazz-element');
 		}
 	});
-
 	/*-----------------------------------------Compatibility----------------------------------------*/
 
 	//< IE10 needs this.
@@ -535,14 +544,13 @@ $(document).ready(function() {
 	/*------------------------------------------Button Code-----------------------------------------*/
 
 	$('.-zazz-select-btn').register(
-		function() {
-		},
-		function() {
-		},
-		function() {
-		}
+			function() {
+			},
+			function() {
+			},
+			function() {
+			}
 	);
-
 	function createDiv(id, type) {
 		var div = $('<div></div>').addClass(type).attr("id", id);
 		if (type === "-zazz-element") {
@@ -552,159 +560,261 @@ $(document).ready(function() {
 		return div;
 	}
 
+	function getCSSWidth($div, forcePercent) {
+		var $parent = $div.parent();
+		if (typeof forcePercent === "undefined") {
+			forcePercent = false;
+		}
+		if (forcePercent || $div.css('z-index') === 'auto') {
+			var parentWidth = $parent.outerWidth() - parseInt($parent.css('padding-left')) -
+					parseInt($parent.css('padding-right'));
+			return ($div.outerWidth() / parentWidth * 100) + '%';
+		} else {
+			return $div.outerWidth() + 'px';
+		}
+	}
+
 	$('.-zazz-vertical-btn').register(
-		function() {
-			$('.-zazz-content-view').on('mousemove', verticalMouse);
-			$('.-zazz-content-view').on('mouseenter', verticalMouseEnter);
-			$('.-zazz-content-view').on('mouseleave', verticalMouseLeave);
-		},
-		function($div, e) {
-			var $other_div = createDiv('element-' + $.element_id, '-zazz-element');
-			var left = $div.offset().left;
-			var old_width = $div.outerWidth();
-			$div.css('width', e.pageX - left);
-			$other_div.css('width', old_width - (e.pageX - left));
-			$.element_id++;
-			$other_div.insertAfter($div);
-			$div.focus();
-
-			updateLayout();
-		},
-		function() {
-			verticalMouseLeave();
-			$('.-zazz-content-view').off('mouseenter', verticalMouseEnter);
-			$('.-zazz-content-view').off('mouseleave', verticalMouseLeave);
-			$('.-zazz-content-view').off('mousemove', verticalMouse);
-		}
-	);
-
-	$('.-zazz-across-btn').register(
-		function() {
-			$('.-zazz-content-view').on('mousemove', acrossMouse);
-			$('.-zazz-content-view').on('mouseenter', acrossMouseEnter);
-			$('.-zazz-content-view').on('mouseleave', acrossMouseLeave);
-		},
-		function($div, e) {
-			//First move div into another div (possibly with a class of row) and then copy the row.
-			var width = $div.outerWidth();
-			var $row_group;
-			var $row;
-			var $other_row;
-			//Check to see if the row has only one div.
-			if ($div.parent().children().length === 1 && $div.parent().hasClass('-zazz-row')) {
-				//If so, then the row group and the row are obvious.
-				$row_group = $div.parent().parent();
-				$row = $div.parent();
-			} else {
-				//Otherwise we need to create a new row group and insert it where the div was with the right
-				//width. This also requires creating a new row to place the div into and placing that row 
-				//into the row group.
-				$row_group = createDiv('row-group-' + $.group_id, '-zazz-row-group').width(width);
-				$row = createDiv('row-' + $.row_id, '-zazz-row');
-				$.group_id++;
-				$.row_id++;
-				$row_group.append($row);
-				$row_group.insertAfter($div);
-				$row.append($div);
-
-				$div.css('width', '100%');
-			}
-
-			//Make a new row and insert the new row into the row group.
-			$other_row = createDiv('row-' + $.row_id, '-zazz-row');
-			$other_row.append(createDiv('element-' + $.element_id, '-zazz-element'));
-			$.row_id++;
-			$.element_id++;
-			$other_row.insertAfter($row);
-
-			//Now we need to fix the heights of the divs by splitting across the point that was clicked.
-			var top = $div.offset().top;
-			var old_height = $div.outerHeight();
-			var new_other_height = old_height - (e.pageY - top);
-			var new_height = e.pageY - top;
-			$other_row.height(new_other_height);
-			$row.height(new_height);
-
-			$div.focus();
-
-			updateLayout();
-		},
-		function() {
-			acrossMouseLeave();
-			$(".-zazz-content-view").off('mousemove', acrossMouse);
-			$('.-zazz-content-view').off('mouseenter', acrossMouseEnter);
-			$('.-zazz-content-view').off('mouseleave', acrossMouseLeave);
-		}
-	);
-
-	$('.-zazz-absorb-btn').register(
-		function() {
-			//$('.-zazz-element').css('cursor', 'pointer');
-		},
-		function(div, e, changed) {
-			if (typeof this.first_div === 'undefined' || changed) {
-				this.first_div = div;
-			} else if (div[0] !== this.first_div[0]) {
-				var $second_div = $(div);
-				var $first_div = $(this.first_div);
-				//Check to see if they are in the same row.
-				if ($second_div.parent().get(0) === $first_div.parent().get(0)) {
-					//Remove the second div clicked on and expand the first div.
-					var first_width = $first_div.outerWidth();
-					var second_width = $second_div.outerWidth();
-					$second_div.remove();
-					$first_div.css("width", first_width + second_width);
-					//Else check to see if rows are in the same column (also checks that there is only one element
-					//in row).
-				} else if ($second_div.parent().parent().get(0) === $first_div.parent().parent().get(0) &&
-					$second_div.parent().children().length === 1 &&
-					$first_div.parent().children().length === 1) {
-					//Remove the second div clicked on and expand the first div.
-					$first_div.parent().css("height", $second_div.parent().outerHeight() +
-						$first_div.parent().outerHeight());
-					$second_div.parent().remove();
-					//Get the column that contains the row that contains the first div.
-					var $good_parent = $first_div.parent().parent();
-					var $old_parent = null;
-					//We need to keep the structure of the document well maintained and ensure that we don't have
-					//things like a column that just contains a row that just contains a column that just contains
-					//a row that just contains a div.
-					//Check that the row that contains the column doesn't just contain the column (also checks
-					//corner case of having only one div on entire page).
-					while ($good_parent.children().length === 1 && $good_parent.attr('_zazz-id') !== 'content') {
-						$old_parent = $good_parent;
-						$good_parent = $good_parent.parent();
-					}
-					//If so, then remove the column, and replace it with the first div (expand width accordingly).
-					if (null !== $old_parent) {
-						$first_div.css("width", $old_parent.outerWidth());
-						$first_div.insertBefore($old_parent);
-						$old_parent.remove();
-					}
-					//Else give error message.
-				} else {
-					warn("Error", "These elements are neither in the same row or column.");
+			function() {
+				$('.-zazz-content-view').on('mousemove', verticalMouse);
+				$('.-zazz-content-view').on('mouseenter', verticalMouseEnter);
+				$('.-zazz-content-view').on('mouseleave', verticalMouseLeave);
+				$("#-zazz-fixed").css('display', 'inline-block');
+				$('#-zazz-fixed-vertical').show();
+			},
+			function($div, e) {
+				var fixedWidth = (parseInt($div.css('z-index')) > 0 ? true : false);
+				var split = $('#-zazz-fixed-vertical').val();
+				if (fixedWidth && split !== 'Both') {
+					warn('Warning', 'You cannot have a child element that has a dynamic width for a fixed ' +
+							'width element.');
+					return;
 				}
-				//Set focus and delete the stored first div.
-				$first_div.focus();
-				delete this.first_div;
+				if (!fixedWidth && split === 'Both') {
+					warn('Warning', 'You cannot have both children elements have fixed width for a dynamic ' +
+							'width element.');
+					return;
+				}
 
+				var divWidth = $div.outerWidth();
+				var mouseOffsetLeft = e.pageX - $div.offset().left;
+				var mouseOffsetRight = divWidth - mouseOffsetLeft;
+				var $other_div = createDiv('element-' + $.element_id, '-zazz-element');
+				$.element_id++;
+				if (fixedWidth) {
+					$div.css('width', mouseOffsetLeft);
+					$other_div.css('width', mouseOffsetRight).css('z-index', '1');
+					$other_div.insertAfter($div);
+				} else {
+					var $container;
+					if (split === 'Left' || split === 'Right') {
+						if ($div.parent().hasClass('-zazz-container')) {
+							$container = $div.parent();
+						} else {
+							$container = $('<div></div>').addClass('-zazz-container').css('width',
+									$div.outerWidth() / $div.parent().outerWidth() * 100 + '%');
+							$div.css('width', '');
+							$container.insertAfter($div);
+							$container.append($div);
+						}
+					}
+
+					if (split === 'Left') {
+						$container.css('padding-left', parseInt($container.css('padding-left')) + mouseOffsetLeft)
+								.css('margin-left', parseInt($container.css('margin-left')) - mouseOffsetLeft);
+						$other_div.css('width', mouseOffsetLeft).css('z-index', '1');
+						$other_div.insertBefore($container);
+					} else if (split === 'Right') {
+						$container.css('padding-right', parseInt($container.css('padding-right')) + mouseOffsetRight)
+								.css('margin-right', parseInt($container.css('margin-right')) - mouseOffsetRight);
+						$other_div.css('width', mouseOffsetRight).css('z-index', '1');
+						$other_div.insertAfter($container);
+					} else if (split === 'None') {
+						$container = $div.parent();
+						var parentWidth = $container.outerWidth() - parseInt($container.css('padding-left'))
+								- parseInt($container.css('padding-right'));
+						var percentOffset = mouseOffsetLeft / parentWidth * 100;
+						var percentWidth = $div.outerWidth() / parentWidth * 100;
+						$div.css('width', percentOffset + '%');
+						$other_div.css('width', (percentWidth - percentOffset) + '%');
+						$other_div.insertAfter($div);
+					}
+				}
+
+				$other_div.css("min-height", $div.css('min-height'));
+				$div.focus();
 				updateLayout();
+			},
+			function() {
+				verticalMouseLeave();
+				$('.-zazz-content-view').off('mouseenter', verticalMouseEnter);
+				$('.-zazz-content-view').off('mouseleave', verticalMouseLeave);
+				$('.-zazz-content-view').off('mousemove', verticalMouse);
+				$("#-zazz-fixed").hide();
+				$('#-zazz-fixed-vertical').hide();
 			}
-		},
-		function() {
-			$('.-zazz-element').css('cursor', '');
-		}
 	);
+	$('.-zazz-across-btn').register(
+			function() {
+				$('.-zazz-content-view').on('mousemove', acrossMouse);
+				$('.-zazz-content-view').on('mouseenter', acrossMouseEnter);
+				$('.-zazz-content-view').on('mouseleave', acrossMouseLeave);
+			},
+			function($div, e) {
+				//First move div into another div (possibly with a class of row) and then copy the row.
+				var $row_group;
+				var $row;
+				var $other_row;
+				var $parent = $div.parent();
+				//Check to see if the row has only one div.
+				if ($parent.children().length === 1 && $parent.hasClass('-zazz-row')) {
+					//If so, then the row group and the row are obvious.
+					$row_group = $parent.parent();
+					$row = $parent;
+				} else {
+					//Otherwise we need to create a new row group and insert it where the div was with the right
+					//width. This also requires creating a new row to place the div into and placing that row 
+					//into the row group.
+					$row_group = createDiv('row-group-' + $.group_id, '-zazz-row-group');
+					//Need to figure out if width is supposed to be % or px because 
+					//$row_group.css('width', $div.css('width')); only sets it to px.
+					$row_group.css('width', getCSSWidth($div));
+					$div.css('width', '');
+					$row_group.insertAfter($div);
+					$row = createDiv('row-' + $.row_id, '-zazz-row');
+					$.group_id++;
+					$.row_id++;
+					$row_group.append($row);
+					$row.append($div);
+				}
 
+				//Make a new row and insert the new row into the row group.
+				$other_row = createDiv('row-' + $.row_id, '-zazz-row');
+				var $other_div = createDiv('element-' + $.element_id, '-zazz-element');
+				$other_row.append($other_div);
+				$.row_id++;
+				$.element_id++;
+				$other_row.insertAfter($row);
+				//Now we need to fix the heights of the divs by splitting across the point that was clicked.
+				var old_height = $div.outerHeight();
+				var top = $div.offset().top;
+				var mouseOffsetTop = e.pageY - top;
+				var mouseOffsetBottom = old_height - (e.pageY - top);
+				$div.css('min-height', mouseOffsetTop);
+				$other_div.css('min-height', mouseOffsetBottom);
+				$div.focus();
+				updateLayout();
+			},
+			function() {
+				acrossMouseLeave();
+				$(".-zazz-content-view").off('mousemove', acrossMouse);
+				$('.-zazz-content-view').off('mouseenter', acrossMouseEnter);
+				$('.-zazz-content-view').off('mouseleave', acrossMouseLeave);
+			}
+	);
+	$('.-zazz-absorb-btn').register(
+			function() {
+				//$('.-zazz-element').css('cursor', 'pointer');
+			},
+			function(div, e, changed) {
+				if (typeof this.first_div === 'undefined' || changed) {
+					this.first_div = div;
+				} else if (div[0] !== this.first_div[0]) {
+					var $second_div = $(div);
+					var $first_div = $(this.first_div);
+					var $second_parent = $second_div.parent();
+					var $first_parent = $first_div.parent();
+					var $second_grandparent = $second_parent.parent();
+					var $first_grandparent = $first_parent.parent();
+					//Check to see if they are in the same container or row.
+					if (($first_parent.hasClass('-zazz-container') &&
+							$second_parent.hasClass('-zazz-container')) ||
+							($first_parent.hasClass('-zazz-row') &&
+							$second_parent.hasClass('-zazz-row')) &&
+							$second_parent.get(0) === $first_parent.get(0)) {
+						//Remove the second div clicked on and expand the first div.
+						var first_width = getCSSWidth($first_div);
+						var second_width = getCSSWidth($second_div);
+						$second_div.remove();
+						$first_div.css("width", (parseFloat(first_width) + parseFloat(second_width)) + '%');
+						//Else check to see if rows are in the same row, but not in the same container.
+					} else if ($first_parent.hasClass('-zazz-container') &&
+							$second_parent.hasClass('-zazz-row') &&
+							$second_parent.get(0) === $first_grandparent.get(0)) {
+						var second_width_px = $second_div.outerWidth();
+						var second_index = $second_div.index();
+						
+						$second_div.remove();				
+						
+						//If this ends up removing all other elements in the row, then we need to remove the 
+						//container.
+						if ($first_grandparent.children().length === 1) {
+							$first_parent.children().each(function() {
+								$first_grandparent.append($(this));
+							});
+							$first_parent.remove();
+						} else {
+							//Else just fix the padding.
+							if (second_index < $first_parent.index()) {
+								$first_parent.css('margin-left', parseInt($first_parent.css('margin-left'))
+										+ second_width_px);
+								$first_parent.css('padding-left', parseInt($first_parent.css('padding-left'))
+										- second_width_px);
+							} else {
+								$first_parent.css('margin-right', parseInt($first_parent.css('margin-right'))
+										+ second_width_px);
+								$first_parent.css('padding-right', parseInt($first_parent.css('padding-right'))
+										- second_width_px);
+							}
+						}
+						//Else check to see if rows are in the same row, but not in the same container.
+						//Note that above assumes that the first_div is in the container, while this 
+						//assumes that the second_div is in the container.
+					} else if ($second_parent.hasClass('-zazz-container') &&
+							$first_parent.hasClass('-zazz-row') &&
+							$first_parent.get(0) === $second_grandparent.get(0)) {
+						warn('Error', 'You cannot absorb a dynamic width element into a fixed width element.')
+						//Else check to see if they are in the same column.
+					} else if ($second_grandparent.get(0) === $first_grandparent.get(0)) {
+						if ($second_parent.children().length !== 1 || $first_parent.children().length !== 1) {
+							warn('Error', "Both rows must only have one element before you can combine them.");
+						} else {
+							//Remove the second div clicked on and expand the first div.
+							$first_div.css("min-height", parseInt($second_div.css('min-height')) +
+									parseInt($first_div.css('min-height')));
+							$second_div.parent().remove();
+							//Get the column that contains the row that contains the first div.
+							var $row_group = $first_div.parent().parent();
+							//We need to check to see if the row-group only has one row, and if so reduce the document
+							//structure. Also check for corner case of only one element in document.
+							if ($row_group.children().length === 1 && 
+									!$row_group.parent().hasClass('-zazz-content')) {
+								$first_div.css("width", getCSSWidth($row_group));
+								$first_div.insertBefore($row_group);
+								$row_group.remove();
+							}
+						}
+						//Else give error message.
+					} else {
+						warn("Error", "These elements are neither in the same row or column.");
+					}
+					//Set focus and delete the stored first div.
+					$first_div.focus();
+					delete this.first_div;
+					updateLayout();
+				}
+			},
+			function() {
+				$('.-zazz-element').css('cursor', '');
+			}
+	);
 	$('#-zazz-edit-page-btn').click(function() {
 		$('#-zazz-modal-settings').show().center();
 	});
-
 	$('.-zazz-project-btn').click(function() {
 		var pos = $(this).offset();
 		$('#-zazz-dropdown-project').show().css('top', pos.top + $(this).outerHeight())
-			.css('left', pos.left);
+				.css('left', pos.left);
 	}).blur(function() {
 		setTimeout(function() {
 			if (document.activeElement.id === '-zazz-edit-project-btn') {
@@ -716,14 +826,14 @@ $(document).ready(function() {
 			} else if (document.activeElement.id === '-zazz-delete-project-btn') {
 				if ($("#-zazz-modal-view-pages .-zazz-links a").length > 1) {
 					confirm('Are you sure?', 'By deleting this project, you will remove all code and pages.',
-						function() {
-							$.post('/zazz/ajax/project.php', {
-								page_id: $('#-zazz-page-id').val(),
-								delete: 'true'
-							}, function() {
-								window.location.href = "/zazz/index.php";
+							function() {
+								$.post('/zazz/ajax/project.php', {
+									page_id: $('#-zazz-page-id').val(),
+									delete: 'true'
+								}, function() {
+									window.location.href = "/zazz/index.php";
+								});
 							});
-						});
 				} else {
 					warn('Warning', 'You cannot delete your only project.');
 				}
@@ -731,7 +841,6 @@ $(document).ready(function() {
 			$('#-zazz-dropdown-project').hide();
 		}, 1);
 	});
-
 	$('#-zazz-make-new-project').click(function() {
 		$.post('/zazz/ajax/project.php', {
 			create: $('#-zazz-new-project-name').val()
@@ -743,11 +852,10 @@ $(document).ready(function() {
 			}
 		});
 	});
-
 	$('.-zazz-page-btn').click(function() {
 		var pos = $(this).offset();
 		$('#-zazz-dropdown-page').show().css('top', pos.top + $(this).outerHeight())
-			.css('left', pos.left);
+				.css('left', pos.left);
 	}).blur(function() {
 		setTimeout(function() {
 			if (document.activeElement.id === '-zazz-edit-page-btn') {
@@ -759,14 +867,14 @@ $(document).ready(function() {
 			} else if (document.activeElement.id === '-zazz-delete-page-btn') {
 				if ($("#-zazz-modal-view-pages .-zazz-links a").length > 1) {
 					confirm('Are you sure?', 'By deleting this page, you will remove all code.',
-						function() {
-							$.post('/zazz/ajax/page.php', {
-								page_id: $('#-zazz-page-id').val(),
-								delete: 'true'
-							}, function() {
-								window.location.href = "/zazz/index.php";
+							function() {
+								$.post('/zazz/ajax/page.php', {
+									page_id: $('#-zazz-page-id').val(),
+									delete: 'true'
+								}, function() {
+									window.location.href = "/zazz/index.php";
+								});
 							});
-						});
 				} else {
 					warn('Warning', 'You cannot delete your only page.');
 				}
@@ -774,7 +882,6 @@ $(document).ready(function() {
 			$('#-zazz-dropdown-page').hide();
 		}, 1);
 	});
-
 	$('#-zazz-make-new-page').click(function() {
 		$.post('/zazz/ajax/page.php', {
 			page_id: $('#-zazz-page-id').val(),
@@ -784,26 +891,23 @@ $(document).ready(function() {
 				$('#-zazz-modal-new-page .-zazz-modal-message').html(data);
 			} else {
 				window.location.href = "/zazz/build/" + $('#-zazz-project-name').val() +
-					'/' + $('#-zazz-new-page-name').val();
+						'/' + $('#-zazz-new-page-name').val();
 			}
 		});
 	});
-
 	$('#-zazz-deploy-project-btn').click(function() {
 		confirm('Are you sure?', 'By deploying this project, you will make it publicly visible at the ' +
-			'root URL.',
-			function() {
-				window.location.href = "/zazz/view.php?project=" + $('#-zazz-project-name').val() + '&page=' +
-					$('#-zazz-default-page').val() + '&deploy=true';
-			}
+				'root URL.',
+				function() {
+					window.location.href = "/zazz/view.php?project=" + $('#-zazz-project-name').val() + '&page=' +
+							$('#-zazz-default-page').val() + '&deploy=true';
+				}
 		);
 	});
-
 	$('#-zazz-upload-filename').focus(function() {
 		$('#-zazz-upload-file').click();
 		$(this).blur();
 	});
-
 	$('#-zazz-upload-file').change(function() {
 		var filename = $(this).val();
 		$('#-zazz-upload-filename').val(filename);
@@ -818,22 +922,18 @@ $(document).ready(function() {
 		filename = filename.slice(index - filename.length + 1);
 		$('#-zazz-upload-server').val(filename);
 	});
-
 	$('.-zazz-upload-btn').click(function() {
 		$('#-zazz-modal-upload').center().show();
 	});
-
 	$('#-zazz-upload-do-it').click(function() {
 		$('#-zazz-upload-name').val($('#-zazz-upload-server').val());
 		$('#-zazz-upload-page-id').val($('#-zazz-page-id').val());
 		$('#-zazz-upload-form').submit();
 	});
-
 	$('.-zazz-view-btn').click(function() {
 		window.location.href = "/zazz/view/"
-			+ $('#-zazz-project-name').val() + '/' + $('#-zazz-page-name').val();
+				+ $('#-zazz-project-name').val() + '/' + $('#-zazz-page-name').val();
 	});
-
 	function addCodeBlock(className, forID) {
 		var $forID = $('.-zazz-element[_zazz-id="' + forID + '"]');
 		var order;
@@ -843,8 +943,8 @@ $(document).ready(function() {
 			order = $forID.attr('_zazz-order');
 		}
 		var $textarea = $('<textarea></textarea>').addClass('-zazz-code-block')
-			.addClass(className).addClass('-zazz-code-block-' + forID).attr('spellcheck', false)
-			.attr('tabindex', '10').attr('_zazz-order', order);
+				.addClass(className).addClass('-zazz-code-block-' + forID).attr('spellcheck', false)
+				.attr('tabindex', '10').attr('_zazz-order', order);
 		$forID.attr('_zazz-order', parseInt($forID.attr('_zazz-order')) + 1);
 		return $textarea;
 	}
@@ -869,7 +969,6 @@ $(document).ready(function() {
 	$('.-zazz-js-btn').click(function() {
 		addCodeButton('js');
 	});
-
 	function addCSSCodeBlock(id) {
 		var $block = addCodeBlock('-zazz-css-code', id);
 		$block.val('#' + id + ' {\n\n' + '}');
@@ -878,9 +977,6 @@ $(document).ready(function() {
 	}
 
 	function start() {
-		//$('.-zazz-content, .-zazz-row-group, .-zazz-row, .-zazz-element').each(function(){
-		//	addCSSCodeBlock($(this).attr("_zazz-id"));
-		//});
 		var $content = $('.-zazz-content');
 		$('.-zazz-element').first().focus();
 		$('.-zazz-select-btn').click();
@@ -895,13 +991,13 @@ $(document).ready(function() {
 			var $this = $(this);
 			addJSCode($this.val());
 		});
-
-		$('.-zazz-content').first().css('background-image',
-			'url(' + $('#-zazz-background-image').val() + ')');
+		var image = $('#-zazz-background-image').val();
+		if (trim(image) !== '') {
+			$('.-zazz-content').first().css('background-image', 'url(' + image + ')');
+		}
 	}
 
 	start();
-
 	/*--------------------------------------Keyboard Shortcuts--------------------------------------*/
 
 	$('[tabindex]').keyup(function(e) {
@@ -909,49 +1005,44 @@ $(document).ready(function() {
 			$(this).click();
 		}
 	});
-
 	$(document).keyup(function(e) {
 		if (e.keyCode === 27 || e.which === 27) {
 			$('.-zazz-select-btn').click();
 		}
 	});
-	
 	$(document).keyup(function(e) {
 		if ((e.keyCode === 120 || e.which === 120) && e.ctrlKey) {
 			$('.-zazz-select-btn').focus();
 		}
 	});
-	
-
 	$(document).keyup(function(e) {
 		if ((e.keyCode === 121 || e.which === 121) && e.ctrlKey) {
 			$.last_div.focus();
 		}
-	});	
-	
+	});
 	$(document).keyup(function(e) {
 		if ((e.keyCode === 122 || e.which === 122) && e.ctrlKey) {
 			$('.-zazz-id-input').focus();
 		}
-	});	
-	
+	});
 	$(document).keyup(function(e) {
 		if ((e.keyCode === 123 || e.which === 123) && e.ctrlKey) {
 			var $parent = $('.-zazz-code-blocks');
 			var $children = $parent.children(':visible');
-			while($children.length !== 0) {
+			while ($children.length !== 0) {
 				$parent = $children.first();
 				$children = $parent.children(':visible');
 			}
 			$parent.focus();
 		}
-	});	
+	});
+	/*--------------------------------------------Demo----------------------------------------------*/
 
 	if ($('#-zazz-is-demo').val()) {
 		warn("Welcome!", "Thanks for trying out the demo. <br><br> Since this is the demo, many of the features\n\
 		of Zazz have been disabled. However, you can still play around with the layout editing options in the\n\
 		top left corner of the screen, and add HTML, CSS, and JavaScript code to the document! <br><br> Enjoy!",
-			"width: 500px");
+				"width: 500px");
 	}
 
 });

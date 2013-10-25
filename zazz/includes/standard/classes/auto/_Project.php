@@ -35,9 +35,27 @@ array (
   'default_page' => 
   array (
     'Field' => 'default_page',
-    'Type' => 'int(10)',
+    'Type' => 'int(10) unsigned',
     'Null' => 'YES',
     'Key' => 'UNI',
+    'Default' => NULL,
+    'Extra' => '',
+  ),
+  'project_start' => 
+  array (
+    'Field' => 'project_start',
+    'Type' => 'int(10) unsigned',
+    'Null' => 'NO',
+    'Key' => '',
+    'Default' => NULL,
+    'Extra' => '',
+  ),
+  'project_end' => 
+  array (
+    'Field' => 'project_end',
+    'Type' => 'int(11) unsigned',
+    'Null' => 'NO',
+    'Key' => '',
     'Default' => NULL,
     'Extra' => '',
   ),

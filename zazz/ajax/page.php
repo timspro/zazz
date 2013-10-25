@@ -24,14 +24,10 @@ if (isset($_REQUEST['create']) && isset($_REQUEST['page_id'])) {
 		return;
 	}
 	try {
-		$result = _Page::get()->retrieve('project_id', array(), array('page_id' => $_REQUEST['page_id']));
-		$page_id = _Page::get()->create(array('page' => $_REQUEST['create'],
-			'project_id' => $result[0]['project_id']));
-		_Code::get()->create(array('zazz_id' => 'element-0', 'page_id' => $page_id, 'type' => 'css',
-			'code' => "#element-0 {\n\n}", 'zazz_order' => '0'));
-
-		$layout = getDefaultLayout();
-		_Layout::get()->create(array('page_id' => $page_id, 'layout' => $layout));
+		$project_id = _Page::get()->retrieve('project_id', array(), array('page_id' => $_REQUEST['page_id']));
+		$project_id = $project_id[0]['project_id'];		
+		
+		createPage($_REQUEST['create'], $project_id);
 	} catch (PDOException $e) {
 		if ($e->getCode() === '23000') {
 			echo 'There already is a page with that name in this project.';

@@ -1,8 +1,13 @@
 <?php
 
-function getCodeBlocks($page_id) {
-	$rows = _Code::get()->retrieve(array('zazz_id', 'code', 'type', 'zazz_order'), array(),
-		array('page_id' => $page_id), 'zazz_order');
+function getCodeBlocks($page_id, $project_start, $project_end) {
+	$page_id = intval($page_id);
+	$project_start = intval($project_start);
+	$project_end = intval($project_end);
+	$query = Database::get()->PDO()->prepare("SELECT zazz_id, code, type, zazz_order FROM code WHERE " . 
+		"page_id = $page_id OR page_id = $project_start OR page_id = $project_end ORDER BY zazz_order");
+	$query->execute();
+	$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 	foreach ($rows as $row) {
 		echo '<textarea class="-zazz-code-block -zazz-' . $row["type"] . '-code 
 							-zazz-code-block-' . $row['zazz_id'] . '" 
@@ -15,11 +20,21 @@ function getDefaultCodeBlock() {
 	echo '<textarea class="-zazz-code-block -zazz-css-code 
 							-zazz-code-block-element-0" 
 							spellcheck="false" tabindex="10" _zazz-order="0" 
-							style="display: none;" >#element-0 { ' . "\n\n" . '}</textarea>';
+							style="display: none;" >#element-0 { ' . "\n\n" . '}</textarea>
+				<textarea class="-zazz-code-block -zazz-css-code 
+							-zazz-code-block-page" 
+							spellcheck="false" tabindex="10" _zazz-order="0" 
+							style="display: none;" >#page { ' . "\n\n" . '}</textarea>
+				<textarea class="-zazz-code-block -zazz-css-code 
+							-zazz-code-block-project" 
+							spellcheck="false" tabindex="10" _zazz-order="0" 
+							style="display: none;" >#project { ' . "\n\n" . '}</textarea>';
 }
 
 if (isset($_GET['demo'])) {
 	$demo = true;
+	session_start();
+	session_destroy();
 } else {
 	$demo = false;
 }
@@ -54,13 +69,15 @@ if (!$demo) {
 		return;
 	}
 	$project = $_GET['project'];
-	$project_id = _Project::get()->retrieve(array('project_id', 'default_page'), array(),
-		array('project' => $project));
+	$project_id = _Project::get()->retrieve(array('project_id', 'default_page', 'project_start',
+		'project_end'), array(), array('project' => $project));
 	if (empty($project_id)) {
 		header('Location: /zazz/index.php');
 		return;
 	}
 	$default_page_id = $project_id[0]['default_page'];
+	$project_start = $project_id[0]['project_start'];
+	$project_end = $project_id[0]['project_end'];	
 	$project_id = $project_id[0]['project_id'];
 	$default_page = _Page::get()->retrieve('page', array(), array('page_id' => $default_page_id));
 	if (empty($default_page[0]['page'])) {
@@ -205,7 +222,7 @@ if (!$demo) {
 					<input type="file" name="upload" id="-zazz-upload-file" />
 				</form>
 				<p id="-zazz-uploaded-files"></p>
-				<iframe src='/zazz/ajax/project.php?page_id=<?=$page_id?>&files=true' 
+				<iframe src='/zazz/ajax/project.php?page_id=<?= $page_id ?>&files=true' 
 								name="-zazz-uploaded-result" frameBorder="0"></iframe>
 			</div>
 			<div class="-zazz-modal-footer">
@@ -278,7 +295,12 @@ if (!$demo) {
 					</tr>
 					<tr id='-zazz-modal-mouse-location'>
 					</tr>
+					<tr id='-zazz-modal-mouse-offsetp'>
+					</tr>
+					<tr id='-zazz-modal-mouse-locationp'>
+					</tr>
 				</table>
+				<p> (Top, Left, Bottom, Right) </p>
 			</div>
 		</div>
 		<div class="-zazz-horizontal-line-left -zazz-line"> </div>
@@ -293,7 +315,14 @@ if (!$demo) {
 					><span tabindex="10" class="-zazz-across-btn -zazz-btn">Across</span
 					><span tabindex="10" class="-zazz-absorb-btn -zazz-btn">Absorb</span
 					><span class="-zazz-divider"></span
-					>
+					><span id="-zazz-fixed"><span class="-zazz-fixed-btn">Fixed:</span
+						><select id="-zazz-fixed-vertical"
+										 ><option>None</option
+							><option>Left</option
+							><option>Right</option
+							><option>Both</option
+							></select
+						><span class="-zazz-divider"></span></span>
 				</span>
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span class="-zazz-divider"></span
@@ -340,7 +369,7 @@ if (!$demo) {
 			<div class="-zazz-code-blocks">
 				<?php
 				if (!$demo) {
-					getCodeBlocks($page_id);
+					getCodeBlocks($page_id, $project_start, $project_end);
 				} else {
 					getDefaultCodeBlock();
 				}
