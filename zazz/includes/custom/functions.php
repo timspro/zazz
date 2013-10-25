@@ -106,21 +106,15 @@ function getDefaultLayout() {
 
 	ob_start();
 	?>
-	<div class="-zazz-hidden">
-		<div id="project-start" class="-zazz-element" tabindex="10" _zazz-id="project-start" _zazz-order="1"></div>
-		<div id="project-end" class="-zazz-element" tabindex="10" _zazz-id="project-end" _zazz-order="1"></div>
-		<div id="page-start" class="-zazz-element" tabindex="10" _zazz-id="page-start" _zazz-order="1"></div>
-		<div id="page-end" class="-zazz-element" tabindex="10" _zazz-id="page-end" _zazz-order="1"></div>
-	</div>
 	<div id="content" class="-zazz-content"
-			 _zazz-rid='1' _zazz-gid='1' _zazz-eid='1'><div 
-			class="-zazz-outline-right -zazz-outline"> </div><div 
-			class="-zazz-outline-top -zazz-outline"> </div><div 
-			class="-zazz-outline-bottom -zazz-outline"> </div><div 
-			class="-zazz-outline-left -zazz-outline"> </div><div 
+			 data-zazz-rid='1' data-zazz-gid='1' data-zazz-eid='1'><div class="-zazz-hidden"><div
+				id="project-start" class="-zazz-element" tabindex="10" data-zazz-id="project-start" data-zazz-order="1"></div><div
+				id="project-end" class="-zazz-element" tabindex="10" data-zazz-id="project-end" data-zazz-order="1"></div><div
+				id="page-start" class="-zazz-element" tabindex="10" data-zazz-id="page-start" data-zazz-order="1"></div><div
+				id="page-end" class="-zazz-element" tabindex="10" data-zazz-id="page-end" data-zazz-order="1"></div></div><div 
 			id="row-group-0" class="-zazz-row-group"><div 
 				id="row-0" class="-zazz-row"><div 
-					id="element-0" _zazz-order="1" tabindex="10" class="-zazz-element" _zazz-id="element-0"
+					id="element-0" data-zazz-order="1" tabindex="10" class="-zazz-element" data-zazz-id="element-0"
 					style="min-height: 1000px;"></div
 				></div
 			></div
@@ -150,6 +144,7 @@ body, html {
 }
 
 body {
+	background-color: #cfcfcf;
 	overflow-y: scroll;
 }
 
@@ -184,9 +179,9 @@ body {
 
 function getDefaultPHP() {
 	return '//Note that Zazz MySQL functionality 
-//depends on $_PDO referring to a PDO object.
-$_PDO = new PDO("mysql:host=localhost;dbname=zazz", "root", "");
-$_PDO->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);';
+//depends on $ZAZZ_PDO referring to a PDO object.
+$ZAZZ_PDO = new PDO("mysql:host=localhost;dbname=zazz", "root", "");
+$ZAZZ_PDO->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);';
 }
 
 function getDefaultJS() {
@@ -232,7 +227,7 @@ function createProject($project_name, $user_id) {
 	$id = _Project::get()->create(array('project' => $project_name, 'user_id' => $user_id));
 	$page_id = createPage('index.php', $id);
 	_User::get()->update(array('active_project' => $id), array('user_id' => $user_id));
-	$start_page_id = _Page::get()->create(array('page' => '_zazz-project-start', 'project_id' => $id));
+	$start_page_id = _Page::get()->create(array('page' => 'data-zazz-project-start', 'project_id' => $id));
 	_Code::get()->create(array('zazz_id' => 'project-start', 'page_id' => $start_page_id,
 		'type' => 'css', 'code' => getDefaultCSS(), 'zazz_order' => '0'));
 	_Code::get()->create(array('zazz_id' => 'project-start', 'page_id' => $start_page_id,
@@ -241,7 +236,7 @@ function createProject($project_name, $user_id) {
 		'type' => 'php', 'code' => getDefaultPHP(), 'zazz_order' => '1'));
 	_Code::get()->create(array('zazz_id' => 'project-start', 'page_id' => $start_page_id,
 		'type' => 'js', 'code' => getDefaultJS(), 'zazz_order' => '3'));
-	$end_page_id = _Page::get()->create(array('page' => '_zazz-project-end', 'project_id' => $id));
+	$end_page_id = _Page::get()->create(array('page' => 'data-zazz-project-end', 'project_id' => $id));
 	_Code::get()->create(array('zazz_id' => 'project-end', 'page_id' => $end_page_id, 'type' => 'html',
 		'code' => getDefaultHTMLEnd(), 'zazz_order' => '2'));
 	_Project::get()->update(array('default_page' => $page_id, 'project_start' => $start_page_id,

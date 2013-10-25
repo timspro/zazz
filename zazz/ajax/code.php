@@ -47,11 +47,11 @@ if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['
 								$q->bindValue(':' . $param, $$param);
 							}
 							$q->execute();
-							$_ROWS = $q->fetchAll(PDO::FETCH_ASSOC);
+							$ZAZZ_ROWS = $q->fetchAll(PDO::FETCH_ASSOC);
 							unset($q);
 							unset($params);
 						} else {
-							$_ROWS = array();
+							$ZAZZ_ROWS = array();
 						}
 						break;
 					case 'php':

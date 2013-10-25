@@ -11,7 +11,7 @@ function getCodeBlocks($page_id, $project_start, $project_end) {
 	foreach ($rows as $row) {
 		echo '<textarea class="-zazz-code-block -zazz-' . $row["type"] . '-code 
 							-zazz-code-block-' . $row['zazz_id'] . '" 
-							spellcheck="false" tabindex="10" _zazz-order="' . $row['zazz_order'] . '" 
+							spellcheck="false" tabindex="10" data-zazz-order="' . $row['zazz_order'] . '" 
 							style="display: none;" >' . $row['code'] . '</textarea>';
 	}
 }
@@ -19,15 +19,15 @@ function getCodeBlocks($page_id, $project_start, $project_end) {
 function getDefaultCodeBlock() {
 	echo '<textarea class="-zazz-code-block -zazz-css-code 
 							-zazz-code-block-element-0" 
-							spellcheck="false" tabindex="10" _zazz-order="0" 
+							spellcheck="false" tabindex="10" data-zazz-order="0" 
 							style="display: none;" >#element-0 { ' . "\n\n" . '}</textarea>
 				<textarea class="-zazz-code-block -zazz-css-code 
 							-zazz-code-block-page" 
-							spellcheck="false" tabindex="10" _zazz-order="0" 
+							spellcheck="false" tabindex="10" data-zazz-order="0" 
 							style="display: none;" >#page { ' . "\n\n" . '}</textarea>
 				<textarea class="-zazz-code-block -zazz-css-code 
 							-zazz-code-block-project" 
-							spellcheck="false" tabindex="10" _zazz-order="0" 
+							spellcheck="false" tabindex="10" data-zazz-order="0" 
 							style="display: none;" >#project { ' . "\n\n" . '}</textarea>';
 }
 

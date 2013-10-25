@@ -1,23 +1,5 @@
-/*-------------------------------------------RESET------------------------------------------------*/
-
-* {
-	margin: 0px;
-	padding: 0px;
-	position: relative;
-	vertical-align: middle;
-	box-sizing: border-box;
-	-moz-box-sizing: border-box;
-}
-
-:focus {
-	outline: none;
-}
-
 /*-----------------------------------------SETUP--------------------------------------------------*/
 
-body {
-	background-color: #cfcfcf;
-}
 
 .-zazz-set-right {
 	position: absolute;
@@ -52,28 +34,7 @@ body {
 	cursor: crosshair;
 }
 
-.-zazz-outline-left {
-	width: 4px;
-}
-
-.-zazz-outline-right {
-	width: 4px;
-}
-
-.-zazz-outline-top {
-	height: 4px;
-}
-
-.-zazz-outline-bottom {
-	height: 4px;
-}
-
-.-zazz-outline {
-	display: none;
-	position: absolute;
-	z-index: 5;
-	background-color: #ffff00;
-}
+.-zazz-outline {}
 
 .-zazz-modal {
 	position: absolute;
@@ -86,6 +47,7 @@ body {
 	border-radius: 10px;
 	box-shadow: 0px 10px 20px #2f2f2f;
 	border: solid 1px black;
+	overflow: hidden;
 }
 
 .-zazz-modal .-zazz-links a:link, .-zazz-modal .-zazz-links a:visited {
@@ -280,41 +242,13 @@ body {
 	background-color: #6699ff;
 }
 
-body, html {
-	width: 100%;
-	height: 100%;
+.-zazz-hidden { 
+	width: 0px;
+	height: 0px;
+	overflow: hidden;
 }
 
-.-zazz-content {
-	width: 100%;
-	vertical-align: top;
-}
-
-.-zazz-element {
-	border: #0000cc dashed 2px;
-	display: inline-block;
-	width: 100%;
-	vertical-align: top;
-}
-
-.-zazz-container {
-	display: inline-block;
-	width: 100%;
-	vertical-align: top;
-}
-
-.-zazz-row {
-	width: 100%;
-	vertical-align: top;
-}
-
-.-zazz-row-group {
-	display: inline-block;
-	width: 100%;
-	vertical-align: top;
-}
-
-.-zazz-hidden, .-zazz-hidden div {
+.-zazz-hidden div {
 	width: 1px;
 	height: 1px;
 }

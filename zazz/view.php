@@ -11,7 +11,7 @@ $user_id = Authenticate::get()->getUser('user_id');
 
 function addCode(&$html, $id, $code) {
 	static $check = array();
-	$element = $html->find('.-zazz-element[_zazz-id="' . $id . '"]', 0);
+	$element = $html->find('.-zazz-element[data-zazz-id="' . $id . '"]', 0);
 	echo $id . '<br>';
 	if (!isset($check[$id])) {
 		$element->innertext = $code;
@@ -24,13 +24,13 @@ function addCode(&$html, $id, $code) {
 function prepareQuery($query) {
 	$params = GetParametersForQuery($query);
 	$code = "\n<?php\nob_start();\n?>\n" . $query .
-		"\n<?php\n" . '$_PDO_CODE = ob_get_clean();' . "\n" .
-		'$_PDO_QUERY = $_PDO->prepare($_PDO_CODE);';
+		"\n<?php\n" . '$_ZAZZ_PDO_CODE = ob_get_clean();' . "\n" .
+		'$_ZAZZ_PDO_QUERY = $ZAZZ_PDO->prepare($_ZAZZ_PDO_CODE);';
 	foreach ($params as $param) {
-		$code .= "\n" . '$_PDO_QUERY->bindValue(\':' . $param . '\', $' . $param . ');';
+		$code .= "\n" . '$_ZAZZ_PDO_QUERY->bindValue(\':' . $param . '\', $' . $param . ');';
 	}
-	$code .= "\n" . '$_PDO_QUERY->execute();' . "\n" .
-		'$_ROWS = $_PDO_QUERY->fetchAll(PDO::FETCH_ASSOC);' . "\n?>\n";
+	$code .= "\n" . '$_ZAZZ_PDO_QUERY->execute();' . "\n" .
+		'$ZAZZ_ROWS = $_ZAZZ_PDO_QUERY->fetchAll(PDO::FETCH_ASSOC);' . "\n?>\n";
 	return $code;
 }
 
@@ -88,10 +88,10 @@ if (isset($_GET['deploy'])) {
 		array('project' =>
 		$project));
 	for ($i = 0; $i < count($generate_pages); $i++) {
-		if ($generate_pages[$i]['page'] === '_zazz-project-start') {
+		if ($generate_pages[$i]['page'] === 'data-zazz-project-start') {
 			$start = $i;
 		}
-		if($generate_pages[$i]['page'] === '_zazz-project-end') {
+		if($generate_pages[$i]['page'] === 'data-zazz-project-end') {
 			$end = $i;
 		}
 	}
@@ -240,14 +240,14 @@ foreach ($generate_pages as $generate_page) {
 	}
 
 	foreach ($html->find('.-zazz-element') as $outline) {
-		$outline->setAttribute('_zazz-id', null);
-		$outline->setAttribute('_zazz-order', null);
+		$outline->setAttribute('data-zazz-id', null);
+		$outline->setAttribute('data-zazz-order', null);
 	}
 
 	$content = $html->find('#content', 0);
-	$content->setAttribute('_zazz-rid', null);
-	$content->setAttribute('_zazz-gid', null);
-	$content->setAttribute('_zazz-eid', null);
+	$content->setAttribute('data-zazz-rid', null);
+	$content->setAttribute('data-zazz-gid', null);
+	$content->setAttribute('data-zazz-eid', null);
 
 	$js .= "});";
 	$html->find('body', 0)->innertext .= '<script>
