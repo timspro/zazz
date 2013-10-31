@@ -271,6 +271,10 @@
 	background-color: #101010;	
 }
 
+#-zazz-loader-image {
+	padding: 0px 8px;
+}
+
 /*-----------------------------------------CONTENT------------------------------------------------*/
 
 
@@ -311,7 +315,7 @@
 	line-height: 100%;
 }
 
-#-zazz-fixed, #-zazz-fixed-status-btn {
+#-zazz-fixed, #-zazz-fixed-status-btn, #-zazz-loader-bar {
 	display: none;
 	height: 100%;
 }
@@ -377,7 +381,7 @@
 }
 
 .-zazz-code-block {
-	width: 50%;
+	width: 55%;
 	height: 100%;
 	background-color: transparent;
 	resize: horizontal;
@@ -396,6 +400,7 @@
 		"Courier", "monospace";
 	line-height: 16px;
 	font-size: 14px;
+	white-space: pre;
 }
 
 .-zazz-code-blocks .-zazz-css-code {

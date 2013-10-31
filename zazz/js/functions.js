@@ -19,6 +19,31 @@ $(document).ready(function() {
 				$(window).scrollLeft()) + "px");
 		return this;
 	};
+
+
+
+	$.fn.promote = function() {
+		var rank = this.attr("promote-rank");
+		if (typeof(rank) === "undefined")
+			rank = 0;
+		rank++;
+		this.attr("promote-rank", rank);
+		if (rank === 1)
+			this.css('display','inline-block');
+		return this;
+	};
+
+	$.fn.demote = function() {
+		var rank = this.attr("promote-rank");
+		if (typeof(rank) === "undefined")
+			rank = 0;
+		rank--;
+		this.attr("promote-rank", rank);
+		if (rank === 0)
+			this.hide();
+		return this;
+	};
+
 	/**
 	 * Prototype for action associated with view divs and buttons. Registers three functions for a 
 	 * button: a function to be called on click (initialize), a function to be called when a view div 
@@ -147,7 +172,10 @@ $(document).ready(function() {
 		}
 	}
 
-	function updateCode(zazz_id, $block, type, insert) {
+	function updateCode(zazz_id, $block, type, insert, doDelete) {
+		if (typeof doDelete === 'undefined') {
+			doDelete = false;
+		}
 		if ($('#-zazz-is-demo').val()) {
 			var html = '';
 			$('.-zazz-code-block-' + zazz_id).filter('.-zazz-html-code').each(function() {
@@ -158,21 +186,39 @@ $(document).ready(function() {
 				addJSCode($(this).val());
 			});
 		} else {
-			$.post('/zazz/ajax/code.php', {
+			var array = {
 				zazz_id: zazz_id,
 				type: type,
 				code: $block.val(),
 				page_id: $('#-zazz-page-id').val(),
 				zazz_order: $block.attr('data-zazz-order'),
 				insert: insert
-			},
-			function(data) {
-				$('.-zazz-element[data-zazz-id="' + zazz_id + '"]').html(data);
-				$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function() {
-					addJSCode($(this).val());
-				});
-				updateLayout();
-			});
+			};
+			if (doDelete) {
+				array['delete'] = true;
+			} else {
+				array['insert'] = insert;
+			}
+			$('#-zazz-loader-bar').promote();
+			$.post('/zazz/ajax/code.php', array,
+					function(data) {
+						$('#-zazz-loader-bar').demote();
+
+						if (zazz_id === 'begin-project' || zazz_id === 'end-project' || zazz_id === 'begin-web-page' || zazz_id ===
+								'end-web-page') {
+							if (type === 'html') {
+								//Modifying the html modifes the potential scripts and stylesheets included,
+								//so just refresh the page rather that try to fix that.
+								location.reload();
+							}
+							$('.-zazz-content').first().html(data);
+						} else {
+							$('.-zazz-element[data-zazz-id="' + zazz_id + '"]').html(data);
+							$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function() {
+								addJSCode($(this).val());
+							});
+						}
+					});
 		}
 	}
 
@@ -332,11 +378,13 @@ $(document).ready(function() {
 	});
 	function updatePageInfo(redirect) {
 		var page = $('#-zazz-page-name').val();
+		$('#-zazz-loader-bar').promote();
 		$.post('/zazz/ajax/page.php', {
 			page: page,
 			page_id: $('#-zazz-page-id').val(),
 			visible: ($('#-zazz-page-visible').val() === 'Yes' ? '1' : '0')
 		}, function(data) {
+			$('#-zazz-loader-bar').demote();
 			if (trim(data) !== "") {
 				$('#-zazz-modal-settings .-zazz-modal-message').html(data);
 				$('#-zazz-modal-settings').show();
@@ -348,10 +396,12 @@ $(document).ready(function() {
 
 	function updateProjectInfo(redirect) {
 		var project = $('#-zazz-project-name').val();
+		$('#-zazz-loader-bar').promote();
 		$.post('/zazz/ajax/project.php', {
 			project: project,
 			page_id: $('#-zazz-page-id').val()
 		}, function(data) {
+			$('#-zazz-loader-bar').demote();
 			if (trim(data) !== "") {
 				$('#-zazz-modal-project .-zazz-modal-message').html(data);
 				$('#-zazz-modal-project').show();
@@ -381,13 +431,12 @@ $(document).ready(function() {
 		updatePageInfo(true);
 	});
 	$('#-zazz-page-visible').change(function() {
-		updateLayout();
 		updatePageInfo(false);
 	});
-	
+
 	$('#-zazz-deploy-link').click(function() {
 		$(this).attr('href', '/zazz/view/' + $('#-zazz-project-name').val() + '/' +
-				$('#-zazz-page-name').val() + '?deploy=' + 
+				$('#-zazz-page-name').val() + '?deploy=' +
 				encodeURIComponent($('#-zazz-deploy-password').val()));
 	});
 	/*--------------------------------------------Mouse Code----------------------------------------*/
@@ -475,20 +524,7 @@ $(document).ready(function() {
 				e.pageX > myPos.left) {
 			var $block = $(this);
 			var id = getZazzID($block);
-			$.post('/zazz/ajax/code.php', {
-				zazz_id: id,
-				type: getBlockType($block),
-				page_id: $('#-zazz-page-id').val(),
-				zazz_order: $block.attr('data-zazz-order'),
-				delete: true
-			},
-			function(data) {
-				$('#' + id).html(data);
-				$('.-zazz-code-block-' + id).filter('.-zazz-js-code').each(function() {
-					addJSCode($(this).val());
-				});
-				updateLayout();
-			});
+			updateCode(id, $block, getBlockType($block), false, true);
 			$(this).remove();
 		}
 	}
@@ -864,6 +900,7 @@ $(document).ready(function() {
 				if ($("#-zazz-modal-view-pages .-zazz-links a").length > 1) {
 					confirm('Are you sure?', 'By deleting this project, you will remove all code and pages.',
 							function() {
+								$('#-zazz-loader-bar').promote();
 								$.post('/zazz/ajax/project.php', {
 									page_id: $('#-zazz-page-id').val(),
 									delete: 'true'
@@ -879,9 +916,11 @@ $(document).ready(function() {
 		}, 1);
 	});
 	$('#-zazz-make-new-project').click(function() {
+		$('#-zazz-loader-bar').promote();
 		$.post('/zazz/ajax/project.php', {
 			create: $('#-zazz-new-project-name').val()
 		}, function(data) {
+			$('#-zazz-loader-bar').demote();
 			if (trim(data) !== "") {
 				$('#-zazz-modal-new-project .-zazz-modal-message').html(data);
 			} else {
@@ -905,6 +944,7 @@ $(document).ready(function() {
 				if ($("#-zazz-modal-view-pages .-zazz-links a").length > 1) {
 					confirm('Are you sure?', 'By deleting this page, you will remove all code.',
 							function() {
+								$('#-zazz-loader-bar').promote();
 								$.post('/zazz/ajax/page.php', {
 									page_id: $('#-zazz-page-id').val(),
 									delete: 'true'
@@ -920,11 +960,13 @@ $(document).ready(function() {
 		}, 1);
 	});
 	$('#-zazz-make-new-page').click(function() {
+		$('#-zazz-loader-bar').promote();
 		$.post('/zazz/ajax/page.php', {
 			page_id: $('#-zazz-page-id').val(),
 			create: $('#-zazz-new-page-name').val(),
 			template: $('#-zazz-page-template').val()
 		}, function(data) {
+			$('#-zazz-loader-bar').demote();
 			if (trim(data) !== "") {
 				$('#-zazz-modal-new-page .-zazz-modal-message').html(data);
 			} else {

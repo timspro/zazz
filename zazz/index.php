@@ -389,7 +389,9 @@ if ($bad_html) {
 						><span class="-zazz-divider"></span></span>
 				</span>
 				<span class="-zazz-btn-group -zazz-set-right">
-					<span class="-zazz-divider"></span
+					<span id='-zazz-loader-bar'><span class="-zazz-divider"></span
+					><img id='-zazz-loader-image' src='/zazz/css/images/loader.gif' /></span
+					><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-upload-btn -zazz-btn">Upload</span
 					><span class="-zazz-divider"></span
 					><!--<span tabindex="10" class="-zazz-save-all-btn -zazz-btn">Layer</span
@@ -408,7 +410,7 @@ if ($bad_html) {
 			<div class="-zazz-content-view">
 				<?php
 				if (!$demo) {
-					echo getLayout($page_id);
+					echo getComputedLayout($project_start, $project_end, $page_id);
 				} else {
 					echo getDefaultLayout();
 				}

@@ -205,19 +205,21 @@ function getDefaultJS() {
 
 function getDefaultHTMLStart() {
 	return '<!DOCTYPE html>
+<!-- Note editing this file will reload page. -->
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title> Zazz Project </title>
-  <!-- DO NOT EDIT NEXT LINE --!>
+  <!-- DO NOT EDIT NEXT LINE -->
   <link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
   <link rel="shortcut icon" href="/zazz/css/images/zazz.ico" />
 ';
 }
 
 function getDefaultHTMLEnd() {
-	return '<script src="js/jquery-1.10.2.js" type="text/javascript"></script>
-<!-- DO NOT EDIT NEXT LINE --!>
+	return '<!-- Note editing this file will reload page. -->
+<script src="js/jquery-1.10.2.js" type="text/javascript"></script>
+<!-- DO NOT EDIT NEXT LINE -->
 <script src="js/functions.js" type="text/javascript"></script>
 ';
 }
@@ -269,8 +271,9 @@ function createPage($page_name, $project_id, $template = '') {
 		$layout = getDefaultLayout();
 		_Layout::get()->create(array('page_id' => $page_id, 'layout' => $layout));
 	} else {
-		$template = _Page::get()->retrieve('page_id', array(), array('page' => $template,
-				'project_id' => $project_id));
+		$template = _Page::get()->retrieve('page_id', array(),
+			array('page' => $template,
+			'project_id' => $project_id));
 		$template = intval($template[0]['page_id']);
 		$page_id = intval($page_id);
 		$query = Database::get()->PDO()->prepare('INSERT INTO code (zazz_id, page_id, type, code, ' .
@@ -319,5 +322,57 @@ function zipFolder($source, $destination) {
 			$zip->addFromString(str_replace($source, '', $filename), file_get_contents($filename));
 		}
 	}
+}
+
+function processCode($project_start, $project_end, $page_id, $zazz_id) {
+	if ($zazz_id === 'begin-project' || $zazz_id === 'end-project' || $zazz_id === 'begin-web-page' || $zazz_id ===
+		'end-web-page') {
+		return;
+	}
+	$_ZAZZ_BLOCKS = getPageCode($project_start, $project_end, $page_id, $zazz_id);
+	unset($_REQUEST);
+	unset($_GET);
+	unset($_POST);
+	foreach ($_ZAZZ_BLOCKS as $_ZAZZ_BLOCK) {
+		switch ($_ZAZZ_BLOCK['type']) {
+			case 'css':
+				break;
+			case 'html':
+				echo $_ZAZZ_BLOCK['code'];
+				break;
+			case 'js':
+				break;
+			case 'mysql':
+				if (!empty($_ZAZZ_BLOCK['code'])) {
+					$q = Database::get()->PDO()->prepare($_ZAZZ_BLOCK['code']);
+					$params = GetParametersForQuery($_ZAZZ_BLOCK['code']);
+					foreach ($params as $param) {
+						$q->bindValue(':' . $param, $$param);
+					}
+					$q->execute();
+					$ZAZZ_ROWS = $q->fetchAll(PDO::FETCH_ASSOC);
+					unset($q);
+					unset($params);
+				} else {
+					$ZAZZ_ROWS = array();
+				}
+				break;
+			case 'php':
+				eval($_ZAZZ_BLOCK['code']);
+				break;
+		}
+	}
+}
+
+function getComputedLayout($project_start, $project_end, $page_id) {
+	require_once dirname(__FILE__) . '/simple_html_dom.php';
+	$layout = new simple_html_dom();
+	$layout->load(getLayout($page_id));
+	foreach ($layout->find('.-zazz-element') as $element) {
+		ob_start();
+		processCode($project_start, $project_end, $page_id,	$element->getAttribute('data-zazz-id'));
+		$element->innertext = ob_get_clean();
+	}
+	return $layout->save();
 }
 ?>

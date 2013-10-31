@@ -10,7 +10,7 @@ Authenticate::get()->check();
 $user_id = Authenticate::get()->getUser('user_id');
 
 if (isset($_GET['deploy']) && $_GET['deploy'] !== 
-	/*!_!_!PASSWORD!_!_!*/ '#*JDasd*h2h0!' /*!_!_!PASSWORD!_!_!*/) {
+	/*!_!_!PASSWORD!_!_!*/'NEPOm20dkP_e3ls0elOEMlsoW'/*!_!_!PASSWORD!_!_!*/) {
 	echo 'You did not enter the right password.';
 	return;
 }
@@ -142,6 +142,9 @@ if (!file_exists($filename . 'css/')) {
 if (!file_exists($filename . 'js/')) {
 	mkdir($filename . 'js/');
 }
+if (!file_exists($filename . 'includes/')) {
+	mkdir($filename . 'includes/');
+}
 
 //Process the shared information such as (css, js) and get the header of the document (php, mysql, html).
 $project_code_start = _Code::get()->retrieve(array('code', 'type'), array(),
@@ -167,6 +170,9 @@ $project_js .= '});';
 
 file_put_contents($filename . 'js/functions.js', $project_js);
 file_put_contents($filename . 'css/style.css', $project_css);
+file_put_contents($filename . 'includes/header.php', $project_php_header);
+file_put_contents($filename . 'includes/footer.php', $project_php_footer);
+
 
 foreach ($generate_pages as $generate_page) {
 	$page = $generate_page['page'];
@@ -201,8 +207,10 @@ foreach ($generate_pages as $generate_page) {
 	$js = '$(document).ready(function() {
 ';
 	$php = '';
-	$php_header = $project_php_header;
-	$php_footer = $project_php_footer;
+	$php_header = '<?php include_once dirname(__FILE__) . "/includes/header.php"; ?>
+';
+	$php_footer = '<?php include_once dirname(__FILE__) . "/includes/footer.php"; ?>
+';
 	$html_header = $project_html_header;
 	$html_footer = $project_html_footer;
 
