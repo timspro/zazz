@@ -9,10 +9,15 @@ require_once dirname(__FILE__) . '/includes/custom/functions.php';
 Authenticate::get()->check();
 $user_id = Authenticate::get()->getUser('user_id');
 
+if (isset($_GET['deploy']) && $_GET['deploy'] !== 
+	/*!_!_!PASSWORD!_!_!*/ '#*JDasd*h2h0!' /*!_!_!PASSWORD!_!_!*/) {
+	echo 'You did not enter the right password.';
+	return;
+}
+
 function addCode(&$html, $id, $code) {
 	static $check = array();
 	$element = $html->find('.-zazz-element[data-zazz-id="' . $id . '"]', 0);
-	echo $id . '<br>';
 	if (!isset($check[$id])) {
 		$element->innertext = $code;
 		$check[$id] = true;
@@ -34,13 +39,33 @@ function prepareQuery($query) {
 	return $code;
 }
 
-function processBlock($block, &$php, &$css, &$js) {
+function serveFile($resource) {
+	if (file_exists($resource)) {
+		$extension = pathinfo($resource, PATHINFO_EXTENSION);
+		if ($extension === 'css') {
+			$mime = 'text/css';
+		} else if ($extension === 'js') {
+			$mime = 'application/javascript';
+		} else {
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
+			$mime = finfo_file($finfo, $resource);
+			finfo_close($finfo);
+		}
+		header("Content-type: " . $mime);
+		readfile($resource);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function processBlock($block, &$php, &$css, &$js, &$html) {
 	switch ($block['type']) {
 		case 'css':
 			$css .= $block['code'] . "\n";
 			break;
 		case 'html':
-			$php .= $block['code'] . "\n";
+			$html .= $block['code'] . "\n";
 			break;
 		case 'mysql':
 			if (!empty($block['code'])) {
@@ -81,23 +106,26 @@ if (empty($project_id)) {
 
 //Set up the folder to put the project in.
 $filename = dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/';
+if (!file_exists($filename)) {
+	mkdir($filename, 0777, true);
+}
 
 //Figure out what pages we need to generate.
-if (isset($_GET['deploy'])) {
+if (isset($_GET['deploy']) || isset($_GET['export'])) {
 	$generate_pages = _Page::get()->retrieve('page', new Join('project_id', _Project::get()),
 		array('project' =>
 		$project));
 	for ($i = 0; $i < count($generate_pages); $i++) {
-		if ($generate_pages[$i]['page'] === 'data-zazz-project-start') {
+		if ($generate_pages[$i]['page'] === 'begin-project') {
 			$start = $i;
 		}
-		if($generate_pages[$i]['page'] === 'data-zazz-project-end') {
+		if ($generate_pages[$i]['page'] === 'end-project') {
 			$end = $i;
 		}
 	}
 	unset($generate_pages[$start]);
 	unset($generate_pages[$end]);
-	deleteFilesIn($filename, array('css'));
+	deleteFilesIn($filename, array('css', 'js'));
 } else if (isset($_GET['page'])) {
 	$generate_pages = array(array('page' => $_GET['page']));
 } else {
@@ -108,9 +136,6 @@ if (isset($_GET['deploy'])) {
 }
 
 //Create folders.
-if (!file_exists($filename)) {
-	mkdir($filename, 0777, true);
-}
 if (!file_exists($filename . 'css/')) {
 	mkdir($filename . 'css/');
 }
@@ -127,13 +152,15 @@ $project_css = '';
 $project_js = '$(document).ready(function() {
 ';
 $project_php_header = '';
+$project_html_header = '';
+$project_html_footer = '';
 foreach ($project_code_start as $block) {
-	processBlock($block, $project_php_header, $project_css, $project_js);
+	processBlock($block, $project_php_header, $project_css, $project_js, $project_html_header);
 }
 
 $project_php_footer = '';
 foreach ($project_code_end as $block) {
-	processBlock($block, $project_php_footer, $project_css, $project_js);
+	processBlock($block, $project_php_footer, $project_css, $project_js, $project_html_footer);
 }
 
 $project_js .= '});';
@@ -144,6 +171,9 @@ file_put_contents($filename . 'css/style.css', $project_css);
 foreach ($generate_pages as $generate_page) {
 	$page = $generate_page['page'];
 	$page_info = getPageInformation($project, $page);
+	if($page_info['visible'] === '0') {
+		continue;
+	}
 	$page_id = $page_info['page_id'];
 	if (empty($page_id)) {
 		//Perhaps just a resource file. Still need to check that the user owns the project and that 
@@ -158,21 +188,7 @@ foreach ($generate_pages as $generate_page) {
 			return;
 		}
 		$resource = $filename . $page;
-		if (file_exists($resource)) {
-			$extension = pathinfo($resource, PATHINFO_EXTENSION);
-			if ($extension === 'css') {
-				$mime = 'text/css';
-			} else if ($extension === 'js') {
-				$mime = 'application/javascript';
-			} else {
-				$finfo = finfo_open(FILEINFO_MIME_TYPE);
-				$mime = finfo_file($finfo, $resource);
-				finfo_close($finfo);
-			}
-			header("Content-type: " . $mime);
-			readfile($resource);
-			return;
-		} else {
+		if (!serveFile($resource)) {
 			echo 'There was a serious error in getting the page information for ' . $page .
 			' in ' . $project;
 			return;
@@ -187,24 +203,26 @@ foreach ($generate_pages as $generate_page) {
 	$php = '';
 	$php_header = $project_php_header;
 	$php_footer = $project_php_footer;
+	$html_header = $project_html_header;
+	$html_footer = $project_html_footer;
 
 	$blocks = _Code::get()->retrieve(array('code', 'type', 'zazz_id'), array(),
 		array('page_id' => $page_id), 'zazz_order');
 	for ($i = 0; $i < count($blocks); $i++) {
-		if ($blocks[$i]['zazz_id'] === 'page-start') {
+		if ($blocks[$i]['zazz_id'] === 'begin-web-page') {
 			$start_index = $i;
 		}
-		if ($blocks[$i]['zazz_id'] === 'page-end') {
+		if ($blocks[$i]['zazz_id'] === 'end-web-page') {
 			$end_index = $i;
 		}
 	}
 
-	processBlock($blocks[$start_index], $php_header, $css, $js);
-	processBlock($blocks[$end_index], $php_footer, $css, $js);
+	processBlock($blocks[$start_index], $php_header, $css, $js, $html_header);
+	processBlock($blocks[$end_index], $php_footer, $css, $js, $html_footer);
 	unset($blocks[$start_index]);
 	unset($blocks[$end_index]);
 
-	$layout = $php_header . getLayout($page_id) . $php_footer;
+	$layout = $html_header . getLayout($page_id) . $html_footer;
 	require_once dirname(__FILE__) . '/includes/custom/simple_html_dom.php';
 	$html = new simple_html_dom();
 	$html->load($layout);
@@ -232,7 +250,7 @@ foreach ($generate_pages as $generate_page) {
 	}
 
 	foreach ($html->find('.-zazz-outline') as $outline) {
-		$outline->outertext = "";
+		$outline->class = str_replace('-zazz-outline', '', $outline->class);
 	}
 	$element = $html->find('.-zazz-hidden', 0);
 	if ($element) {
@@ -260,18 +278,31 @@ foreach ($generate_pages as $generate_page) {
 
 	$php .= $html->save();
 
-	file_put_contents($filename . $page, $php);
+	file_put_contents($filename . $page, $php_header . $php . $php_footer);
 }
 
-$source = dirname(__FILE__) . '/js/jquery-1.10.2.js';
-$dest = $filename . 'js/jquery-1.10.2.js';
-copy($source, $dest);
+//$source = dirname(__FILE__) . '/js/jquery-1.10.2.js';
+//$dest = $filename . 'js/jquery-1.10.2.js';
+//copy($source, $dest);
 
 if (isset($_GET['deploy'])) {
 	deleteFilesIn(dirname(__FILE__) . '/../', array('zazz', 'nbproject', '.git', '.gitignore'));
 	recursiveCopy(dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/',
 		dirname(__FILE__) . '/../');
 	header('Location: /' . $_GET['page']);
+} else if (isset($_GET['export'])) {
+	$filename = dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/';
+	if (!file_exists($filename . 'zip/')) {
+		mkdir($filename . 'zip/');
+	}
+	deleteFilesIn($filename . 'zip/');
+	$resource = $filename . 'zip/' . $project . '.zip';
+	zipFolder($filename, $resource);
+	if (!serveFile($resource)) {
+		echo 'There was a serious error in getting the page information for ' . $page .
+		' in ' . $project;
+		return;
+	}
 } else {
 	require_once dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/' . $_GET['page'];
 }

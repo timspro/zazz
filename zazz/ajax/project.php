@@ -6,16 +6,19 @@ Authenticate::get()->check(false);
 $user_id = Authenticate::get()->getUser('user_id');
 
 function printFiles($user_id, $project, $page_id) {
-	$filename = dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/css/resources/';
+	$filenames[0] = dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/css/resources/';
+	$filenames[1] = dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/js/';
 	$last = 'You have no resources uploaded.</div>';
 	$first = true;
-	if(file_exists($filename)) {
-		foreach (new DirectoryIterator($filename) as $item) {
-			$name = $item->getFilename();
-			if (!$item->isDot()) {
-				if ($first) {
-					echo '<table><tr><td></td><td>All Resources:</td></tr>';
-					$last = '</table></div><input type="hidden" id="-zazz-page-id" value="' . $page_id . '"/>
+	for ($i = 0; $i < count($filenames); $i++) {
+		$filename = $filenames[$i];
+		if (file_exists($filename)) {
+			foreach (new DirectoryIterator($filename) as $item) {
+				$name = $item->getFilename();
+				if (!$item->isDot() && $name !== 'functions.js') {
+					if ($first) {
+						echo '<table><tr><td></td><td id="-zazz-files-message">All Resources:</td></tr>';
+						$last = '</table></div><input type="hidden" id="-zazz-page-id" value="' . $page_id . '"/>
 <script src="/zazz/js/jquery-1.10.2.js" type="text/javascript"></script>
 <script>
 $(document).ready(function() {
@@ -26,17 +29,28 @@ $(document).ready(function() {
 					page_id: $("#-zazz-page-id").val(),
 					delete_upload: $target.parent().next().children(":first").html()
 				}, function(){
-					$target.parent().parent().hide();
+					var $row = $target.parent().parent();
+					if($row.parent().children().length === 2) {
+						$("#-zazz-files-message").html("You have no resources uploaded.");
+					}
+					$row.remove();
 				});
 			}
 		});
 })
 </script>';
-					$first = false;
+						$first = false;
+					}
+					if ($i === 0) {
+						echo '<tr><td><img class="-zazz-delete-resource" src="/zazz/css/images/x.png"/></td>' .
+						'<td><a href="/zazz/view/'
+						. $project . '/css/resources/' . $name . '">' . $name . '</a></td></tr>';
+					} else {
+						echo '<tr><td><img class="-zazz-delete-resource" src="/zazz/css/images/x.png"/></td>' .
+						'<td><a href="/zazz/view/'
+						. $project . '/js/' . $name . '">' . $name . '</a></td></tr>';
+					}
 				}
-				echo '<tr><td><img class="-zazz-delete-resource" src="/zazz/css/images/x.png"/></td>' . 
-					'<td><a href="/zazz/view/' 
-					. $project . '/css/resources/' . $name . '">' .	$name . '</a></td></tr>';
 			}
 		}
 	}
@@ -46,18 +60,24 @@ $(document).ready(function() {
 if (isset($_REQUEST['page_id']) && verifyPage($_REQUEST['page_id'], $user_id)) {
 
 	if (isset($_REQUEST['delete_upload'])) {
-		$result = _Project::get()->retrieve('project', new Join('project_id', _Page::get()), 
+		$result = _Project::get()->retrieve('project', new Join('project_id', _Page::get()),
 			array('page_id' => $_REQUEST['page_id']));
 		$project = $result[0]['project'];
-		unlink(dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/css/resources/' . 
-			$_REQUEST['delete_upload']);
+		$extension = pathinfo($_REQUEST['delete_upload'], PATHINFO_EXTENSION);
+		if ($extension === 'js') {
+			unlink(dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/js/' .
+				$_REQUEST['delete_upload']);			
+		} else {
+			unlink(dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/css/resources/' .
+				$_REQUEST['delete_upload']);
+		}
 		return;
 	}
-	
+
 	if (isset($_REQUEST['files'])) {
 		include_once dirname(__FILE__) . '/../includes/custom/header.php';
 		echo '<base target="_parent" /><div class="-zazz-modal-files">';
-		$result = _Project::get()->retrieve('project', new Join('project_id', _Page::get()), 
+		$result = _Project::get()->retrieve('project', new Join('project_id', _Page::get()),
 			array('page_id' => $_REQUEST['page_id']));
 		$project = $result[0]['project'];
 		printFiles($user_id, $project, $_REQUEST['page_id']);
@@ -67,20 +87,28 @@ if (isset($_REQUEST['page_id']) && verifyPage($_REQUEST['page_id'], $user_id)) {
 	if (isset($_REQUEST['upload_name'])) {
 		include_once dirname(__FILE__) . '/../includes/custom/header.php';
 		echo '<base target="_parent" /><div class="-zazz-modal-files">';
-		$result = _Project::get()->retrieve('project', new Join('project_id', _Page::get()), 
+		$result = _Project::get()->retrieve('project', new Join('project_id', _Page::get()),
 			array('page_id' => $_REQUEST['page_id']));
-		if(empty($result)) {
+		if (empty($result)) {
 			echo "Could not find project name.</div>";
 			return;
 		}
 		$project = $result[0]['project'];
-		$filename = dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/css/resources/';
+
 		$name = $_REQUEST['upload_name'];
-		if (strrpos($name, '..') !== false) {
-			echo 'You may not use ".." in the filename.<br /><br />';
+		if (!ctype_alnum($name)) {
+			echo 'You may only use numbers and letters in the name.<br /><br />';
 			printFiles($user_id, $project, $_REQUEST['page_id']);
 			return;
 		}
+
+		$extension = pathinfo($name, PATHINFO_EXTENSION);
+		if ($extension === 'js') {
+			$filename = dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/js/';
+		} else {
+			$filename = dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/css/resources/';
+		}
+
 		if (!file_exists($filename)) {
 			mkdir($filename, 0777, true);
 		} else if (file_exists($filename . $name)) {
@@ -94,6 +122,10 @@ if (isset($_REQUEST['page_id']) && verifyPage($_REQUEST['page_id'], $user_id)) {
 	}
 
 	if (isset($_REQUEST['project'])) {
+		if(!ctype_alnum($_REQUEST['project'])) {
+			echo 'You may only have letters and numbers in the name.';
+			return;
+		}
 		try {
 			$result = _Page::get()->retrieve('project_id', array(), array('page_id' => $_REQUEST['page_id']));
 			_Project::get()->update(array('project' => $_REQUEST['project']),
@@ -129,6 +161,7 @@ if (isset($_REQUEST['page_id']) && verifyPage($_REQUEST['page_id'], $user_id)) {
 			_Code::get()->delete(array('page_id' => $page_id['page_id']));
 			_Layout::get()->delete(array('page_id' => $_REQUEST['page_id']));
 		}
+		deleteFilesIn(dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/');
 	}
 }
 

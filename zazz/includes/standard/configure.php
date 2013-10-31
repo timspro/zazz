@@ -5,6 +5,28 @@
  */
 	define('CONFIGURE', true);
 	
+	$configurePassword = 'N(j390J3lo)lo3sjm)@ls-sl';
+	$deployPassword = 'NEPOm20dkP_e3ls0elOEMlsoW';
+	$globalPassword = 'MR)#@Psls0DS{ksmL:EoDZspwq';
+	
+	if($_GET['password'] !== $configurePassword) {
+		echo 'You did not enter the right password.';
+		return;
+	}
+	
+	function setNewPassword($filename, $password) {
+		$contents = file_get_contents($filename);
+		$token = '/*!_!_!PASSWORD!_!_!*/';
+		$start = strrpos($contents, $token) + strlen($token);
+		$end = strrpos($contents, $token, $start + 1);	
+		$contents = substr($contents, 0 , $start) . $token .  $password . $token . substr($end);
+		file_put_contents($filename, $contents);
+	}
+	
+	//Custom password stuff.
+	setNewPassword(dirname(__FILE__) . '/../../login.php', $globalPassword);
+	setNewPassword(dirname(__FILE__) . '/../../view.php', $deployPassword);
+	
 	require_once dirname(__FILE__) . '/initialize.php';
 
 	//Note that really ALL queries should operate under 'TRADITIONAL' (strict mode), so this should

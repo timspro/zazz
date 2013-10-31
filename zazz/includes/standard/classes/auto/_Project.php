@@ -45,7 +45,7 @@ array (
   array (
     'Field' => 'project_start',
     'Type' => 'int(10) unsigned',
-    'Null' => 'NO',
+    'Null' => 'YES',
     'Key' => '',
     'Default' => NULL,
     'Extra' => '',
@@ -54,7 +54,7 @@ array (
   array (
     'Field' => 'project_end',
     'Type' => 'int(11) unsigned',
-    'Null' => 'NO',
+    'Null' => 'YES',
     'Key' => '',
     'Default' => NULL,
     'Extra' => '',

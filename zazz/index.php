@@ -4,7 +4,7 @@ function getCodeBlocks($page_id, $project_start, $project_end) {
 	$page_id = intval($page_id);
 	$project_start = intval($project_start);
 	$project_end = intval($project_end);
-	$query = Database::get()->PDO()->prepare("SELECT zazz_id, code, type, zazz_order FROM code WHERE " . 
+	$query = Database::get()->PDO()->prepare("SELECT zazz_id, code, type, zazz_order FROM code WHERE " .
 		"page_id = $page_id OR page_id = $project_start OR page_id = $project_end ORDER BY zazz_order");
 	$query->execute();
 	$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -77,7 +77,7 @@ if (!$demo) {
 	}
 	$default_page_id = $project_id[0]['default_page'];
 	$project_start = $project_id[0]['project_start'];
-	$project_end = $project_id[0]['project_end'];	
+	$project_end = $project_id[0]['project_end'];
 	$project_id = $project_id[0]['project_id'];
 	$default_page = _Page::get()->retrieve('page', array(), array('page_id' => $default_page_id));
 	if (empty($default_page[0]['page'])) {
@@ -102,12 +102,36 @@ if (!$demo) {
 		return;
 	}
 	$page_id = $page_info['page_id'];
+
+	$page_id = intval($page_id);
+	$project_start = intval($project_start);
+	$project_end = intval($project_end);
+	$query = Database::get()->PDO()->prepare("SELECT code FROM code WHERE type = 'html' AND page_id IN (" .
+		"$page_id, $project_start, $project_end) AND zazz_id IN ('begin-project', 'end-project'," .
+		"'begin-web-page','end-web-page') ORDER BY zazz_id, zazz_order");
+	$query->execute();
+	$code = $query->fetchAll(PDO::FETCH_COLUMN, 0);
+	$frame = implode('', $code);
+
+	require_once dirname(__FILE__) . '/includes/custom/simple_html_dom.php';
+	$html = new simple_html_dom();
+	$html->load($frame);
+	if ($html->find('body', 0) && $html->find('head', 0)) {
+		$bad_html = false;
+		ob_start();
+	} else {
+		$bad_html = true;
+	}
 }
-?>
-<!DOCTYPE html>
-<html>
-	<?php require_once dirname(__FILE__) . '/includes/custom/header.php'; ?>
-	<body>
+if ($bad_html) {
+	?>
+	<!DOCTYPE html>
+	<html>
+		<?php require_once dirname(__FILE__) . '/includes/custom/header.php'; ?>
+		<body>
+			<?php
+		}
+		?>
 		<div id="-zazz-modal-alert" class="-zazz-modal">
 			<div class="-zazz-modal-header">Oops...</div>
 			<div class="-zazz-modal-body"></div>
@@ -123,6 +147,23 @@ if (!$demo) {
 				<input type="button" class="-zazz-modal-button" value="Continue" />
 			</div>
 		</div>
+		<div id="-zazz-modal-deploy-confirm" class="-zazz-modal">
+			<div class="-zazz-modal-header">Confirm</div>
+			<div class="-zazz-modal-body">Deploying the project will make all visible pages visible 
+				at the root URL. If you want to do this, enter the deploy password.
+				<table>
+					<tr>
+						<td>Deploy Password: </td>
+						<td><input id="-zazz-deploy-password" type="text" /></td>
+					</tr>
+				</table>
+			</div>
+			<div class="-zazz-modal-footer">
+				<input type="button" class="-zazz-modal-close" value="Cancel" />
+				<a id='-zazz-deploy-link'class="-zazz-modal-button -zazz-modal-close" 
+					 href="/zazz/view/<?= $project ?>/<?= $page ?>?deploy=true" target="_blank">Continue</a>
+			</div>
+		</div>
 		<div id="-zazz-modal-settings" class="-zazz-modal">
 			<div class="-zazz-modal-header">Page</div>
 			<div class="-zazz-modal-body">
@@ -133,9 +174,17 @@ if (!$demo) {
 						<td><input id="-zazz-page-name" type="text" value="<?= $page ?>" /></td>
 					</tr>
 					<tr>
-						<td>Background Image: </td>
-						<td><input id="-zazz-background-image" type="text" 
-											 value="<?= $page_info['background_image'] ?>" /></td>						
+						<td>Visible When Deployed: </td>
+						<td><select id='-zazz-page-visible'>
+								<option>Yes</option>
+								<option <?= ($page_info['visible'] ===
+		'0' ? 'selected' : '')
+		?>>No</option>
+							</select></td>						
+					</tr>
+					<tr>
+						<td>Page Height: </td>
+						<td><input id="-zazz-page-height" type="text" /></td>
 					</tr>
 				</table>
 			</div>
@@ -165,9 +214,16 @@ if (!$demo) {
 					if (!$demo) {
 						$viewProjects = _Project::get()->retrieve(array('project'), array(),
 							array('user_id' => $user_id));
+						$hasProject = false;
 						foreach ($viewProjects as $viewProject) {
-							echo '<tr><td><a href="/zazz/build/' . $viewProject['project'] . '/">'
-							. $viewProject['project'] . '</a></tr></td>' . "\n";
+							if ($viewProject['project'] !== $project) {
+								$hasProject = true;
+								echo '<tr><td><a href="/zazz/build/' . $viewProject['project'] . '/">'
+								. $viewProject['project'] . '</a></tr></td>' . "\n";
+							}
+						}
+						if (!$hasProject) {
+							echo '<tr><td>You have only one project.</td></tr>';
 						}
 					} else {
 						echo '<tr><td>You can only have one project in the demo.</td></tr>';
@@ -187,9 +243,17 @@ if (!$demo) {
 					if (!$demo) {
 						$viewPages = _Page::get()->retrieve(array('Page'), new Join('project_id', _Project::get()),
 							array('project' => $project, 'user_id' => $user_id));
+						$hasPage = false;
 						foreach ($viewPages as $viewPage) {
-							echo '<tr><td><a href="/zazz/build/' . $project . '/' . $viewPage['page'] . '">'
-							. $viewPage['page'] . '</a></tr></td>' . "\n";
+							if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project'
+								&& $viewPage['page'] !== $page) {
+								$hasPage = true;
+								echo '<tr><td><a href="/zazz/build/' . $project . '/' . $viewPage['page'] . '">'
+								. $viewPage['page'] . '</a></tr></td>' . "\n";
+							}
+						}
+						if (!$hasPage) {
+							echo '<tr><td>You only have one page.</td></tr>';
 						}
 					} else {
 						echo '<tr><td>You can only have one page in the demo.</td></tr>';
@@ -239,10 +303,6 @@ if (!$demo) {
 						<td>Project Name:</td>
 						<td><input id="-zazz-project-name" type="text" value="<?= $project ?>"/></td>
 					</tr>
-					<tr>
-						<td>Default Page:</td>
-						<td><input id="-zazz-default-page" type="text" value="<?= $default_page ?>"/></td>
-					</tr>
 				</table>
 			</div>
 			<div class="-zazz-modal-footer">
@@ -274,12 +334,16 @@ if (!$demo) {
 						<td>Page Name:</td>
 						<td><input id="-zazz-new-page-name" type="text"/></td>
 					</tr>
-					<!--
 					<tr>
 						<td>Template:</td>
-						<td><input id="-zazz-page-template" type="text"/></td>
+						<td><select id="-zazz-page-template"><option></option><?php
+								foreach ($viewPages as $viewPage) {
+									if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project') {
+										echo '<option>' . $viewPage['page'] . '</option>';
+									}
+								}
+								?></select></td>
 					</tr>
-					-->
 				</table>
 			</div>
 			<div class="-zazz-modal-footer">
@@ -332,8 +396,12 @@ if (!$demo) {
 					>--><span tabindex="10" class="-zazz-page-btn -zazz-btn">Page</span
 					><span tabindex="10" class="-zazz-project-btn -zazz-btn">Project</span
 					><span class="-zazz-divider"></span
-					><span tabindex="10" class="-zazz-view-btn -zazz-btn">View</span
+					><span tabindex="10" class="-zazz-view-btn -zazz-btn"
+								 ><a href="/zazz/view/<?= $project ?>/<?= $page ?>" target="_blank">View</a></span
 					><span tabindex="10" id="-zazz-deploy-project-btn" class="-zazz-btn">Deploy</span
+					><span tabindex="10" id="-zazz-export-btn" class="-zazz-btn"
+								 ><a href="/zazz/view/<?= $project ?>/zip/<?= $project ?>.zip?export=true" 
+							target="_blank">Export</a></span
 					><span class="-zazz-divider"></span
 				</span>
 			</div>
@@ -354,8 +422,10 @@ if (!$demo) {
 					<input tabindex="10" type="text" class="-zazz-id-input" 
 								 /><span class="-zazz-class-btn">Class(es):</span>
 					<input tabindex="10" type="text" class="-zazz-class-input" 
-								 /><span class="-zazz-divider"></span>
-				</span>
+								 /><span class="-zazz-divider"></span
+					><span id="-zazz-fixed-status-btn"
+								 ><span class="-zazz-fixed-status-btn">Fixed</span><span class="-zazz-divider"></span
+						></span></span>
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-html-btn -zazz-btn">HTML</span
@@ -378,7 +448,17 @@ if (!$demo) {
 		</div>
 		<input id="-zazz-page-id" type="hidden" value="<?= $page_id ?>" />
 		<input id="-zazz-is-demo" type="hidden" value="<?= $demo ?>" />
-	</body>
-	<script src="/zazz/js/jquery-1.10.2.js" type="text/javascript"></script>
-	<script src="/zazz/js/functions.js" type="text/javascript"></script>
-</html>
+		<input id="-zazz-bad-html" type="hidden" value="<?= $bad_html ?>" />
+		<?php
+		if ($bad_html) {
+			?>
+		</body>
+		<script src="/zazz/js/jquery-1.10.2.js" type="text/javascript"></script>
+		<script src="/zazz/js/functions.js" type="text/javascript"></script>
+	</html>
+	<?php
+}
+if (!$demo && !$bad_html) {
+	echo $code[0] . $code[1] . ob_get_clean() . $code[2] . $code[3];
+}
+?>

@@ -32,13 +32,13 @@ array (
     'Default' => NULL,
     'Extra' => '',
   ),
-  'background_image' => 
+  'visible' => 
   array (
-    'Field' => 'background_image',
-    'Type' => 'varchar(50)',
-    'Null' => 'YES',
+    'Field' => 'visible',
+    'Type' => 'bit(1)',
+    'Null' => 'NO',
     'Key' => '',
-    'Default' => NULL,
+    'Default' => 'b\'1\'',
     'Extra' => '',
   ),
 ); 

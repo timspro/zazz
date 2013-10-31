@@ -14,10 +14,15 @@ Options +FollowSymlinks
 RewriteEngine On
 RewriteBase /
 
+#Reroute Zazz sandbox files to the right location
+RewriteRule ^build/(.*?)/css/style.css$ zazz/css/style.css [QSA]
+RewriteRule ^build/(.*?)/css/images/(.*?)$ zazz/css/images/$2 [QSA]
+RewriteRule ^build/(.*?)/js/(.*?)$ zazz/js/$2 [QSA]
+
 #This allows people to reference their project resources with relative paths within Zazz sandbox.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^build/(.*?)/css/(.*?)$ zazz/view.php?project=$1&page=css/$2 [QSA]
+RewriteRule ^build/(.*?)/resources/(.*?)$ zazz/view.php?project=$1&page=css/resources$2 [QSA]
 
 #When support for css is added...
 #RewriteCond %{REQUEST_FILENAME} !-f
