@@ -324,7 +324,7 @@ function zipFolder($source, $destination) {
 	}
 }
 
-function processCode($project_start, $project_end, $page_id, $zazz_id) {
+function processCode($project_start, $project_end, $page_id, $zazz_id, $basedir) {
 	if ($zazz_id === 'begin-project' || $zazz_id === 'end-project' || $zazz_id === 'begin-web-page' || $zazz_id ===
 		'end-web-page') {
 		return;
@@ -333,6 +333,14 @@ function processCode($project_start, $project_end, $page_id, $zazz_id) {
 	unset($_REQUEST);
 	unset($_GET);
 	unset($_POST);
+	
+	if(!file_exists($basedir)) {
+		mkdir($basedir, 0777, true);
+	}
+	$filename = realpath($basedir);
+	chdir($filename);
+	ini_set('open_basedir', $filename);
+	
 	foreach ($_ZAZZ_BLOCKS as $_ZAZZ_BLOCK) {
 		switch ($_ZAZZ_BLOCK['type']) {
 			case 'css':
@@ -364,13 +372,14 @@ function processCode($project_start, $project_end, $page_id, $zazz_id) {
 	}
 }
 
-function getComputedLayout($project_start, $project_end, $page_id) {
+function getComputedLayout($project_start, $project_end, $page_id, $basedir) {
 	require_once dirname(__FILE__) . '/simple_html_dom.php';
 	$layout = new simple_html_dom();
 	$layout->load(getLayout($page_id));
 	foreach ($layout->find('.-zazz-element') as $element) {
 		ob_start();
-		processCode($project_start, $project_end, $page_id,	$element->getAttribute('data-zazz-id'));
+		processCode($project_start, $project_end, $page_id,	$element->getAttribute('data-zazz-id'),
+			$basedir);
 		$element->innertext = ob_get_clean();
 	}
 	return $layout->save();

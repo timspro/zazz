@@ -3,10 +3,11 @@ require_once dirname(__FILE__) . '/../includes/standard/initialize.php';
 require_once dirname(__FILE__) . '/../includes/custom/functions.php';
 
 Authenticate::get()->check(false);
+$user_id = Authenticate::get()->getUser('user_id');
 
 if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['zazz_order'])
 	&& isset($_REQUEST['page_id'])) {
-	$check = verifyPage($_REQUEST['page_id'], Authenticate::get()->getUser('user_id'));
+	$check = verifyPage($_REQUEST['page_id'], $user_id);
 	if ($check) {
 		$run = true;
 		$updatePageID = $_REQUEST['page_id'];
@@ -33,11 +34,13 @@ if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['
 			}
 		}
 
+		$basedir = dirname(__FILE__) . '/../view/' . $user_id . '/' . $check[0]['project'] . '/';
 		if ($run) {
 			processCode($check[0]['project_start'], $check[0]['project_end'], $_REQUEST['page_id'],
-				$_REQUEST['zazz_id']);
+				$_REQUEST['zazz_id'], $basedir);
 		} else {
-			echo getComputedLayout($check[0]['project_start'], $check[0]['project_end'], $_REQUEST['page_id']);
+			echo getComputedLayout($check[0]['project_start'], $check[0]['project_end'], 
+				$_REQUEST['page_id'], $basedir);
 		}
 	}
 }

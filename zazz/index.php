@@ -409,8 +409,9 @@ if ($bad_html) {
 			</div>
 			<div class="-zazz-content-view">
 				<?php
-				if (!$demo) {
-					echo getComputedLayout($project_start, $project_end, $page_id);
+				if (!$demo) {	
+					$basedir = dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/';
+					echo getComputedLayout($project_start, $project_end, $page_id, $basedir);
 				} else {
 					echo getDefaultLayout();
 				}
