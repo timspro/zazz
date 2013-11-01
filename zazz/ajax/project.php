@@ -147,7 +147,7 @@ if (isset($_REQUEST['page_id']) && verifyPage($_REQUEST['page_id'], $user_id)) {
 		} else {
 			echo 'There is no page with that name in this project.';
 		}
-	} else if (isset($_REQUEST['delete'])) {
+	} else if (isset($_REQUEST['deleted'])) {
 
 		$result = _Page::get()->retrieve('project_id', array(), array('page_id' => $_REQUEST['page_id']));
 		_Project::get()->delete(array('project_id' => $result[0]['project_id']));

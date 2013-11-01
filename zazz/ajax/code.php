@@ -20,7 +20,7 @@ if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['
 		} else if ($_REQUEST['zazz_id'] === 'begin-web-page' || $_REQUEST['zazz_id'] === 'end-web-page') {
 			$run = false;
 		}
-		if (isset($_REQUEST['delete'])) {
+		if (isset($_REQUEST['deleted'])) {
 			_Code::get()->delete($_REQUEST);
 		} else if (isset($_REQUEST['code'])) {
 			if ($_REQUEST['insert'] === 'true') {

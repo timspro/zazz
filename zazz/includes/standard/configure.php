@@ -4,11 +4,11 @@
  */
 define('CONFIGURE', true);
 
-$configurePassword = 'N(j390J3lo)lo3sjm)@ls-sl';
+$configurePassword = 'B9j390J3lo)lo3sjm)@ls-sl';
 $deployPassword = 'NEPOm20dkP_e3ls0elOEMlsoW';
-$globalPassword = 'MR)#@Psls0DS{ksmL:EoDZspwq';
+$globalPassword = 'B9)#@Psls0DS{ksmL:EoDZspwq';
 
-if ($_GET['password'] !== $configurePassword) {
+if (!isset($_GET['password']) || $_GET['password'] !== $configurePassword) {
 	echo 'You did not enter the right password.';
 	return;
 }

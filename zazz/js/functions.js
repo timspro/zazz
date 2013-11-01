@@ -903,7 +903,7 @@ $(document).ready(function() {
 								$('#-zazz-loader-bar').promote();
 								$.post('/zazz/ajax/project.php', {
 									page_id: $('#-zazz-page-id').val(),
-									delete: 'true'
+									deleted: 'true'
 								}, function() {
 									window.location.href = "/zazz/index.php";
 								});
@@ -947,7 +947,7 @@ $(document).ready(function() {
 								$('#-zazz-loader-bar').promote();
 								$.post('/zazz/ajax/page.php', {
 									page_id: $('#-zazz-page-id').val(),
-									delete: 'true'
+									deleted: 'true'
 								}, function() {
 									window.location.href = "/zazz/index.php";
 								});

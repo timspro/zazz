@@ -45,7 +45,7 @@ if (isset($_REQUEST['create']) && isset($_REQUEST['page_id'])) {
 	}
 }
 
-if (isset($_REQUEST['delete']) && isset($_REQUEST['page_id'])) {
+if (isset($_REQUEST['deleted']) && isset($_REQUEST['page_id'])) {
 	_Page::get()->delete(array('page_id' => $_REQUEST['page_id']));
 	_Code::get()->delete(array('page_id' => $_REQUEST['page_id']));
 	_Layout::get()->delete(array('page_id' => $_REQUEST['page_id']));
