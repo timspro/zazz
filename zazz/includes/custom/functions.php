@@ -153,7 +153,6 @@ body, html {
 
 body {
   background-color: #6699ff;
-  overflow: hidden;
 }
 
 .-zazz-content {
