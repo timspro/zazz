@@ -39,7 +39,9 @@ if(isset($_GET['min'])) {
 	rename($filename . '/css/style.min.css', $filename . '/css/style.css');
 }
 
-require_once dirname(__FILE__) . '/includes/standard/delete.php';
+if(isset($_GET['delete'])) {
+	require_once dirname(__FILE__) . '/includes/standard/delete.php';
+}
 require_once dirname(__FILE__) . '/includes/standard/configure.php';
 
 echo 'Configuration completed. <br>';
