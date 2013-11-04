@@ -36,8 +36,8 @@ array (
   array (
     'Field' => 'default_page',
     'Type' => 'int(10) unsigned',
-    'Null' => 'NO',
-    'Key' => 'PRI',
+    'Null' => 'YES',
+    'Key' => '',
     'Default' => NULL,
     'Extra' => '',
   ),
@@ -67,16 +67,11 @@ array (
   array (
     0 => 'project_id',
     1 => 'project',
-    2 => 'default_page',
   ),
   'PROJECT' => 
   array (
     0 => 'project',
     1 => 'user_id',
-  ),
-  'OTHER' => 
-  array (
-    0 => 'default_page',
   ),
 );
 }

@@ -202,7 +202,7 @@ function doStuff() {
 								//so just refresh the page rather that try to fix that.
 								location.reload();
 							}
-							$('.-zazz-content').first().html(data);
+							$('.-zazz-content-view').first().html(data);
 						} else {
 							$('.-zazz-element[data-zazz-id="' + zazz_id + '"]').html(data);
 							$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function() {
@@ -808,7 +808,12 @@ function doStuff() {
 							var first_width = getCSSWidth($first_div);
 							var second_width = getCSSWidth($second_div);
 							$second_div.remove();
-							$first_div.css("width", (parseFloat(first_width) + parseFloat(second_width)) + '%');
+							//Either both have fixed width or both have percentage width.
+							if(parseInt($first_div.css('z-index')) > 0 && parseInt($second_div.css('z-index')) > 0) {
+								$first_div.css("width", (parseInt(first_width) + parseInt(second_width)) + 'px');
+							} else {
+								$first_div.css("width", (parseFloat(first_width) + parseFloat(second_width)) + '%');
+							}
 							//Else check to see if rows are in the same row, but not in the same container.
 						} else if ($first_parent.hasClass('-zazz-container') &&
 								$second_parent.hasClass('-zazz-row') &&

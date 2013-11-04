@@ -402,7 +402,7 @@ if ($bad_html) {
 					><span tabindex="10" class="-zazz-across-btn -zazz-btn">Across</span
 					><span tabindex="10" class="-zazz-absorb-btn -zazz-btn">Absorb</span
 					><span class="-zazz-divider"></span
-					><span id="-zazz-fixed"><span class="-zazz-fixed-btn">W: 0 H: 0</span
+					><span id="-zazz-fixed"><span class="-zazz-fixed-btn">Fixed:</span
 						><select id="-zazz-fixed-vertical"
 										 ><option>None</option
 							><option>Left</option
@@ -449,7 +449,7 @@ if ($bad_html) {
 					<input tabindex="10" type="text" class="-zazz-class-input" 
 								 /><span class="-zazz-divider"></span
 					><span id="-zazz-fixed-status-btn"
-								 ><span class="-zazz-fixed-status-btn">Fixed</span><span class="-zazz-divider"></span
+								 ><span class="-zazz-fixed-status-btn">W: 0 H: 0</span><span class="-zazz-divider"></span
 						></span></span>
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span class="-zazz-divider"></span
