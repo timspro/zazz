@@ -21,8 +21,8 @@ RewriteCond %{HTTPS} off
 # the subsequent rule will catch it.
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 # Now, rewrite any request to the wrong domain to not use www.
-RewriteCond %{HTTP_HOST} ^www\.
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+RewriteCond %{HTTP_HOST} ^www.timsprowl.com$ [NC]
+RewriteRule ^(.*)$ http://timsprowl.com%{REQUEST_URI} [R=301,L]
 
 #All accesses need to be proxied in some way so that credentials can be checked.
 RewriteRule ^view/(.*?)/(.*?)$ zazz/view.php?project=$1&page=$2 [QSA,L]
