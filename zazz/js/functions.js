@@ -101,7 +101,7 @@ function doStuff() {
 			return this;
 		};
 		//Register the click event for the actions.
-		$('.-zazz-content').click(function(e) {
+		$('.-zazz-content-view').click(function(e) {
 			if ($.fn.register.current !== null) {
 				$.fn.register.action[$.fn.register.current]($(e.target), e, $.fn.register.first);
 				$.fn.register.first = false;
@@ -435,7 +435,7 @@ function doStuff() {
 			$.mouse_x = e.pageX;
 			$.mouse_y = e.pageY;
 		});
-		$('.-zazz-content').mousemove(function(e) {
+		$('.-zazz-content-view').mousemove(function(e) {
 			var $target = $(e.target);
 			if ($target.hasClass('-zazz-outline')) {
 				$target = $.last_div;
