@@ -38,7 +38,7 @@ array (
     'Type' => 'int(10) unsigned',
     'Null' => 'NO',
     'Key' => 'PRI',
-    'Default' => '0',
+    'Default' => NULL,
     'Extra' => '',
   ),
   'project_start' => 
