@@ -4,9 +4,11 @@
  */
 define('CONFIGURE', true);
 
+//Passwords stored in other configure.php
 //$configurePassword = 'B9j390J3lo)lo3sjm)@ls-sl';
-$deployPassword = 'NEPOm20dkP_e3ls0elOEMlsoW';
-$globalPassword = 'B9)#@Psls0DS{ksmL:EoDZspwq';
+//$deployPassword = 'NEPOm20dkP_e3ls0elOEMlsoW';
+//$globalPassword = 'B9)#@Psls0DS{ksmL:EoDZspwq';
+//$databasePassword = '';
 
 /*
 if (!isset($_GET['password']) || $_GET['password'] !== $configurePassword) {
@@ -27,6 +29,7 @@ function setNewPassword($filename, $password) {
 //Custom password stuff.
 setNewPassword(dirname(__FILE__) . '/../../login.php', $globalPassword);
 setNewPassword(dirname(__FILE__) . '/../../view.php', $deployPassword);
+setNewPassword(dirname(__FILE__) . '/initialize.php', $databasePassword);
 
 require_once dirname(__FILE__) . '/initialize.php';
 
