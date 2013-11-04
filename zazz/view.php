@@ -199,6 +199,7 @@ foreach ($generate_pages as $generate_page) {
 			' in ' . $project;
 			return;
 		}
+		return;
 	}
 
 //-------------------------------------INITIALIZE------------------------------------------
@@ -312,6 +313,10 @@ if (isset($_GET['deploy'])) {
 		return;
 	}
 } else {
+	$basedir = dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/';
+	$filename = realpath($basedir);
+	chdir($filename);
+	ini_set('open_basedir', $filename);
 	require_once dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/' . $_GET['page'];
 }
 ?>

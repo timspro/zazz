@@ -104,6 +104,42 @@ array (
     'Default' => NULL,
     'Extra' => '',
   ),
+  'dbname' => 
+  array (
+    'Field' => 'dbname',
+    'Type' => 'varchar(20)',
+    'Null' => 'YES',
+    'Key' => '',
+    'Default' => NULL,
+    'Extra' => '',
+  ),
+  'dbusername' => 
+  array (
+    'Field' => 'dbusername',
+    'Type' => 'varchar(20)',
+    'Null' => 'YES',
+    'Key' => '',
+    'Default' => NULL,
+    'Extra' => '',
+  ),
+  'dbpassword' => 
+  array (
+    'Field' => 'dbpassword',
+    'Type' => 'varchar(20)',
+    'Null' => 'YES',
+    'Key' => '',
+    'Default' => NULL,
+    'Extra' => '',
+  ),
+  'lockout' => 
+  array (
+    'Field' => 'lockout',
+    'Type' => 'datetime',
+    'Null' => 'YES',
+    'Key' => '',
+    'Default' => NULL,
+    'Extra' => '',
+  ),
 ); 
 }
 public function getIndexes() { return 

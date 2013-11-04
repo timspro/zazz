@@ -31,15 +31,17 @@ class Authenticate extends Object {
 	const FIRST_NAME_FIELD = 'first_name';
 	const LAST_NAME_FIELD = 'last_name';
 	const OTHER_ID = 'active_project';
-	const MAX_LOGIN_COUNT = 10;
+	const LOCKOUT = 'lockout';
+	const MAX_LOGIN_COUNT = 5;
 	const COOKIE_LIFETIME = 88600;
+	const LOCKOUT_TIME = 300;
 	const REDIRECT = '/zazz/login.php';
 
 	//Arrays can't be const.
 	static private $ERROR_MESSAGE = array(
 		0 => 'You did not enter your email address and password.',
 		1 => 'There is no user with that username.',
-		2 => 'Your account has been blocked due to too many incorrect login attempts.',
+		2 => 'Your account has been blocked due to too many incorrect login attempts. Try again in five minutes.',
 		3 => 'The password you entered is incorrect. Please try again.',
 		4 => 'There is already a user with that username.',
 		5 => 'The account associated with that username has been inactivated.'
@@ -199,8 +201,13 @@ class Authenticate extends Object {
 			$this->error = self::$ERROR_MESSAGE[5];
 			return false;
 		}
-
+		
 		$login_error_count = $r[0][self::LOGIN_ERROR_FIELD];
+		if(!empty($r[0][self::LOCKOUT]) && 
+			strtotime($r[0][self::LOCKOUT]) < time() - self::LOCKOUT_TIME) {
+			$login_error_count = 0;
+		}
+
 		$hashed_password = $r[0][self::PASSWORD_FIELD];
 		if ($login_error_count > self::MAX_LOGIN_COUNT) {
 			$this->error = self::$ERROR_MESSAGE[2];
@@ -210,7 +217,8 @@ class Authenticate extends Object {
 		if (crypt($password, self::SALT_PREFIX . $hashed_password) !== self::SALT_PREFIX .
 			$hashed_password) {
 			$login_error_count++;
-			$q = $this->userQB->update(array(self::LOGIN_ERROR_FIELD => $login_error_count),
+			$q = $this->userQB->update(array(self::LOGIN_ERROR_FIELD => $login_error_count, 
+				self::LOCKOUT => date("Y-m-d H:i:s")),
 				array(self::USERNAME_FIELD => $username));
 			$this->error = self::$ERROR_MESSAGE[3];
 			return false;

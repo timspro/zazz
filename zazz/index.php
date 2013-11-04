@@ -12,7 +12,7 @@ function getCodeBlocks($page_id, $project_start, $project_end) {
 		echo '<textarea class="-zazz-code-block -zazz-' . $row["type"] . '-code 
 							-zazz-code-block-' . $row['zazz_id'] . '" 
 							spellcheck="false" tabindex="10" data-zazz-order="' . $row['zazz_order'] . '" 
-							style="display: none;" >' . $row['code'] . '</textarea>';
+							style="display: none;" wrap="off">' . $row['code'] . '</textarea>';
 	}
 }
 
@@ -31,17 +31,7 @@ function getDefaultCodeBlock() {
 							style="display: none;" >#project { ' . "\n\n" . '}</textarea>';
 }
 
-if (isset($_GET['demo'])) {
-	$demo = true;
-	session_start();
-	session_destroy();
-} else {
-	$demo = false;
-}
-
 require_once dirname(__FILE__) . '/includes/custom/functions.php';
-
-if (!$demo) {
 
 	require_once dirname(__FILE__) . '/includes/standard/initialize.php';
 	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Code.php';
@@ -50,8 +40,9 @@ if (!$demo) {
 	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Layout.php';
 
 	Authenticate::get()->check();
-	$user_id = Authenticate::get()->getUser('user_id');
-
+	$user = Authenticate::get()->getUser();
+	$user_id = $user['user_id'];
+	
 	if (!isset($_GET['project']) || empty($_GET['project'])) {
 		$active_id = Authenticate::get()->getUser('active_project');
 		$project = _Project::get()->retrieve('project', array(), array('project_id' => $active_id));
@@ -117,12 +108,21 @@ if (!$demo) {
 	$html = new simple_html_dom();
 	$html->load($frame);
 	if ($html->find('body', 0) && $html->find('head', 0)) {
+		$foundJquery = false;
+		foreach($html->find('script') as $element) {
+			if(strrpos($element->getAttribute('src'), 'jquery') !== false) {
+				$foundJquery = true;
+			}
+		}
+		if(!$foundJquery) {
+			$code[2] = '<script src="/zazz/js/jquery-1.10.2.js" type="text/javascript"></script>' 
+				. $code[2];
+		}
 		$bad_html = false;
 		ob_start();
 	} else {
 		$bad_html = true;
 	}
-}
 if ($bad_html) {
 	?>
 	<!DOCTYPE html>
@@ -211,7 +211,6 @@ if ($bad_html) {
 			<div class="-zazz-modal-body">
 				<table class="-zazz-links">
 					<?php
-					if (!$demo) {
 						$viewProjects = _Project::get()->retrieve(array('project'), array(),
 							array('user_id' => $user_id));
 						$hasProject = false;
@@ -225,9 +224,6 @@ if ($bad_html) {
 						if (!$hasProject) {
 							echo '<tr><td>You have only one project.</td></tr>';
 						}
-					} else {
-						echo '<tr><td>You can only have one project in the demo.</td></tr>';
-					}
 					?>
 				</table>
 			</div>
@@ -240,7 +236,6 @@ if ($bad_html) {
 			<div class="-zazz-modal-body">
 				<table class="-zazz-links">
 					<?php
-					if (!$demo) {
 						$viewPages = _Page::get()->retrieve(array('Page'), new Join('project_id', _Project::get()),
 							array('project' => $project, 'user_id' => $user_id));
 						$hasPage = false;
@@ -255,9 +250,6 @@ if ($bad_html) {
 						if (!$hasPage) {
 							echo '<tr><td>You only have one page.</td></tr>';
 						}
-					} else {
-						echo '<tr><td>You can only have one page in the demo.</td></tr>';
-					}
 					?>
 				</table>
 			</div>
@@ -287,7 +279,7 @@ if ($bad_html) {
 				</form>
 				<p id="-zazz-uploaded-files"></p>
 				<iframe src='/zazz/ajax/project.php?page_id=<?= $page_id ?>&files=true' 
-								name="-zazz-uploaded-result" frameBorder="0"></iframe>
+								name="-zazz-uploaded-result" frameBorder="0" scrolling="no"></iframe>
 			</div>
 			<div class="-zazz-modal-footer">
 				<input type="button" class="-zazz-modal-close" value="Close" />
@@ -351,6 +343,37 @@ if ($bad_html) {
 				<input type="button" id="-zazz-make-new-page" value="Continue" />
 			</div>
 		</div>
+		<div id="-zazz-modal-database" class="-zazz-modal">
+			<div class="-zazz-modal-header">Database</div>
+			<div class="-zazz-modal-body">
+				<p class="-zazz-modal-message"></p>
+				<table>
+					<tr>
+						<td>Name:</td>
+						<td><?=$user['dbname'] ?></td>
+					</tr>
+					<tr>
+						<td>Username:</td>
+						<td><?=$user['dbusername'] ?></td>
+					</tr>
+					<tr>
+						<td>Password:</td>
+						<td><?=$user['dbpassword'] ?></td>
+					</tr>
+				</table>
+				<form id='-zazz-modal-database-form' method="post" action='/zazz/sqlbuddy/login.php' 
+							style='display:none'>
+					<input type='hidden' name='ADAPTER' value='mysql' />
+					<input type='hidden' name='USER' value='<?=$user['dbusername'] ?>' />
+					<input type='hidden' name='PASS' value='<?=$user['dbpassword'] ?>' />
+					<input type='hidden' name='HOST' value='localhost' />
+				</form>
+			</div>
+			<div class="-zazz-modal-footer">
+				<input type="button" class="-zazz-modal-close" value="Cancel" />
+				<input type="button" id="-zazz-modal-database-edit" value="Edit" />
+			</div>
+		</div>
 		<div id="-zazz-modal-mouse" class="-zazz-modal">
 			<div class="-zazz-modal-body">
 				<p class="-zazz-modal-message"></p>
@@ -392,6 +415,8 @@ if ($bad_html) {
 					<span id='-zazz-loader-bar'><span class="-zazz-divider"></span
 					><img id='-zazz-loader-image' src='/zazz/css/images/loader.gif' /></span
 					><span class="-zazz-divider"></span
+					><span tabindex="10" class="-zazz-database-btn -zazz-btn">DB</span
+					><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-upload-btn -zazz-btn">Upload</span
 					><span class="-zazz-divider"></span
 					><!--<span tabindex="10" class="-zazz-save-all-btn -zazz-btn">Layer</span
@@ -404,17 +429,14 @@ if ($bad_html) {
 					><span tabindex="10" id="-zazz-export-btn" class="-zazz-btn"
 								 ><a href="/zazz/view/<?= $project ?>/zip/<?= $project ?>.zip?export=true" 
 							target="_blank">Export</a></span
-					><span class="-zazz-divider"></span
+					><span class="-zazz-divider"></span><span tabindex="10" id="-zazz-logout-btn" class="-zazz-btn"
+								 ><a href="/zazz/logout.php">Logout</a></span><span class="-zazz-divider"></span>
 				</span>
 			</div>
 			<div class="-zazz-content-view">
-				<?php
-				if (!$demo) {	
+				<?php	
 					$basedir = dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/';
 					echo getComputedLayout($project_start, $project_end, $page_id, $basedir);
-				} else {
-					echo getDefaultLayout();
-				}
 				?>
 			</div>
 		</div>
@@ -441,16 +463,11 @@ if ($bad_html) {
 			</div>
 			<div class="-zazz-code-blocks">
 				<?php
-				if (!$demo) {
 					getCodeBlocks($page_id, $project_start, $project_end);
-				} else {
-					getDefaultCodeBlock();
-				}
 				?>
 			</div>
 		</div>
 		<input id="-zazz-page-id" type="hidden" value="<?= $page_id ?>" />
-		<input id="-zazz-is-demo" type="hidden" value="<?= $demo ?>" />
 		<input id="-zazz-bad-html" type="hidden" value="<?= $bad_html ?>" />
 		<?php
 		if ($bad_html) {
@@ -461,7 +478,7 @@ if ($bad_html) {
 	</html>
 	<?php
 }
-if (!$demo && !$bad_html) {
+if (!$bad_html) {
 	echo $code[0] . $code[1] . ob_get_clean() . $code[2] . $code[3];
 }
 ?>

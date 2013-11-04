@@ -4,14 +4,16 @@
  */
 define('CONFIGURE', true);
 
-$configurePassword = 'B9j390J3lo)lo3sjm)@ls-sl';
+//$configurePassword = 'B9j390J3lo)lo3sjm)@ls-sl';
 $deployPassword = 'NEPOm20dkP_e3ls0elOEMlsoW';
 $globalPassword = 'B9)#@Psls0DS{ksmL:EoDZspwq';
 
+/*
 if (!isset($_GET['password']) || $_GET['password'] !== $configurePassword) {
 	echo 'You did not enter the right password.';
 	return;
 }
+ */
 
 function setNewPassword($filename, $password) {
 	$contents = file_get_contents($filename);

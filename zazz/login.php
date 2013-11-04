@@ -12,6 +12,39 @@ if ($auth->loggedIn()) {
 function createFirstProject($user_id) {
 	require_once dirname(__FILE__) . '/includes/custom/functions.php';
 
+	function generateRandomString() {
+		$strong = false;
+		return substr(str_replace('/', '_',
+				str_replace('+', '$', base64_encode(openssl_random_pseudo_bytes(16, $strong)))), 0, 16);
+	}
+
+	$count = 0;
+	$good = false;
+	while (!$good && $count < 5) {
+		//try {
+			$count++;
+			$dbname = generateRandomString();
+			$dbusername = generateRandomString();
+			$dbpassword = generateRandomString();
+
+			$PDO = Database::get()->PDO();
+			$query = $PDO->prepare("CREATE USER '$dbusername'@'localhost' IDENTIFIED BY '$dbpassword';
+CREATE DATABASE $dbname;
+GRANT ALL PRIVILEGES ON $dbname.* TO '$dbusername'@'localhost';");
+			$query->execute();
+			$query->closeCursor();
+			//$query->fetchAll();
+			_User::get()->update(array('dbname' => $dbname, 'dbusername' => $dbusername,
+				'dbpassword' => $dbpassword), array('user_id' => $user_id));
+			$good = true;
+		//} catch (PDOException $e) {
+		//	Logger::get()->log($e->getMessage());
+		//}
+	}
+	if($count > 5) {
+		exit();
+	}
+	
 	$firstProject = 'project-1';
 	createProject($firstProject, $user_id);
 }
@@ -22,12 +55,16 @@ if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 	$username = $_REQUEST['login_email'];
 	$password = $_REQUEST['login_password'];
 	if (isset($_REQUEST['create'])) {
-		if ($_REQUEST['global'] !== /*!_!_!PASSWORD!_!_!*/'MR)#@Psls0DS{ksmL:EoDZspwq'/*!_!_!PASSWORD!_!_!*/) {
+		if ($_REQUEST['global'] !== /* !_!_!PASSWORD!_!_! */'MR)#@Psls0DS{ksmL:EoDZspwq'/* !_!_!PASSWORD!_!_! */) {
 			$error = "The global password is incorrect.";
-		} else if (strlen($username) < 7) {
+		} else if (strlen($username) < 6) {
 			$error = "Your username is too short.";
-		} else if (strlen($password) < 6) {
-			$error = "Your password must be at least 6 characters.";
+		} else if (strlen($password) < 10) {
+			$error = "Your password must be at least 10 characters.";
+		} else if (strtolower($password) === $password) {
+			$error = "Your password must contain at least 1 uppercase letter.";
+		} else if (!preg_match('#[0-9]#', $password)) {
+			$error = "Your password must contain at least 1 number.";
 		} else if ($password !== $_REQUEST['password2']) {
 			$error = "Your password did not match what you retyped.";
 		} else {
@@ -48,7 +85,7 @@ if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-	<?php require_once dirname(__FILE__) . '/includes/custom/header.php'; ?>
+<?php require_once dirname(__FILE__) . '/includes/custom/header.php'; ?>
 	<body style="background-color: #CFCFCF;">
 		<form id='-zazz-login' method="post" class="-zazz-modal" style="display: block;">
 			<div class="-zazz-modal-header">Account Login</div>
@@ -72,8 +109,9 @@ if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 			</div>
 		</form>
 		<form id='-zazz-account-create' method="post" class="-zazz-modal" 
-					<?= (isset($_REQUEST['create'])
-							? 'style="display:block"' : '') ?>>
+<?= (isset($_REQUEST['create'])
+		? 'style="display:block"' : '')
+?>>
 			<div class="-zazz-modal-header">Account Creation</div>
 			<div class="-zazz-modal-body">
 				<p><?= $error ?></p>
@@ -109,9 +147,9 @@ if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 			$.fn.center = function() {
 				this.css("position", "absolute");
 				this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) +
-					$(window).scrollTop()) + "px");
+						$(window).scrollTop()) + "px");
 				this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) +
-					$(window).scrollLeft()) + "px");
+						$(window).scrollLeft()) + "px");
 				return this;
 			};
 			$('#-zazz-login').center();

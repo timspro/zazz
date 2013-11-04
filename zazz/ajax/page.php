@@ -26,7 +26,7 @@ if (isset($_REQUEST['create']) && isset($_REQUEST['page_id'])) {
 		return;
 	}
 	if(!ctype_alnum($_REQUEST['create'])) {
-		echo 'You may only have letters and numbers in the name.';
+		echo 'You may only have letters or numbers in the page name.';
 		return;
 	}
 	try {

@@ -3,6 +3,13 @@
 * {
 	margin: 0;
 	padding: 0;
+	box-sizing: border-box;
+	vertical-align: middle;
+}
+
+body {
+	background-color: #6699ff;
+	overflow: hidden;
 }
 
 :focus {
@@ -205,6 +212,8 @@
 	-webkit-user-select: none;
 	-ms-user-select: none;
 	z-index: 20;
+	box-sizing: border-box;
+	vertical-align: middle;
 }
 
 .-zazz-btn {
@@ -234,7 +243,7 @@
 	text-decoration: none;
 }
 
-.-zazz-view-btn, #-zazz-export-btn {
+.-zazz-view-btn, #-zazz-export-btn, #-zazz-logout-btn {
 	padding: 0px;
 }
 
@@ -345,7 +354,7 @@
 }
 
 .-zazz-class-input {
-	width: 150px;
+	width: 220px;
 	-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
@@ -381,7 +390,7 @@
 }
 
 .-zazz-code-block {
-	width: 55%;
+	width: 50%;
 	height: 100%;
 	background-color: transparent;
 	resize: horizontal;

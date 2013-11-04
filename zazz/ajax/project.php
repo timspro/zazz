@@ -66,7 +66,7 @@ if (isset($_REQUEST['page_id']) && verifyPage($_REQUEST['page_id'], $user_id)) {
 		$extension = pathinfo($_REQUEST['delete_upload'], PATHINFO_EXTENSION);
 		if ($extension === 'js') {
 			unlink(dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/js/' .
-				$_REQUEST['delete_upload']);			
+				$_REQUEST['delete_upload']);
 		} else {
 			unlink(dirname(__FILE__) . '/../view/' . $user_id . '/' . $project . '/css/resources/' .
 				$_REQUEST['delete_upload']);
@@ -96,8 +96,8 @@ if (isset($_REQUEST['page_id']) && verifyPage($_REQUEST['page_id'], $user_id)) {
 		$project = $result[0]['project'];
 
 		$name = $_REQUEST['upload_name'];
-		if (!ctype_alnum($name)) {
-			echo 'You may only use numbers and letters in the name.<br /><br />';
+		if (!validateFilename($name)) {
+			echo 'You may only have letters, numbers, hyphen, underscore or period in the filename.<br /><br />';
 			printFiles($user_id, $project, $_REQUEST['page_id']);
 			return;
 		}
@@ -122,7 +122,7 @@ if (isset($_REQUEST['page_id']) && verifyPage($_REQUEST['page_id'], $user_id)) {
 	}
 
 	if (isset($_REQUEST['project'])) {
-		if(!ctype_alnum($_REQUEST['project'])) {
+		if (!ctype_alnum($_REQUEST['project'])) {
 			echo 'You may only have letters and numbers in the name.';
 			return;
 		}

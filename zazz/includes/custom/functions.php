@@ -132,62 +132,65 @@ since this CSS is written
 to a file in the "css" folder,
 while other CSS is inlined.*/
 * {
-	margin: 0px;
-	padding: 0px;
-	position: relative;
-	box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	vertical-align: middle;
+  margin: 0px;
+  padding: 0px;
+  position: relative;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  vertical-align: middle;
 }
 
 :focus {
-	outline: none;
+  outline: none;
 }
 
 body, html {
-	width: 100%;
-	height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 body {
-	background-color: #6699ff;
+  background-color: #6699ff;
+  overflow: hidden;
 }
 
 .-zazz-content {
-	width: 100%;
-	vertical-align: top;
+  width: 100%;
+  vertical-align: top;
 }
 
 .-zazz-element {
-	display: inline-block;
-	width: 100%;
-	vertical-align: top;
-	border: 2px dashed blue;
+  display: inline-block;
+  width: 100%;
+  vertical-align: top;
+  border: 2px dashed blue;
 }
 
 .-zazz-container {
-	display: inline-block;
-	width: 100%;
-	vertical-align: top;
+  display: inline-block;
+  width: 100%;
+  vertical-align: top;
 }
 
 .-zazz-row {
-	width: 100%;
-	vertical-align: top;
+  width: 100%;
+  vertical-align: top;
 }
 
 .-zazz-row-group {
-	display: inline-block;
-	width: 100%;
-	vertical-align: top;
+  display: inline-block;
+  width: 100%;
+  vertical-align: top;
 }';
 }
 
-function getDefaultPHP() {
+function getDefaultPHP($dbname, $dbusername, $dbpassword) {
 	return '//Note that Zazz MySQL functionality 
 //depends on $ZAZZ_PDO referring to a PDO object.
-$ZAZZ_PDO = new PDO("mysql:host=localhost;dbname=zazz", "root", "");
+$ZAZZ_PDO = new PDO(\'mysql:host=localhost;dbname=' . $dbname . '\', 
+  \'' . $dbusername . '\', \'' . $dbpassword . '\');
 $ZAZZ_PDO->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+//ini_set("display_errors", false);
 ';
 }
 
@@ -195,9 +198,9 @@ function getDefaultJS() {
 	return '$.fn.center = function() {
   this.css("position", "absolute");
   this.css("top", Math.max(0, (($(window).height() - 
-	  $(this).outerHeight()) / 2) + $(window).scrollTop()) + "px");
+    $(this).outerHeight()) / 2) + $(window).scrollTop()) + "px");
   this.css("left", Math.max(0, (($(window).width() - 
-	  $(this).outerWidth()) / 2) + $(window).scrollLeft()) + "px");
+    $(this).outerWidth()) / 2) + $(window).scrollLeft()) + "px");
   return this;
 };
 ';
@@ -211,14 +214,15 @@ function getDefaultHTMLStart() {
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title> Zazz Project </title>
   <!-- DO NOT EDIT NEXT LINE -->
-  <link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
   <link rel="shortcut icon" href="/zazz/css/images/zazz.ico" />
 ';
 }
 
 function getDefaultHTMLEnd() {
 	return '<!-- Note editing this file will reload page. -->
-<script src="js/jquery-1.10.2.js" type="text/javascript"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" 
+  type="text/javascript"></script>
 <!-- DO NOT EDIT NEXT LINE -->
 <script src="js/functions.js" type="text/javascript"></script>
 ';
@@ -237,6 +241,8 @@ function getDefaultHTMLEndPage() {
 }
 
 function createProject($project_name, $user_id) {
+	$userData = _User::get()->retrieve(array('dbname', 'dbusername', 'dbpassword'), array(), 
+		array('user_id' => $user_id));
 	$id = _Project::get()->create(array('project' => $project_name, 'user_id' => $user_id));
 	$page_id = createPage('index.php', $id);
 	_User::get()->update(array('active_project' => $id), array('user_id' => $user_id));
@@ -246,7 +252,8 @@ function createProject($project_name, $user_id) {
 	_Code::get()->create(array('zazz_id' => 'begin-project', 'page_id' => $start_page_id,
 		'type' => 'html', 'code' => getDefaultHTMLStart(), 'zazz_order' => '2'));
 	_Code::get()->create(array('zazz_id' => 'begin-project', 'page_id' => $start_page_id,
-		'type' => 'php', 'code' => getDefaultPHP(), 'zazz_order' => '1'));
+		'type' => 'php', 'code' => getDefaultPHP($userData[0]['dbname'], 
+			$userData[0]['dbusername'], $userData[0]['dbpassword']), 'zazz_order' => '1'));
 	_Code::get()->create(array('zazz_id' => 'begin-project', 'page_id' => $start_page_id,
 		'type' => 'js', 'code' => getDefaultJS(), 'zazz_order' => '3'));
 	$end_page_id = _Page::get()->create(array('page' => 'end-project', 'project_id' => $id));
@@ -333,14 +340,14 @@ function processCode($project_start, $project_end, $page_id, $zazz_id, $basedir)
 	unset($_REQUEST);
 	unset($_GET);
 	unset($_POST);
-	
-	if(!file_exists($basedir)) {
+
+	if (!file_exists($basedir)) {
 		mkdir($basedir, 0777, true);
 	}
 	$filename = realpath($basedir);
 	chdir($filename);
 	ini_set('open_basedir', $filename);
-	
+
 	foreach ($_ZAZZ_BLOCKS as $_ZAZZ_BLOCK) {
 		switch ($_ZAZZ_BLOCK['type']) {
 			case 'css':
@@ -351,8 +358,9 @@ function processCode($project_start, $project_end, $page_id, $zazz_id, $basedir)
 			case 'js':
 				break;
 			case 'mysql':
+				//Note $ZAZZ_PDO should be defined by preceding PHP code.
 				if (!empty($_ZAZZ_BLOCK['code'])) {
-					$q = Database::get()->PDO()->prepare($_ZAZZ_BLOCK['code']);
+					$q = $ZAZZ_PDO->prepare($_ZAZZ_BLOCK['code']);
 					$params = GetParametersForQuery($_ZAZZ_BLOCK['code']);
 					foreach ($params as $param) {
 						$q->bindValue(':' . $param, $$param);
@@ -378,10 +386,18 @@ function getComputedLayout($project_start, $project_end, $page_id, $basedir) {
 	$layout->load(getLayout($page_id));
 	foreach ($layout->find('.-zazz-element') as $element) {
 		ob_start();
-		processCode($project_start, $project_end, $page_id,	$element->getAttribute('data-zazz-id'),
+		processCode($project_start, $project_end, $page_id, $element->getAttribute('data-zazz-id'),
 			$basedir);
 		$element->innertext = ob_get_clean();
 	}
 	return $layout->save();
+}
+
+function validateFilename($filename) {
+	if (preg_replace('/[^a-zA-Z0-9-_\.]/', '', $filename) !== $filename || str_replace('..', '',
+			$filename) !== $filename) {
+		return false;
+	}
+	return true;
 }
 ?>
