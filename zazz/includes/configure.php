@@ -1,5 +1,4 @@
 <?php
-
 $deployPassword = 'NEPOm20dkP_e3ls0elOEMlsoW';
 $globalPassword = 'B9)#@Psls0DS{ksmL:EoDZspwq';
 $databasePassword = '';
@@ -12,7 +11,7 @@ function myErrorHandler($errno, $errstr, $errfile, $errline) {
 
 set_error_handler("myErrorHandler");
 
-if(!extension_loaded('zip')) {
+if (!extension_loaded('zip')) {
 	echo 'ZIP extension not installed. <br>';
 	return;
 } else {
@@ -33,22 +32,26 @@ setNewPassword(dirname(__FILE__) . '/login.php', $globalPassword);
 setNewPassword(dirname(__FILE__) . '/view.php', $deployPassword);
 setNewPassword(dirname(__FILE__) . '/includes/standard/initialize.php', $databasePassword);
 
-if(isset($_GET['delete']) && (empty($deletePassword) || $_GET['delete'] === $deletePassword)) {
+if (isset($_GET['delete']) && (empty($deletePassword) || $_GET['delete'] === $deletePassword)) {
 	require_once dirname(__FILE__) . '/includes/standard/delete.php';
+
 	//Comes from custom/functions.php.
 	function deleteFilesIn($folder, $exclude = array()) {
-		foreach (new DirectoryIterator($folder) as $item) {
-			$filename = $item->getFilename();
-			if (!$item->isDot() && !in_array($filename, $exclude)) {
-				if ($item->isDir()) {
-					deleteFilesIn($folder . $filename . '/');
-					rmdir($folder . $filename);
-				} else {
-					unlink($folder . $filename);
+		if (file_exists($folder)) {
+			foreach (new DirectoryIterator($folder) as $item) {
+				$filename = $item->getFilename();
+				if (!$item->isDot() && !in_array($filename, $exclude)) {
+					if ($item->isDir()) {
+						deleteFilesIn($folder . $filename . '/');
+						rmdir($folder . $filename);
+					} else {
+						unlink($folder . $filename);
+					}
 				}
 			}
 		}
 	}
+
 	deleteFilesIn(dirname(__FILE__) . '/view/');
 }
 require_once dirname(__FILE__) . '/includes/standard/configure.php';
@@ -62,5 +65,4 @@ echo 'Configuration completed. <br>';
 
 copy(__FILE__, dirname(__FILE__) . '/includes/configure.php');
 unlink(__FILE__);
-
 ?>

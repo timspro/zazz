@@ -20,14 +20,16 @@ function getPageInformation($project, $page) {
 }
 
 function deleteFilesIn($folder, $exclude = array()) {
-	foreach (new DirectoryIterator($folder) as $item) {
-		$filename = $item->getFilename();
-		if (!$item->isDot() && !in_array($filename, $exclude)) {
-			if ($item->isDir()) {
-				deleteFilesIn($folder . $filename . '/');
-				rmdir($folder . $filename);
-			} else {
-				unlink($folder . $filename);
+	if (file_exists($folder)) {
+		foreach (new DirectoryIterator($folder) as $item) {
+			$filename = $item->getFilename();
+			if (!$item->isDot() && !in_array($filename, $exclude)) {
+				if ($item->isDir()) {
+					deleteFilesIn($folder . $filename . '/');
+					rmdir($folder . $filename);
+				} else {
+					unlink($folder . $filename);
+				}
 			}
 		}
 	}
@@ -241,7 +243,7 @@ function getDefaultHTMLEndPage() {
 }
 
 function createProject($project_name, $user_id) {
-	$userData = _User::get()->retrieve(array('dbname', 'dbusername', 'dbpassword'), array(), 
+	$userData = _User::get()->retrieve(array('dbname', 'dbusername', 'dbpassword'), array(),
 		array('user_id' => $user_id));
 	$id = _Project::get()->create(array('project' => $project_name, 'user_id' => $user_id));
 	$page_id = createPage('index.php', $id);
@@ -252,8 +254,8 @@ function createProject($project_name, $user_id) {
 	_Code::get()->create(array('zazz_id' => 'begin-project', 'page_id' => $start_page_id,
 		'type' => 'html', 'code' => getDefaultHTMLStart(), 'zazz_order' => '2'));
 	_Code::get()->create(array('zazz_id' => 'begin-project', 'page_id' => $start_page_id,
-		'type' => 'php', 'code' => getDefaultPHP($userData[0]['dbname'], 
-			$userData[0]['dbusername'], $userData[0]['dbpassword']), 'zazz_order' => '1'));
+		'type' => 'php', 'code' => getDefaultPHP($userData[0]['dbname'], $userData[0]['dbusername'],
+			$userData[0]['dbpassword']), 'zazz_order' => '1'));
 	_Code::get()->create(array('zazz_id' => 'begin-project', 'page_id' => $start_page_id,
 		'type' => 'js', 'code' => getDefaultJS(), 'zazz_order' => '3'));
 	$end_page_id = _Page::get()->create(array('page' => 'end-project', 'project_id' => $id));
