@@ -19,7 +19,7 @@ array (
     'Field' => 'project',
     'Type' => 'varchar(50)',
     'Null' => 'NO',
-    'Key' => 'MUL',
+    'Key' => 'PRI',
     'Default' => NULL,
     'Extra' => '',
   ),
@@ -36,9 +36,9 @@ array (
   array (
     'Field' => 'default_page',
     'Type' => 'int(10) unsigned',
-    'Null' => 'YES',
-    'Key' => 'UNI',
-    'Default' => NULL,
+    'Null' => 'NO',
+    'Key' => 'PRI',
+    'Default' => '0',
     'Extra' => '',
   ),
   'project_start' => 
@@ -66,6 +66,8 @@ array (
   'PRIMARY' => 
   array (
     0 => 'project_id',
+    1 => 'project',
+    2 => 'default_page',
   ),
   'PROJECT' => 
   array (

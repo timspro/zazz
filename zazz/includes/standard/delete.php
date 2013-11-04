@@ -30,7 +30,7 @@ if(defined('DEVELOPER')) {
 	
 	foreach($rows as $row) {
 		if($row !== 'mysql' && $row !== 'performance_schema' && $row !== 'information_schema' 
-			&& $row !== 'zazz' && $row !== 'test') {
+			&& $row !== 'test') {
 			$q = $pdo->prepare('DROP DATABASE ' . $row);
 			$q->execute();
 		}
@@ -48,7 +48,7 @@ if(defined('DEVELOPER')) {
 		}
 	}	
 	
-	echo 'Completed.';
+	echo 'Delete completed. <br>';
 } else {
 	echo 'The constant DEVELOPER must be defined.';
 }

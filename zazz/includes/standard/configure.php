@@ -4,33 +4,6 @@
  */
 define('CONFIGURE', true);
 
-//Passwords stored in other configure.php
-//$configurePassword = 'B9j390J3lo)lo3sjm)@ls-sl';
-//$deployPassword = 'NEPOm20dkP_e3ls0elOEMlsoW';
-//$globalPassword = 'B9)#@Psls0DS{ksmL:EoDZspwq';
-//$databasePassword = '';
-
-/*
-if (!isset($_GET['password']) || $_GET['password'] !== $configurePassword) {
-	echo 'You did not enter the right password.';
-	return;
-}
- */
-
-function setNewPassword($filename, $password) {
-	$contents = file_get_contents($filename);
-	$token = '/*!_!_!PASSWORD!_!_!*/';
-	$quoted_token = preg_quote($token, '/');
-	$contents = preg_replace('/' . $quoted_token . '.*?' . $quoted_token . '/',
-		$token . "'" . $password . "'" . $token, $contents, 1);
-	file_put_contents($filename, $contents);
-}
-
-//Custom password stuff.
-setNewPassword(dirname(__FILE__) . '/../../login.php', $globalPassword);
-setNewPassword(dirname(__FILE__) . '/../../view.php', $deployPassword);
-setNewPassword(dirname(__FILE__) . '/initialize.php', $databasePassword);
-
 require_once dirname(__FILE__) . '/initialize.php';
 
 //Note that really ALL queries should operate under 'TRADITIONAL' (strict mode), so this should
@@ -131,5 +104,5 @@ public function getIndexes() { return
 ?>');
 }
 
-echo 'Completed.'
+echo 'Database configuration completed. <br>'
 ?>

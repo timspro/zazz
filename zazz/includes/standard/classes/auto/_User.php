@@ -19,7 +19,7 @@ array (
     'Field' => 'username',
     'Type' => 'varchar(20)',
     'Null' => 'NO',
-    'Key' => 'UNI',
+    'Key' => 'PRI',
     'Default' => NULL,
     'Extra' => '',
   ),
@@ -147,6 +147,7 @@ array (
   'PRIMARY' => 
   array (
     0 => 'user_id',
+    1 => 'username',
   ),
   'USERNAME' => 
   array (

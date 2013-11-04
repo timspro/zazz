@@ -324,8 +324,13 @@ body {
 	line-height: 100%;
 }
 
-#-zazz-fixed, #-zazz-fixed-status-btn, #-zazz-loader-bar {
+#-zazz-fixed, #-zazz-loader-bar {
 	display: none;
+	height: 100%;
+}
+
+#-zazz-fixed-status-btn {
+	display: inline-block;
 	height: 100%;
 }
 
@@ -341,10 +346,6 @@ body {
 	width: 50px;
 }
 
-.-zazz-fixed-btn, .-zazz-fixed-status-btn {
-	width: 60px;
-}
-
 .-zazz-id-input {
 	width: 150px;
 	-moz-user-select: none;
@@ -354,7 +355,7 @@ body {
 }
 
 .-zazz-class-input {
-	width: 220px;
+	width: 150px;
 	-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;

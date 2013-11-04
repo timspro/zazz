@@ -19,7 +19,7 @@ array (
     'Field' => 'page',
     'Type' => 'varchar(50)',
     'Null' => 'NO',
-    'Key' => 'MUL',
+    'Key' => 'PRI',
     'Default' => NULL,
     'Extra' => '',
   ),
@@ -48,6 +48,7 @@ array (
   'PRIMARY' => 
   array (
     0 => 'page_id',
+    1 => 'page',
   ),
   'PAGE' => 
   array (

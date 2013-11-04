@@ -347,12 +347,12 @@ function doStuff() {
 			//Also see update layout.
 			setBoxShadow($div);
 
-			if (parseInt($div.css('z-index')) > 0) {
-				$('#-zazz-fixed-status-btn').css('display', 'inline-block');
+			if(!$div.parent().hasClass('-zazz-hidden')) {
+				$('.-zazz-fixed-status-btn').html('W: ' + getCSSWidth($div) + " H: " + $div.css('min-height'));
 			} else {
-				$('#-zazz-fixed-status-btn').hide();
+				$('.-zazz-fixed-status-btn').html("W: 0 H: 0");
 			}
-
+			
 			var id = $div.attr('data-zazz-id');
 			//Change the ID and class text boxes.
 			$(".-zazz-id-input").val($div.attr('id'));

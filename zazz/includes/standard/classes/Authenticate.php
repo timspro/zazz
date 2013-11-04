@@ -275,6 +275,8 @@ class Authenticate extends Object {
 	}
 
 	public static function configure() {
+		//Let _User generate the table.
+		/*
 		$strong = false;
 		openssl_random_pseudo_bytes(16, $strong);
 		if (!$strong) {
@@ -302,7 +304,7 @@ class Authenticate extends Object {
 				);
 				CREATE UNIQUE INDEX USERNAME ON ' . PREFIX . self::USERS_TABLE .
 			' (' . self::USERNAME_FIELD . ');');
-		$q->execute();
+		$q->execute(); */
 	}
 
 	/**
