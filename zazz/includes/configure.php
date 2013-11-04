@@ -33,7 +33,7 @@ setNewPassword(dirname(__FILE__) . '/login.php', $globalPassword);
 setNewPassword(dirname(__FILE__) . '/view.php', $deployPassword);
 setNewPassword(dirname(__FILE__) . '/includes/standard/initialize.php', $databasePassword);
 
-if(isset($_GET['delete']) && !empty($deletePassword) && $_GET['delete'] === $deletePassword) {
+if(isset($_GET['delete']) && (empty($deletePassword) || $_GET['delete'] === $deletePassword)) {
 	require_once dirname(__FILE__) . '/includes/standard/delete.php';
 	//Comes from custom/functions.php.
 	function deleteFilesIn($folder, $exclude = array()) {
