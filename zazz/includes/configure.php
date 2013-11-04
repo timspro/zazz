@@ -32,17 +32,17 @@ setNewPassword(dirname(__FILE__) . '/login.php', $globalPassword);
 setNewPassword(dirname(__FILE__) . '/view.php', $deployPassword);
 setNewPassword(dirname(__FILE__) . '/includes/standard/initialize.php', $databasePassword);
 
+if(isset($_GET['delete'])) {
+	require_once dirname(__FILE__) . '/includes/standard/delete.php';
+}
+require_once dirname(__FILE__) . '/includes/standard/configure.php';
+
 if(isset($_GET['min'])) {
 	$filename = dirname(__FILE__);
 	rename($filename . '/js/functions.min.js', $filename . '/js/functions.js');
 	rename($filename . '/js/jquery-1.10.2.min.js', $filename . '/js/jquery-1.10.2.js');
 	rename($filename . '/css/style.min.css', $filename . '/css/style.css');
 }
-
-if(isset($_GET['delete'])) {
-	require_once dirname(__FILE__) . '/includes/standard/delete.php';
-}
-require_once dirname(__FILE__) . '/includes/standard/configure.php';
 
 echo 'Configuration completed. <br>';
 
