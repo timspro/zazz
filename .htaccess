@@ -1,0 +1,12 @@
+php_flag magic_quotes_gpc Off
+php_value date.timezone "America/New_York"
+php_value upload_max_filesize 128K
+php_value post_max_size 128K
+php_value max_execution_time 10
+php_value max_input_time 10
+php_value memory_limit 256M
+
+DirectoryIndex index.php
+
+Options -Indexes
+Options +FollowSymlinks

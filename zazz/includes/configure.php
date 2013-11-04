@@ -3,6 +3,7 @@
 $deployPassword = 'NEPOm20dkP_e3ls0elOEMlsoW';
 $globalPassword = 'B9)#@Psls0DS{ksmL:EoDZspwq';
 $databasePassword = '';
+$deletePassword = '';
 
 function myErrorHandler($errno, $errstr, $errfile, $errline) {
 	echo $errstr . '<br>';
@@ -32,17 +33,30 @@ setNewPassword(dirname(__FILE__) . '/login.php', $globalPassword);
 setNewPassword(dirname(__FILE__) . '/view.php', $deployPassword);
 setNewPassword(dirname(__FILE__) . '/includes/standard/initialize.php', $databasePassword);
 
-if(isset($_GET['delete'])) {
+if(isset($_GET['delete']) && !empty($deletePassword) && $_GET['delete'] === $deletePassword) {
 	require_once dirname(__FILE__) . '/includes/standard/delete.php';
+	//Comes from custom/functions.php.
+	function deleteFilesIn($folder, $exclude = array()) {
+		foreach (new DirectoryIterator($folder) as $item) {
+			$filename = $item->getFilename();
+			if (!$item->isDot() && !in_array($filename, $exclude)) {
+				if ($item->isDir()) {
+					deleteFilesIn($folder . $filename . '/');
+					rmdir($folder . $filename);
+				} else {
+					unlink($folder . $filename);
+				}
+			}
+		}
+	}
+	deleteFilesIn(dirname(__FILE__) . '/view/');
 }
 require_once dirname(__FILE__) . '/includes/standard/configure.php';
 
-if(isset($_GET['min'])) {
-	$filename = dirname(__FILE__);
-	rename($filename . '/js/functions.min.js', $filename . '/js/functions.js');
-	rename($filename . '/js/jquery-1.10.2.min.js', $filename . '/js/jquery-1.10.2.js');
-	rename($filename . '/css/style.min.css', $filename . '/css/style.css');
-}
+$filename = dirname(__FILE__);
+copy($filename . '/includes/functions.min.js', $filename . '/js/functions.js');
+copy($filename . '/includes/jquery-1.10.2.min.js', $filename . '/js/jquery-1.10.2.js');
+copy($filename . '/includes/style.css', $filename . '/css/style.css');
 
 echo 'Configuration completed. <br>';
 
