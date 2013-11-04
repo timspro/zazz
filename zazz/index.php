@@ -387,7 +387,7 @@ if ($bad_html) {
 					<tr id='-zazz-modal-mouse-locationp'>
 					</tr>
 				</table>
-				<p> (Top, Left, Bottom, Right) </p>
+				<p> (Top, Right, Bottom, Left) </p>
 			</div>
 		</div>
 		<div class="-zazz-horizontal-line-left -zazz-line"> </div>

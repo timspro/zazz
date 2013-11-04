@@ -463,21 +463,21 @@ function doStuff() {
 			}
 
 			$('#-zazz-modal-mouse-offset').html('<td>Offset (px):</td><td>(' + offset_y + ',</td><td>' +
-					offset_x + ',</td><td>' + ($(e.target).outerHeight() - offset_y) + ',</td><td>'
-					+ ($target.outerWidth() - offset_x) + ')</td>');
+					($target.outerWidth() - offset_x) + ',</td><td>' + ($(e.target).outerHeight() - offset_y) + ',</td><td>'
+					+ offset_x + ')</td>');
 			$('#-zazz-modal-mouse-location').html('<td>Page (px):</td><td>(' + (e.pageY - viewTop) +
-					',</td><td>' + e.pageX + ',</td><td>' + (pageHeight - (e.pageY - viewTop)) + ',</td><td>' +
-					(bodyWidth - e.pageX) + ')</td>');
+					',</td><td>' + (bodyWidth - e.pageX) + ',</td><td>' + (pageHeight - (e.pageY - viewTop)) + ',</td><td>' +
+					 e.pageX + ')</td>');
 			$('#-zazz-modal-mouse-offsetp').html('<td>Offset (%):</td><td>(' +
 					Math.round(offset_y / targetHeight * 10000) / 100 + ',</td><td>' +
-					Math.round(offset_x / targetWidth * 10000) / 100 + ',</td><td>' +
+					Math.round((targetWidth - offset_x) / targetWidth * 10000) / 100 + ',</td><td>' +
 					Math.round((targetHeight - offset_y) / targetHeight * 10000) / 100 + ',</td><td>' +
-					Math.round((targetWidth - offset_x) / targetWidth * 10000) / 100 + ')</td>');
+					Math.round(offset_x / targetWidth * 10000) / 100 + ')</td>');
 			$('#-zazz-modal-mouse-locationp').html('<td>Page (%):</td><td>(' +
 					Math.round((e.pageY - viewTop) / pageHeight * 10000) / 100 + ',</td><td>' +
-					Math.round(e.pageX / bodyWidth * 10000) / 100 + ',</td><td>' +
+					Math.round((bodyWidth - e.pageX) / bodyWidth * 10000) / 100  + ',</td><td>' +
 					Math.round((pageHeight - (e.pageY - viewTop)) / pageHeight * 10000) / 100 + ',</td><td>' +
-					Math.round((bodyWidth - e.pageX) / bodyWidth * 10000) / 100 + ')</td>');
+					Math.round(e.pageX / bodyWidth * 10000) / 100 + ')</td>');
 		});
 		function textareaMouseMove(e) {
 			var myPos = $(this).offset();
