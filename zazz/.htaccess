@@ -1,7 +1,7 @@
 php_flag magic_quotes_gpc Off
 php_value date.timezone "America/New_York"
-php_value upload_max_filesize 128K
-php_value post_max_size 128K
+php_value upload_max_filesize 512K
+php_value post_max_size 512K
 php_value max_execution_time 10
 php_value max_input_time 10
 php_value memory_limit 256M
@@ -13,11 +13,10 @@ Options +FollowSymlinks
 RewriteEngine On
 RewriteBase /
 
-RewriteCond %{HTTPS} off
-
 # First rewrite to HTTPS:
 # Don't put www. here. If it is already there it will be included, if not
 # the subsequent rule will catch it.
+RewriteCond %{HTTPS} off
 RewriteCond %{HTTP_HOST} ^timsprowl.com$ [NC]
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 # Now, rewrite any request to the wrong domain to not use www.
@@ -33,7 +32,8 @@ RewriteRule ^build/(.*?)/css/images/(.*?)$ zazz/css/images/$2 [QSA,L]
 RewriteRule ^build/(.*?)/js/functions\.js$ zazz/js/functions.js [L]
 
 #This allows people to reference their project resources with relative paths within Zazz sandbox.
-RewriteRule ^build/(.*?)/resources/(.*?)$ zazz/view.php?project=$1&page=css/resources$2 [QSA,L]
+RewriteRule ^build/(.*?)/css/resources/(.*?)$ zazz/view.php?project=$1&page=css/resources/$2 [QSA,L]
+RewriteRule ^build/(.*?)/resources/(.*?)$ zazz/view.php?project=$1&page=css/resources/$2 [QSA,L]
 RewriteRule ^build/(.*?)/js/(.*?)$ zazz/view.php?project=$1&page=js/$2 [QSA,L]
 
 # Rewrite file system-like URLs to code to something that Zazz can understand.

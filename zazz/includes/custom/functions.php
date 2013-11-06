@@ -298,14 +298,19 @@ function getPageCode($project_start_id, $project_end_id, $page_id, $zazz_id) {
 	$project_end_id = intval($project_end_id);
 	$project_start_id = intval($project_start_id);
 	$page_id = intval($page_id);
+	//Get the code for the page.
 	$query = Database::get()->PDO()->prepare("(SELECT code, type FROM code WHERE "
 		. "((zazz_id IN ('begin-web-page', 'end-web-page') AND page_id = $page_id) OR "
 		. "page_id = $project_start_id OR page_id = $project_end_id) AND type NOT IN ('css','js','html') "
-		. "ORDER BY zazz_id, zazz_order) UNION ALL (SELECT code, type FROM code WHERE zazz_id = :zazz_id "
-		. "AND page_id = $page_id ORDER BY zazz_order)");
-	$query->bindValue(':zazz_id', $zazz_id);
+		. "ORDER BY zazz_id, zazz_order)");
 	$query->execute();
 	$result = $query->fetchAll(PDO::FETCH_ASSOC);
+	//Get the code for the element.
+	$query = Database::get()->PDO()->prepare("(SELECT code, type FROM code WHERE zazz_id = :zazz_id "
+		. "AND page_id = $page_id AND type NOT IN ('css','js') ORDER BY zazz_order)");
+	$query->bindValue(':zazz_id', $zazz_id);
+	$query->execute();
+	$result = array_merge($result, $query->fetchAll(PDO::FETCH_ASSOC));
 	return $result;
 }
 
@@ -332,6 +337,10 @@ function zipFolder($source, $destination) {
 	}
 }
 
+function evaluate($ZAZZ_PHP) {
+	eval($ZAZZ_PHP);
+}
+
 function processCode($project_start, $project_end, $page_id, $zazz_id, $basedir) {
 	if ($zazz_id === 'begin-project' || $zazz_id === 'end-project' || $zazz_id === 'begin-web-page' || $zazz_id ===
 		'end-web-page') {
@@ -349,35 +358,56 @@ function processCode($project_start, $project_end, $page_id, $zazz_id, $basedir)
 	chdir($filename);
 	ini_set('open_basedir', $filename);
 
+	$php = '';
+	$css = '';
+	$js = '';
 	foreach ($_ZAZZ_BLOCKS as $_ZAZZ_BLOCK) {
-		switch ($_ZAZZ_BLOCK['type']) {
-			case 'css':
-				break;
-			case 'html':
-				echo $_ZAZZ_BLOCK['code'];
-				break;
-			case 'js':
-				break;
-			case 'mysql':
-				//Note $ZAZZ_PDO should be defined by preceding PHP code.
-				if (!empty($_ZAZZ_BLOCK['code'])) {
-					$q = $ZAZZ_PDO->prepare($_ZAZZ_BLOCK['code']);
-					$params = GetParametersForQuery($_ZAZZ_BLOCK['code']);
-					foreach ($params as $param) {
-						$q->bindValue(':' . $param, $$param);
-					}
-					$q->execute();
-					$ZAZZ_ROWS = $q->fetchAll(PDO::FETCH_ASSOC);
-					unset($q);
-					unset($params);
-				} else {
-					$ZAZZ_ROWS = array();
-				}
-				break;
-			case 'php':
-				eval($_ZAZZ_BLOCK['code']);
-				break;
-		}
+		processBlock($_ZAZZ_BLOCK, $php, $css, $js, $php, false);
+	}
+	
+	evaluate($php);
+}
+
+function prepareQuery($query) {
+	$params = GetParametersForQuery($query);
+	$code = "\n<?php\nob_start();\n?>\n" . $query .
+		"\n<?php\n" . '$_ZAZZ_PDO_CODE = ob_get_clean();' . "\n" .
+		'$_ZAZZ_PDO_QUERY = $ZAZZ_PDO->prepare($_ZAZZ_PDO_CODE);';
+	foreach ($params as $param) {
+		$code .= "\n" . '$_ZAZZ_PDO_QUERY->bindValue(\':' . $param . '\', $' . $param . ');';
+	}
+	$code .= "\n" . '$_ZAZZ_PDO_QUERY->execute();' . "\n" .
+		'$ZAZZ_ROWS = $_ZAZZ_PDO_QUERY->fetchAll(PDO::FETCH_ASSOC);' . "\n?>\n";
+	return $code;
+}
+
+function processBlock($block, &$php, &$css, &$js, &$html, $phptags = true) {
+	switch ($block['type']) {
+		case 'css':
+			$css .= $block['code'] . "\n";
+			break;
+		case 'html':
+			if($phptags) {
+				$html .= $block['code'] . "\n";
+			} else {
+				$html .= "?>\n" . $block['code'] . "\n<?php\n;\n";
+			}
+			break;
+		case 'mysql':
+			if (!empty($block['code'])) {
+				$php .= prepareQuery($block['code']);
+			}
+			break;
+		case 'php':
+			if($phptags) {
+				$php .= "<?php\n" . $block['code'] . "\n?>\n";
+			} else {
+				$php .= $block['code'] . "\n";
+			}
+			break;
+		case 'js':
+			$js .= $block['code'] . "\n\n";
+			break;
 	}
 }
 

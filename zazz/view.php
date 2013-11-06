@@ -26,19 +26,6 @@ function addCode(&$html, $id, $code) {
 	}
 }
 
-function prepareQuery($query) {
-	$params = GetParametersForQuery($query);
-	$code = "\n<?php\nob_start();\n?>\n" . $query .
-		"\n<?php\n" . '$_ZAZZ_PDO_CODE = ob_get_clean();' . "\n" .
-		'$_ZAZZ_PDO_QUERY = $ZAZZ_PDO->prepare($_ZAZZ_PDO_CODE);';
-	foreach ($params as $param) {
-		$code .= "\n" . '$_ZAZZ_PDO_QUERY->bindValue(\':' . $param . '\', $' . $param . ');';
-	}
-	$code .= "\n" . '$_ZAZZ_PDO_QUERY->execute();' . "\n" .
-		'$ZAZZ_ROWS = $_ZAZZ_PDO_QUERY->fetchAll(PDO::FETCH_ASSOC);' . "\n?>\n";
-	return $code;
-}
-
 function serveFile($resource) {
 	if (file_exists($resource)) {
 		$extension = pathinfo($resource, PATHINFO_EXTENSION);
@@ -56,28 +43,6 @@ function serveFile($resource) {
 		return true;
 	} else {
 		return false;
-	}
-}
-
-function processBlock($block, &$php, &$css, &$js, &$html) {
-	switch ($block['type']) {
-		case 'css':
-			$css .= $block['code'] . "\n";
-			break;
-		case 'html':
-			$html .= $block['code'] . "\n";
-			break;
-		case 'mysql':
-			if (!empty($block['code'])) {
-				$php .= prepareQuery($block['code']);
-			}
-			break;
-		case 'php':
-			$php .= "<?php\n" . $block['code'] . "\n?>\n";
-			break;
-		case 'js':
-			$js .= $block['code'] . "\n\n";
-			break;
 	}
 }
 

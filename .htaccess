@@ -10,3 +10,13 @@ DirectoryIndex index.php
 
 Options -Indexes
 Options +FollowSymlinks
+
+# First rewrite to HTTPS:
+# Don't put www. here. If it is already there it will be included, if not
+# the subsequent rule will catch it.
+# RewriteCond %{HTTPS} off
+# RewriteCond %{HTTP_HOST} ^timsprowl.com$ [NC]
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# Now, rewrite any request to the wrong domain to not use www.
+# RewriteCond %{HTTP_HOST} ^www.timsprowl.com$ [NC]
+# RewriteRule ^(.*)$ http://timsprowl.com%{REQUEST_URI} [R=301,L]
