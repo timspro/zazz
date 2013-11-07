@@ -33,6 +33,22 @@ if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['
 					$_REQUEST['type'], 'zazz_order' => $_REQUEST['zazz_order']));
 			}
 		}
+		
+		if (isset($_REQUEST['moveTo'])) {
+			$query = Database::get()->PDO()->prepare('UPDATE code SET zazz_order = zazz_order + 1 WHERE ' .
+				'page_id = :page_id AND zazz_id = :zazz_id AND zazz_order >= ' . intval($_REQUEST['moveTo']) .
+				' ORDER BY zazz_order DESC; UPDATE code SET zazz_order = ' . intval($_REQUEST['moveTo']) . 
+				' WHERE page_id = :page_id AND zazz_id = :zazz_id AND zazz_order = :zazz_order');
+			$query->bindValue(':page_id', $_REQUEST['page_id']);
+			$query->bindValue(':zazz_id', $_REQUEST['zazz_id']);
+			$zazz_order = intval($_REQUEST['zazz_order']);
+			if($zazz_order >= intval($_REQUEST['moveTo'])) {
+				$zazz_order++;
+			}
+			$query->bindValue(':zazz_order', $zazz_order);
+			$query->execute();			
+			$query->closeCursor();
+		}
 
 		$basedir = dirname(__FILE__) . '/../view/' . $user_id . '/' . $check[0]['project'] . '/';
 		if ($run) {

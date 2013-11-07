@@ -33,96 +33,96 @@ function getDefaultCodeBlock() {
 
 require_once dirname(__FILE__) . '/includes/custom/functions.php';
 
-	require_once dirname(__FILE__) . '/includes/standard/initialize.php';
-	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Code.php';
-	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Project.php';
-	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Page.php';
-	require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Layout.php';
+require_once dirname(__FILE__) . '/includes/standard/initialize.php';
+require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Code.php';
+require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Project.php';
+require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Page.php';
+require_once dirname(__FILE__) . '/includes/standard/classes/auto/_Layout.php';
 
-	Authenticate::get()->check();
-	$user = Authenticate::get()->getUser();
-	$user_id = $user['user_id'];
-	
-	if (!isset($_GET['project']) || empty($_GET['project'])) {
-		$active_id = Authenticate::get()->getUser('active_project');
-		$project = _Project::get()->retrieve('project', array(), array('project_id' => $active_id));
-		if (empty($project[0]['project'])) {
-			echo 'There has been a serious error.';
-			return;
-		}
-		$check = _Project::get()->retrieve('project_id', array(),
-			array('project' => $project[0]['project']));
-		if (empty($check)) {
-			echo 'There has been a serious error.';
-			return;
-		}
-		header('Location: /zazz/build/' . $project[0]['project'] . '/');
-		return;
-	}
-	$project = $_GET['project'];
-	$project_id = _Project::get()->retrieve(array('project_id', 'default_page', 'project_start',
-		'project_end'), array(), array('project' => $project));
-	if (empty($project_id)) {
-		header('Location: /zazz/index.php');
-		return;
-	}
-	$default_page_id = $project_id[0]['default_page'];
-	$project_start = $project_id[0]['project_start'];
-	$project_end = $project_id[0]['project_end'];
-	$project_id = $project_id[0]['project_id'];
-	$default_page = _Page::get()->retrieve('page', array(), array('page_id' => $default_page_id));
-	if (empty($default_page[0]['page'])) {
+Authenticate::get()->check();
+$user = Authenticate::get()->getUser();
+$user_id = $user['user_id'];
+
+if (!isset($_GET['project']) || empty($_GET['project'])) {
+	$active_id = Authenticate::get()->getUser('active_project');
+	$project = _Project::get()->retrieve('project', array(), array('project_id' => $active_id));
+	if (empty($project[0]['project'])) {
 		echo 'There has been a serious error.';
 		return;
 	}
-	$default_page = $default_page[0]['page'];
-	_User::get()->update(array('active_project' => $project_id), array('user_id' => $user_id));
-
-	if (!isset($_GET['page']) || empty($_GET['page'])) {
-		header('Location: /zazz/build/' . $project . '/' . $default_page);
+	$check = _Project::get()->retrieve('project_id', array(),
+		array('project' => $project[0]['project']));
+	if (empty($check)) {
+		echo 'There has been a serious error.';
 		return;
 	}
-	$page = $_GET['page'];
+	header('Location: /zazz/build/' . $project[0]['project'] . '/');
+	return;
+}
+$project = $_GET['project'];
+$project_id = _Project::get()->retrieve(array('project_id', 'default_page', 'project_start',
+	'project_end'), array(), array('project' => $project));
+if (empty($project_id)) {
+	header('Location: /zazz/index.php');
+	return;
+}
+$default_page_id = $project_id[0]['default_page'];
+$project_start = $project_id[0]['project_start'];
+$project_end = $project_id[0]['project_end'];
+$project_id = $project_id[0]['project_id'];
+$default_page = _Page::get()->retrieve('page', array(), array('page_id' => $default_page_id));
+if (empty($default_page[0]['page'])) {
+	echo 'There has been a serious error.';
+	return;
+}
+$default_page = $default_page[0]['page'];
+_User::get()->update(array('active_project' => $project_id), array('user_id' => $user_id));
 
-	$page_info = getPageInformation($project, $page);
-	if (empty($page_info)) {
-		$project = _Project::get()->retrieve('project', array(),
-			array('project_id' =>
-			Authenticate::get()->getUser('active_project')));
-		header('Location: /zazz/build/' . $project[0]['project'] . '/');
-		return;
-	}
-	$page_id = $page_info['page_id'];
+if (!isset($_GET['page']) || empty($_GET['page'])) {
+	header('Location: /zazz/build/' . $project . '/' . $default_page);
+	return;
+}
+$page = $_GET['page'];
 
-	$page_id = intval($page_id);
-	$project_start = intval($project_start);
-	$project_end = intval($project_end);
-	$query = Database::get()->PDO()->prepare("SELECT code FROM code WHERE type = 'html' AND page_id IN (" .
-		"$page_id, $project_start, $project_end) AND zazz_id IN ('begin-project', 'end-project'," .
-		"'begin-web-page','end-web-page') ORDER BY zazz_id, zazz_order");
-	$query->execute();
-	$code = $query->fetchAll(PDO::FETCH_COLUMN, 0);
-	$frame = implode('', $code);
+$page_info = getPageInformation($project, $page);
+if (empty($page_info)) {
+	$project = _Project::get()->retrieve('project', array(),
+		array('project_id' =>
+		Authenticate::get()->getUser('active_project')));
+	header('Location: /zazz/build/' . $project[0]['project'] . '/');
+	return;
+}
+$page_id = $page_info['page_id'];
 
-	require_once dirname(__FILE__) . '/includes/custom/simple_html_dom.php';
-	$html = new simple_html_dom();
-	$html->load($frame);
-	if ($html->find('body', 0) && $html->find('head', 0)) {
-		$foundJquery = false;
-		foreach($html->find('script') as $element) {
-			if(strrpos($element->getAttribute('src'), 'jquery') !== false) {
-				$foundJquery = true;
-			}
+$page_id = intval($page_id);
+$project_start = intval($project_start);
+$project_end = intval($project_end);
+$query = Database::get()->PDO()->prepare("SELECT code FROM code WHERE type = 'html' AND page_id IN (" .
+	"$page_id, $project_start, $project_end) AND zazz_id IN ('begin-project', 'end-project'," .
+	"'begin-web-page','end-web-page') ORDER BY zazz_id, zazz_order");
+$query->execute();
+$code = $query->fetchAll(PDO::FETCH_COLUMN, 0);
+$frame = implode('', $code);
+
+require_once dirname(__FILE__) . '/includes/custom/simple_html_dom.php';
+$html = new simple_html_dom();
+$html->load($frame);
+if ($html->find('body', 0) && $html->find('head', 0)) {
+	$foundJquery = false;
+	foreach ($html->find('script') as $element) {
+		if (strrpos($element->getAttribute('src'), 'jquery') !== false) {
+			$foundJquery = true;
 		}
-		if(!$foundJquery) {
-			$code[2] = '<script src="/zazz/js/jquery-1.10.2.js" type="text/javascript"></script>' 
-				. $code[2];
-		}
-		$bad_html = false;
-		ob_start();
-	} else {
-		$bad_html = true;
 	}
+	if (!$foundJquery) {
+		$code[2] = '<script src="/zazz/js/jquery-1.10.2.js" type="text/javascript"></script>'
+			. $code[2];
+	}
+	$bad_html = false;
+	ob_start();
+} else {
+	$bad_html = true;
+}
 if ($bad_html) {
 	?>
 	<!DOCTYPE html>
@@ -177,9 +177,9 @@ if ($bad_html) {
 						<td>Visible When Deployed: </td>
 						<td><select id='-zazz-page-visible'>
 								<option>Yes</option>
-								<option <?= ($page_info['visible'] ===
-		'0' ? 'selected' : '')
-		?>>No</option>
+								<option <?=
+								($page_info['visible'] === '0' ? 'selected' : '')
+								?>>No</option>
 							</select></td>						
 					</tr>
 					<tr>
@@ -206,24 +206,32 @@ if ($bad_html) {
 			><span tabindex="10" id="-zazz-delete-page-btn" class="-zazz-btn">Delete</span
 			>
 		</div>
+		<div id="-zazz-dropdown-build" class="-zazz-dropdown">
+			<a id='-zazz-view-btn' tabindex='10' class='-zazz-btn' 
+				 href="/zazz/view/<?= $project ?>/<?= $page ?>" target="_blank">View</a
+			><span tabindex="10" id="-zazz-deploy-project-btn" class="-zazz-btn">Deploy</span
+			><a id='-zazz-export-btn' tabindex='10' class='-zazz-btn' 
+					href="/zazz/view/<?= $project ?>/zip/<?= $project ?>.zip?export=true" 
+					target="_blank">Export</a>
+		</div>
 		<div id="-zazz-modal-view-projects" class="-zazz-modal">
 			<div class="-zazz-modal-header">All Projects</div>
 			<div class="-zazz-modal-body">
 				<table class="-zazz-links">
 					<?php
-						$viewProjects = _Project::get()->retrieve(array('project'), array(),
-							array('user_id' => $user_id));
-						$hasProject = false;
-						foreach ($viewProjects as $viewProject) {
-							if ($viewProject['project'] !== $project) {
-								$hasProject = true;
-								echo '<tr><td><a href="/zazz/build/' . $viewProject['project'] . '/">'
-								. $viewProject['project'] . '</a></tr></td>' . "\n";
-							}
+					$viewProjects = _Project::get()->retrieve(array('project'), array(),
+						array('user_id' => $user_id));
+					$hasProject = false;
+					foreach ($viewProjects as $viewProject) {
+						if ($viewProject['project'] !== $project) {
+							$hasProject = true;
+							echo '<tr><td><a href="/zazz/build/' . $viewProject['project'] . '/">'
+							. $viewProject['project'] . '</a></tr></td>' . "\n";
 						}
-						if (!$hasProject) {
-							echo '<tr><td>You have only one project.</td></tr>';
-						}
+					}
+					if (!$hasProject) {
+						echo '<tr><td>You have only one project.</td></tr>';
+					}
 					?>
 				</table>
 			</div>
@@ -236,20 +244,20 @@ if ($bad_html) {
 			<div class="-zazz-modal-body">
 				<table class="-zazz-links">
 					<?php
-						$viewPages = _Page::get()->retrieve(array('Page'), new Join('project_id', _Project::get()),
-							array('project' => $project, 'user_id' => $user_id));
-						$hasPage = false;
-						foreach ($viewPages as $viewPage) {
-							if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project'
-								&& $viewPage['page'] !== $page) {
-								$hasPage = true;
-								echo '<tr><td><a href="/zazz/build/' . $project . '/' . $viewPage['page'] . '">'
-								. $viewPage['page'] . '</a></tr></td>' . "\n";
-							}
+					$viewPages = _Page::get()->retrieve(array('Page'), new Join('project_id', _Project::get()),
+						array('project' => $project, 'user_id' => $user_id));
+					$hasPage = false;
+					foreach ($viewPages as $viewPage) {
+						if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project'
+							&& $viewPage['page'] !== $page) {
+							$hasPage = true;
+							echo '<tr><td><a href="/zazz/build/' . $project . '/' . $viewPage['page'] . '">'
+							. $viewPage['page'] . '</a></tr></td>' . "\n";
 						}
-						if (!$hasPage) {
-							echo '<tr><td>You only have one page.</td></tr>';
-						}
+					}
+					if (!$hasPage) {
+						echo '<tr><td>You only have one page.</td></tr>';
+					}
 					?>
 				</table>
 			</div>
@@ -350,22 +358,22 @@ if ($bad_html) {
 				<table>
 					<tr>
 						<td>Name:</td>
-						<td><?=$user['dbname'] ?></td>
+						<td><?= $user['dbname'] ?></td>
 					</tr>
 					<tr>
 						<td>Username:</td>
-						<td><?=$user['dbusername'] ?></td>
+						<td><?= $user['dbusername'] ?></td>
 					</tr>
 					<tr>
 						<td>Password:</td>
-						<td><?=$user['dbpassword'] ?></td>
+						<td><?= $user['dbpassword'] ?></td>
 					</tr>
 				</table>
 				<form id='-zazz-modal-database-form' method="post" action='/zazz/sqlbuddy/login.php' 
 							style='display:none'>
 					<input type='hidden' name='ADAPTER' value='mysql' />
-					<input type='hidden' name='USER' value='<?=$user['dbusername'] ?>' />
-					<input type='hidden' name='PASS' value='<?=$user['dbpassword'] ?>' />
+					<input type='hidden' name='USER' value='<?= $user['dbusername'] ?>' />
+					<input type='hidden' name='PASS' value='<?= $user['dbpassword'] ?>' />
 					<input type='hidden' name='HOST' value='localhost' />
 				</form>
 			</div>
@@ -409,11 +417,14 @@ if ($bad_html) {
 							><option>Right</option
 							><option>Both</option
 							></select
-						><span class="-zazz-divider"></span></span>
+						><span class="-zazz-divider"></span></span
+					><span id="-zazz-fixed-status-btn"
+						><span class="-zazz-fixed-status-btn">W: 0 H: 0</span><span class="-zazz-divider"></span
+					></span>
 				</span>
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span id='-zazz-loader-bar'><span class="-zazz-divider"></span
-					><img id='-zazz-loader-image' src='/zazz/css/images/loader.gif' /></span
+						><img id='-zazz-loader-image' src='/zazz/css/images/loader.gif' /></span
 					><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-database-btn -zazz-btn">DB</span
 					><span class="-zazz-divider"></span
@@ -422,21 +433,16 @@ if ($bad_html) {
 					><!--<span tabindex="10" class="-zazz-save-all-btn -zazz-btn">Layer</span
 					>--><span tabindex="10" class="-zazz-page-btn -zazz-btn">Page</span
 					><span tabindex="10" class="-zazz-project-btn -zazz-btn">Project</span
+					><span tabindex="10" class ="-zazz-build-btn -zazz-btn">Build</span
 					><span class="-zazz-divider"></span
-					><span tabindex="10" class="-zazz-view-btn -zazz-btn"
-								 ><a href="/zazz/view/<?= $project ?>/<?= $page ?>" target="_blank">View</a></span
-					><span tabindex="10" id="-zazz-deploy-project-btn" class="-zazz-btn">Deploy</span
-					><span tabindex="10" id="-zazz-export-btn" class="-zazz-btn"
-								 ><a href="/zazz/view/<?= $project ?>/zip/<?= $project ?>.zip?export=true" 
-							target="_blank">Export</a></span
-					><span class="-zazz-divider"></span><span tabindex="10" id="-zazz-logout-btn" class="-zazz-btn"
-								 ><a href="/zazz/logout.php">Logout</a></span><span class="-zazz-divider"></span>
+					><a tabindex="10" id="-zazz-logout-btn" class="-zazz-btn"
+								 href="/zazz/logout.php">Logout</a><span class="-zazz-divider"></span>
 				</span>
 			</div>
 			<div class="-zazz-content-view">
-				<?php	
-					$basedir = dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/';
-					echo getComputedLayout($project_start, $project_end, $page_id, $basedir);
+				<?php
+				$basedir = dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/';
+				echo getComputedLayout($project_start, $project_end, $page_id, $basedir);
 				?>
 			</div>
 		</div>
@@ -448,11 +454,11 @@ if ($bad_html) {
 								 /><span class="-zazz-class-btn">Class(es):</span>
 					<input tabindex="10" type="text" class="-zazz-class-input" 
 								 /><span class="-zazz-divider"></span
-					><span id="-zazz-fixed-status-btn"
-								 ><span class="-zazz-fixed-status-btn">W: 0 H: 0</span><span class="-zazz-divider"></span
-						></span></span>
+					></span>
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span class="-zazz-divider"></span
+					><span tabindex="10" class="-zazz-move-btn -zazz-btn">Move Up</span
+					><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-html-btn -zazz-btn">HTML</span
 					><span tabindex="10" class="-zazz-js-btn -zazz-btn">JS</span
 					><span tabindex="10" class="-zazz-php-btn -zazz-btn">PHP</span
@@ -463,7 +469,7 @@ if ($bad_html) {
 			</div>
 			<div class="-zazz-code-blocks">
 				<?php
-					getCodeBlocks($page_id, $project_start, $project_end);
+				getCodeBlocks($page_id, $project_start, $project_end);
 				?>
 			</div>
 		</div>
