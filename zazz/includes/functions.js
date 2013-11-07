@@ -173,22 +173,28 @@ function doStuff() {
 			}
 		}
 
-		function updateCode(zazz_id, $block, type, insert, doDelete) {
+		function updateCode(zazz_id, $block, type, insert, doDelete, doMove) {
 			if (typeof doDelete === 'undefined') {
 				doDelete = false;
+			}
+			if (typeof doMove === 'undefined') {
+				doMove = false;
 			}
 			var array = {
 				zazz_id: zazz_id,
 				type: type,
-				code: $block.val(),
 				page_id: $('#-zazz-page-id').val(),
-				zazz_order: $block.attr('data-zazz-order'),
-				insert: insert
+				zazz_order: $block.attr('data-zazz-order')
 			};
 			if (doDelete) {
 				array['deleted'] = true;
+				array['code'] = $block.val();
+			} else if (doMove) {
+				array['moveTo'] = $.move.to;
+				array['zazz_order'] = $.move.from;
 			} else {
 				array['insert'] = insert;
+				array['code'] = $block.val();
 			}
 			$('#-zazz-loader-bar').promote();
 			$.post('/zazz/ajax/code.php', array,
@@ -241,7 +247,23 @@ function doStuff() {
 
 		//A somewhat fix for textarea scrolling.
 		function textareaScroll() {
-			$(this)[0].scrollIntoView();
+			//if(!$.ignoreCodeFocus) {
+				var $this = $(this);
+				var $scroller = $this.parent().parent();
+				var scrollOffset = $scroller.children(':visible').first().offset().left;
+				var left = $this.offset().left - scrollOffset;
+				var width = $this.outerWidth();
+				var scrollLeft = $scroller.scrollLeft();
+				var scrollWidth = $scroller.outerWidth();
+				if (left < scrollLeft) {
+					//alert('Left: ' + left + ' Scroll Left: ' + scrollLeft + ' Scroll Offset: ' +scrollOffset);
+					$scroller.scrollLeft(left);
+				} else if (scrollLeft + scrollWidth < left + width) {
+					//Add enough to get textarea fully into view.
+					//alert('SL: ' + scrollLeft + ' SW: ' + scrollWidth + ' L: ' + left + ' W: ' + width);
+					$scroller.scrollLeft(scrollLeft + left + width - scrollWidth);
+				}
+			//};
 		}
 
 		function addCSSCode(zazz_id, code) {
@@ -285,13 +307,37 @@ function doStuff() {
 			};
 		}
 
+		function computeCodeHeight($textarea) {
+			var value = $textarea.val();
+			var count = 1;
+			var start = value.indexOf('\n');
+			while (start >= 0) {
+				count++;
+				start = value.indexOf('\n', start + 1);
+			}
+
+			var height = parseInt($textarea.css('line-height')) * count +
+					parseInt($textarea.css('padding-top')) + parseInt($textarea.css('padding-bottom'));
+			if (parseInt($textarea.css('height')) !== height) {
+				$textarea.css('height', height);
+				return true;
+			}
+			return false;
+		}
+
 		$(document).on('input propertychange', '.-zazz-code-block', function() {
 			$.changed = true;
 			warnUnload();
+			if (computeCodeHeight($(this))) {
+				computeCodeLayout();
+			}
 		}).on('keypress', function(e) {
 			if (e.keyCode === 8 || e.which === 8 || e.keyCode === 46 || e.which === 46) {
 				$.changed = true;
 				warnUnload();
+				if (computeCodeHeight($(this))) {
+					computeCodeLayout();
+				}
 			}
 		});
 		$(document).on('focus', 'textarea', textareaScroll);
@@ -310,7 +356,7 @@ function doStuff() {
 			var type = getBlockType($this);
 			var zazz_id = $.last_div.attr('data-zazz-id');
 			window.onbeforeunload = null;
-			if ($.changed) {
+			if ($.changed && !$.ignoreCodeFocus) {
 				updateCode(zazz_id, $this, type, false);
 				$.changed = false;
 			}
@@ -333,6 +379,56 @@ function doStuff() {
 			$div.css('box-shadow', '0px 0px 100px blue inset');
 		}
 
+		$.codeColumns = 0;
+		function addCodeColumn() {
+			var $div = $('<div></div>').attr('id', '-zazz-code-column-' + $.codeColumns)
+					.addClass('-zazz-code-column');
+			$('.-zazz-code-blocks').append($div);
+			$.codeColumns++;
+			return $div;
+		}
+
+		$.ignoreCodeFocus = false;
+		function computeCodeLayout(zazz_id) {
+			if (typeof zazz_id === 'undefined') {
+				zazz_id = $.last_div.attr('data-zazz-id');
+			}
+			var curr = 0;
+			var $column = $('#-zazz-code-column-0');
+			var columnHeight = 0;
+			var maxHeight = $('.-zazz-code-blocks').outerHeight() - 10;
+			var $focus = $(':focus');
+			$.ignoreCodeFocus = true;
+			$(".-zazz-code-block-" + zazz_id).each(function() {
+				var $this = $(this);
+				if (!$this.hasClass('-zazz-css-code')) {
+					var height = $this.outerHeight();
+					if (columnHeight === 0 || columnHeight + height < maxHeight) {
+						$column.append($this).show();
+						columnHeight += height;
+					} else {
+						curr++;
+						var $next = $('#-zazz-code-column-' + curr);
+						if ($next.length === 0) {
+							$next = addCodeColumn();
+						}
+						$column = $next;
+						$column.append($this).show();
+						columnHeight = height;
+					}
+				}
+			});
+			curr++;
+			var nextColumn = $('#-zazz-code-column-' + curr);
+			while(nextColumn.length !== 0) {
+				nextColumn.hide();
+				curr++;
+				nextColumn = $('#-zazz-code-column-' + curr);
+			}
+			$focus.focus();
+			$.ignoreCodeFocus = false;
+		}
+
 		//The callback for when the focus is changed among divs.
 		$(document).on('focus', '.-zazz-element', function() {
 			var $div = $(this);
@@ -347,12 +443,12 @@ function doStuff() {
 			//Also see update layout.
 			setBoxShadow($div);
 
-			if(!$div.parent().hasClass('-zazz-hidden')) {
+			if (!$div.parent().hasClass('-zazz-hidden')) {
 				$('.-zazz-fixed-status-btn').html('W: ' + getCSSWidth($div) + " H: " + $div.css('min-height'));
 			} else {
 				$('.-zazz-fixed-status-btn').html("W: 0 H: 0");
 			}
-			
+
 			var id = $div.attr('data-zazz-id');
 			//Change the ID and class text boxes.
 			$(".-zazz-id-input").val($div.attr('id'));
@@ -361,8 +457,17 @@ function doStuff() {
 			//Show the correct code boxes.
 			if (typeof $.last_div === "undefined" || $div.attr('data-zazz-id') !== $.last_div.attr('data-zazz-id')) {
 				$(".-zazz-code-block").hide();
-				$(".-zazz-code-block-" + id).fadeIn(300);
+				$(".-zazz-code-block-" + id).fadeIn().each(function() {
+					var $this = $(this);
+					if (!$this.hasClass('-zazz-css-code')) {
+						$this.css("display", "block");
+						computeCodeHeight($this);
+					}
+				});
 			}
+
+			computeCodeLayout(id);
+
 			$.last_div = $div;
 			return false;
 		});
@@ -467,7 +572,7 @@ function doStuff() {
 					+ offset_x + ')</td>');
 			$('#-zazz-modal-mouse-location').html('<td>Page (px):</td><td>(' + (e.pageY - viewTop) +
 					',</td><td>' + (bodyWidth - e.pageX) + ',</td><td>' + (pageHeight - (e.pageY - viewTop)) + ',</td><td>' +
-					 e.pageX + ')</td>');
+					e.pageX + ')</td>');
 			$('#-zazz-modal-mouse-offsetp').html('<td>Offset (%):</td><td>(' +
 					Math.round(offset_y / targetHeight * 10000) / 100 + ',</td><td>' +
 					Math.round((targetWidth - offset_x) / targetWidth * 10000) / 100 + ',</td><td>' +
@@ -475,7 +580,7 @@ function doStuff() {
 					Math.round(offset_x / targetWidth * 10000) / 100 + ')</td>');
 			$('#-zazz-modal-mouse-locationp').html('<td>Page (%):</td><td>(' +
 					Math.round((e.pageY - viewTop) / pageHeight * 10000) / 100 + ',</td><td>' +
-					Math.round((bodyWidth - e.pageX) / bodyWidth * 10000) / 100  + ',</td><td>' +
+					Math.round((bodyWidth - e.pageX) / bodyWidth * 10000) / 100 + ',</td><td>' +
 					Math.round((pageHeight - (e.pageY - viewTop)) / pageHeight * 10000) / 100 + ',</td><td>' +
 					Math.round(e.pageX / bodyWidth * 10000) / 100 + ')</td>');
 		});
@@ -516,11 +621,12 @@ function doStuff() {
 				var id = getZazzID($block);
 				updateCode(id, $block, getBlockType($block), false, true);
 				$(this).remove();
+				computeCodeLayout();
 			}
 		}
 
 		var noCSS = ".-zazz-html-code, .-zazz-php-code, .-zazz-mysql-code, .-zazz-js-code";
-		$(".-zazz-code-blocks").on('focus', noCSS, textareaScroll)
+		$(".-zazz-code-blocks")
 				.on('mousemove', noCSS, textareaMouseMove)
 				.on('click', noCSS, textareaClick)
 				.on('mousemove', ".-zazz-css-code", textareaMouseMoveNoRemove);
@@ -541,6 +647,7 @@ function doStuff() {
 					$(document).css('cursor: n-resize');
 				},
 				function() {
+					computeCodeLayout();
 				}
 		).on("selectstart", false).on("dragstart", false);
 		function acrossMouse(e) {
@@ -594,15 +701,60 @@ function doStuff() {
 				$.last_div.attr("class", $(this).val() + ' -zazz-element -zazz-outline');
 			}
 		});
-		
-		$('.-zazz-database-btn').click(function(){
+
+		$('.-zazz-database-btn').click(function() {
 			$('#-zazz-modal-database').center().show();
 		});
-		
-		$('#-zazz-modal-database-edit').click(function(){
+
+		$('#-zazz-modal-database-edit').click(function() {
 			$('#-zazz-modal-database-form').submit();
 		});
 		
+		function moveCode(e) {
+			var $target = $(e.target);
+			if($target.hasClass('-zazz-code-block')) {
+				if(typeof $.move.from === "undefined") {
+					if($target.hasClass("-zazz-css-code")) {
+						warn('Warning', 'Cannot move CSS block.');
+					} else {
+						$.move.from = $target;
+					}
+				} else if($target[0] !== $.move.from[0]) {
+					$.move.to = parseInt($target.attr('data-zazz-order')) + 1;
+					var $textarea = $.move.from;
+					$.move.from = $textarea.attr('data-zazz-order');
+					updateCode($.last_div.attr('data-zazz-id'), $textarea, getBlockType($textarea), false, 
+						false, true);
+					if($.move.to === 1) {
+						$('#-zazz-code-column-0').prepend($textarea);
+					} else {
+						$textarea.insertAfter($target);
+					}
+					$textarea.attr('data-zazz-order', parseInt($target.attr('data-zazz-order')) + 1);
+					$textarea.nextAll().each(function(){
+						$(this).attr('data-zazz-order', parseInt($(this).attr('data-zazz-order')) + 1);
+					});
+					delete $.move.to;
+					delete $.move.from;
+					$(document).off('click', moveCode);
+					$('.-zazz-move-btn').removeClass('-zazz-active-btn');
+				}
+				return false;
+			} else if(!$target.hasClass('-zazz-move-btn')) {
+				if(typeof $.move.from === 'undefined') {
+					delete $.move.from;
+				}
+				$(document).off('click', moveCode);
+				$('.-zazz-move-btn').removeClass('-zazz-active-btn');
+			}
+		}
+		
+		$.move = new Array();
+		$('.-zazz-move-btn').click(function() {
+			$(this).addClass('-zazz-active-btn');
+			$(document).on('click', moveCode);
+		});
+
 		/*-----------------------------------------Compatibility----------------------------------------*/
 
 		//< IE10 needs this.
@@ -809,7 +961,7 @@ function doStuff() {
 							var second_width = getCSSWidth($second_div);
 							$second_div.remove();
 							//Either both have fixed width or both have percentage width.
-							if(parseInt($first_div.css('z-index')) > 0 && parseInt($second_div.css('z-index')) > 0) {
+							if (parseInt($first_div.css('z-index')) > 0 && parseInt($second_div.css('z-index')) > 0) {
 								$first_div.css("width", (parseInt(first_width) + parseInt(second_width)) + 'px');
 							} else {
 								$first_div.css("width", (parseFloat(first_width) + parseFloat(second_width)) + '%');
@@ -919,6 +1071,25 @@ function doStuff() {
 				$('#-zazz-dropdown-project').hide();
 			}, 1);
 		});
+		$('.-zazz-build-btn').click(function() {
+			var pos = $(this).offset();
+			$('#-zazz-dropdown-build').show().css('top', pos.top + $(this).outerHeight())
+					.css('left', pos.left);
+		}).blur(function() {
+			setTimeout(function() {
+				//alert(document.activeElement.id);
+				if (document.activeElement.id === '-zazz-deploy-project-btn') {
+					$('#-zazz-modal-deploy-confirm').center().show();
+					$('#-zazz-dropdown-build').hide();
+				} else if (document.activeElement.id === '-zazz-view-btn') {
+					setTimeout(function() { $('#-zazz-dropdown-build').hide(); }, 500);
+				} else if (document.activeElement.id === '-zazz-export-btn') {
+					setTimeout(function() { $('#-zazz-dropdown-build').hide(); }, 500); 
+				} else {
+					$('#-zazz-dropdown-build').hide();
+				}
+			}, 1);
+		});
 		$('#-zazz-make-new-project').click(function() {
 			$('#-zazz-loader-bar').promote();
 			$.post('/zazz/ajax/project.php', {
@@ -979,9 +1150,6 @@ function doStuff() {
 				}
 			});
 		});
-		$('#-zazz-deploy-project-btn').click(function() {
-			$('#-zazz-modal-deploy-confirm').center().show();
-		});
 		$('#-zazz-upload-filename').focus(function() {
 			$('#-zazz-upload-file').click();
 			$(this).blur();
@@ -1029,6 +1197,7 @@ function doStuff() {
 			$('.-zazz-code-blocks').append($block);
 			$block.fadeIn(300).focus();
 			updateCode(id, $block, type, true);
+			computeCodeLayout();
 		}
 
 		$('.-zazz-html-btn').click(function() {
@@ -1051,6 +1220,8 @@ function doStuff() {
 		}
 
 		function start() {
+			addCodeColumn();
+
 			var $content = $('.-zazz-content');
 			$('.-zazz-element').first().focus();
 			$('.-zazz-select-btn').click();
@@ -1093,6 +1264,7 @@ function doStuff() {
 					if (!$focus.is('textarea')) {
 						$focus.click();
 					} else {
+						//Autoindent
 						setTimeout(function() {
 							var position = $focus.prop("selectionStart");
 							var text = $focus.val();
@@ -1108,6 +1280,7 @@ function doStuff() {
 					}
 				}
 			}
+
 			if (e.keyCode === 27 || e.which === 27) {
 				var $modal = $('.-zazz-modal:visible');
 				if ($modal.length !== 0) {

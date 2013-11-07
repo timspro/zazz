@@ -233,24 +233,12 @@ body {
 	padding: 10px 0px;
 	font-size: 15px;
 	cursor: pointer;
-}
-
-.-zazz-btn a {
-	display: inline-block;
-	height: 100%;
-	width: 100%;
-	padding: 10px 0px;
 	text-decoration: none;
 }
 
-.-zazz-view-btn, #-zazz-export-btn, #-zazz-logout-btn {
-	padding: 0px;
-}
-
-.-zazz-btn a:link, .-zazz-btn a:visited {
+.-zazz-btn:link, .-zazz-btn:visited {
 	color: white;
 }
-
 
 .-zazz-divider {
 	width: 1px;
@@ -347,7 +335,7 @@ body {
 }
 
 .-zazz-id-input {
-	width: 150px;
+	width: 100px;
 	-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
@@ -388,19 +376,18 @@ body {
 	width: 100%;
 	background-color: black;
 	overflow-x: auto;
+	overflow-y: hidden;	
 }
 
 .-zazz-code-block {
-	width: 50%;
-	height: 100%;
+	width: 100%;
 	background-color: transparent;
 	resize: horizontal;
-	overflow: auto;
-	white-space: nowrap;
+	overflow: hidden;
 	color: white;
 	padding: 8px 8px 8px 18px;
 	border-style: solid;
-	border-width: 6px 0px 0px 0px;
+	border-width: 0px 6px 0px 0px;
 	margin-right: 4px;
 	background-image: url("images/x.png");
 	background-position: 0% 0%;
@@ -413,8 +400,20 @@ body {
 	white-space: pre;
 }
 
+.-zazz-code-column {
+	height: 100%;
+	width: 50%;
+	display: inline-block;
+	vertical-align: top;
+	overflow: auto;
+	padding: 2px 0px;
+}
+
 .-zazz-code-blocks .-zazz-css-code {
 	width: 30%;
+	height: 100%;
+	display: inline-block;
+	overflow: auto;
 }
 
 .-zazz-html-btn {
