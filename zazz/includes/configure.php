@@ -56,10 +56,10 @@ if (isset($_GET['delete']) && (empty($deletePassword) || $_GET['delete'] === $de
 }
 require_once dirname(__FILE__) . '/includes/standard/configure.php';
 
-$filename = dirname(__FILE__);
-copy($filename . '/includes/functions.min.js', $filename . '/js/functions.js');
-copy($filename . '/includes/jquery-1.10.2.min.js', $filename . '/js/jquery-1.10.2.js');
-copy($filename . '/includes/style.css', $filename . '/css/style.css');
+//$filename = dirname(__FILE__);
+//copy($filename . '/includes/functions.min.js', $filename . '/js/functions.js');
+//copy($filename . '/includes/jquery-1.10.2.min.js', $filename . '/js/jquery-1.10.2.js');
+//copy($filename . '/includes/style.css', $filename . '/css/style.css');
 
 echo 'Configuration completed. <br>';
 

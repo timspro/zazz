@@ -467,11 +467,9 @@ if ($bad_html) {
 					><span tabindex="10" class="-zazz-import-btn -zazz-btn">Import</span
 					><span tabindex="10" class="-zazz-export-btn -zazz-btn">Export</span>--></span>
 			</div>
-			<div class="-zazz-code-blocks">
-				<?php
+			<div class="-zazz-code-blocks"><?php
 				getCodeBlocks($page_id, $project_start, $project_end);
-				?>
-			</div>
+				?></div>
 		</div>
 		<input id="-zazz-page-id" type="hidden" value="<?= $page_id ?>" />
 		<input id="-zazz-bad-html" type="hidden" value="<?= $bad_html ?>" />

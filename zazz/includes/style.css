@@ -187,25 +187,26 @@ body {
 
 .-zazz-navbar input {
 	border-radius: 5px;
-	border: none;
+	border: 1px #c8c8c8 solid;
 	padding: 5px;
 	margin-right: 8px;
 }
 
 .-zazz-navbar select {
 	border-radius: 5px;
-	border: none;
-	padding: 2px;
+	border: 1px #c8c8c8 solid;
+	padding: 5px;
 	margin-right: 8px;
 	width: 80px;
 }
 
 .-zazz-navbar {
-	background-color: #303030;
-	color: #ffffff;
+	background-color: #eeeeee;
+	color: #222222;
+	font-weight: 500;
 	height: 37px;
 	border-style: solid;
-	border-color: black;
+	border-color: #c8c8c8;
 	border-width: 1px 0px;
 	-moz-user-select: none;
 	-khtml-user-select: none;
@@ -214,6 +215,8 @@ body {
 	z-index: 20;
 	box-sizing: border-box;
 	vertical-align: middle;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 14px;
 }
 
 .-zazz-btn {
@@ -229,26 +232,25 @@ body {
 	height: 35px;
 	display: inline-block;
 	text-align: center;
-	font-family: arial;
-	padding: 10px 0px;
-	font-size: 15px;
+	padding: 11px 0px;
+	
 	cursor: pointer;
 	text-decoration: none;
 }
 
 .-zazz-btn:link, .-zazz-btn:visited {
-	color: white;
+	color: black;
 }
 
 .-zazz-divider {
 	width: 1px;
 	height: 35px;
-	background-color: black;
+	background-color: #c8c8c8;
 	display: inline-block;
 }
 
 .-zazz-btn:hover {
-	background-color: #101010;
+	background-color: #d4d4d4;
 }
 
 .-zazz-code-btn, .-zazz-zazz-btn {
@@ -265,7 +267,7 @@ body {
 }
 
 .-zazz-active-btn {
-	background-color: #101010;	
+	background-color: #d4d4d4;
 }
 
 #-zazz-loader-image {
@@ -305,9 +307,7 @@ body {
 	text-align: left;
 	height: 100%;
 	display: inline-block;
-	font-family: arial;
-	padding: 10px 5px;
-	font-size: 15px;
+	padding: 11px 8px;
 	text-align: center;
 	line-height: 100%;
 }
@@ -320,6 +320,10 @@ body {
 #-zazz-fixed-status-btn {
 	display: inline-block;
 	height: 100%;
+}
+
+.-zazz-fixed-status-btn {
+	width: 160px;
 }
 
 #-zazz-fixed-horizontal {
@@ -335,7 +339,7 @@ body {
 }
 
 .-zazz-id-input {
-	width: 100px;
+	width: 110px;
 	-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
@@ -343,7 +347,7 @@ body {
 }
 
 .-zazz-class-input {
-	width: 150px;
+	width: 165px;
 	-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
@@ -374,7 +378,7 @@ body {
 	top: 35px;
 	bottom: 0px;
 	width: 100%;
-	background-color: black;
+	background-color: #111111;
 	overflow-x: auto;
 	overflow-y: hidden;	
 }
@@ -405,7 +409,8 @@ body {
 	width: 50%;
 	display: inline-block;
 	vertical-align: top;
-	overflow: auto;
+	overflow-y: auto;
+	overflow-x: hidden;
 	padding: 2px 0px;
 }
 
@@ -413,22 +418,22 @@ body {
 	width: 30%;
 	height: 100%;
 	display: inline-block;
-	overflow: auto;
+	overflow-x: auto;
+	overflow-y: hidden;
 }
 
 .-zazz-html-btn {
-	color: #ff9999;
+	background-color: #ffcccc;
 }
 .-zazz-html-code {
 	border-color: #ff9999;
 	color: #ff9999;
 }
 .-zazz-html-code:focus {
-	box-shadow: 0px 0px 20px #ff9999;
 }
 
 .-zazz-css-btn {
-	color: #cc99ff;
+	background-color: #cc99ff;
 }
 .-zazz-css-code {
 	border-color: #cc99ff;
@@ -436,40 +441,36 @@ body {
 	background-image: none;
 }
 .-zazz-css-code:focus {
-	box-shadow: 0px 0px 20px #cc99ff;
 }
 
 .-zazz-js-btn {
-	color: #99ff99;
+	background-color: #ccffcc;
 }
 .-zazz-js-code {
 	border-color: #99ff99;
 	color: #99ff99;
 }
 .-zazz-js-code:focus {
-	box-shadow: 0px 0px 20px #99ff99;
 }
 
 .-zazz-php-btn {
-	color: #9999ff;
+	background-color: #ccccff;
 }
 .-zazz-php-code {
 	border-color: #9999ff;
 	color: #9999ff;
 }
 .-zazz-php-code:focus {
-	box-shadow: 0px 0px 20px #9999ff;
 }
 
 .-zazz-mysql-btn {
-	color: #ffff99;
+	background-color: #ffffcc;
 }
 .-zazz-mysql-code {
 	border-color: #ffff99;
 	color: #ffff99;
 }
 .-zazz-mysql-code:focus {
-	box-shadow: 0px 0px 20px #ffff99;
 }
 
 .-zazz-offset-btn, .-zazz-location-btn {

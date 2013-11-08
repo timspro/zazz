@@ -1182,12 +1182,11 @@ function doStuff() {
 			if ($forID.length === 0) {
 				order = '0';
 			} else {
-				order = $forID.attr('data-zazz-order');
+				order = parseInt($('.-zazz-code-block-' + forID).last().attr('data-zazz-order')) + 1;
 			}
 			var $textarea = $('<textarea></textarea>').addClass('-zazz-code-block')
 					.addClass(className).addClass('-zazz-code-block-' + forID).attr('spellcheck', false)
 					.attr('tabindex', '10').attr('data-zazz-order', order);
-			$forID.attr('data-zazz-order', parseInt($forID.attr('data-zazz-order')) + 1);
 			return $textarea;
 		}
 
@@ -1195,6 +1194,7 @@ function doStuff() {
 			var id = $.last_div.attr("data-zazz-id");
 			var $block = addCodeBlock('-zazz-' + type + '-code', id);
 			$('.-zazz-code-blocks').append($block);
+			computeCodeHeight($block);
 			$block.fadeIn(300).focus();
 			updateCode(id, $block, type, true);
 			computeCodeLayout();
