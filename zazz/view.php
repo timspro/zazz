@@ -142,7 +142,7 @@ file_put_contents($filename . 'includes/footer.php', $project_php_footer);
 foreach ($generate_pages as $generate_page) {
 	$page = $generate_page['page'];
 	$page_info = getPageInformation($project, $page);
-	if (intval($page_info['visible']) === 0) {
+	if (empty($page_info['visible'])) {
 		continue;
 	}
 	$page_id = intval($page_info['page_id']);

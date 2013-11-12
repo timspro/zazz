@@ -221,7 +221,7 @@ if ($bad_html) {
 						<td><select id='-zazz-page-visible'>
 								<option>Yes</option>
 								<option <?=
-								(intval($page_info['visible']) === 0 ? 'selected' : '')
+								(empty($page_info['visible']) ? 'selected' : '')
 								?>>No</option>
 							</select></td>						
 					</tr>
