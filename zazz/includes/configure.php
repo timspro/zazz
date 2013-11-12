@@ -4,6 +4,9 @@ $globalPassword = 'B9)#@Psls0DS{ksmL:EoDZspwq';
 $databasePassword = '';
 $deletePassword = '';
 
+session_start();
+session_destroy();
+
 function myErrorHandler($errno, $errstr, $errfile, $errline) {
 	echo $errstr . '<br>';
 	exit();

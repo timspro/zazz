@@ -19,6 +19,9 @@ if(defined('DEVELOPER')) {
 	$rows = $q->fetchAll(PDO::FETCH_COLUMN, 0);	
 	
 	foreach($rows as $row) {
+		//We should delete the database so that when configure is run, it will use the auto files to
+		//generate the database. If we want to make a change to the database that will propagate to
+		//the auto files then don't run this file.
 		if($row !== 'mysql' && $row !== 'performance_schema' && $row !== 'information_schema' 
 			&& $row !== 'test') {
 			$q = $pdo->prepare('DROP DATABASE ' . $row);

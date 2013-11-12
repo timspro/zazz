@@ -249,11 +249,11 @@ abstract class QueryBuilder extends Object {
 				$primaryKeys[] = $key;
 			}
 			$default = '';
-			if(!empty($value['Default'])) {
-				$default = ' DEFAULT ' . $value['Default'];
+			if(!is_null($value['Default'])) {
+				$default = ' DEFAULT ' . (string) $value['Default'];
 			}
 			$extra = '';
-			if(!empty($value['Extra'])) {
+			if($value['Extra'] !== '') {
 				$extra = ' ' . $value['Extra'];
 			}
 			$options .= ' ' . $key . ' ' . $type . $null . $default . $extra . ',';
