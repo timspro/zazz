@@ -103,7 +103,8 @@ function doStuff() {
 		//Register the click event for the actions.
 		$('.-zazz-content-view').click(function(e) {
 			if ($.fn.register.current !== null) {
-				$.fn.register.action[$.fn.register.current]($(e.target), e, $.fn.register.first);
+				$.fn.register.action[$.fn.register.current]($(e.target).closest('.-zazz-element'),
+						e, $.fn.register.first);
 				$.fn.register.first = false;
 			}
 		});
@@ -173,7 +174,15 @@ function doStuff() {
 			}
 		}
 
-		function updateCode(zazz_id, $block, type, insert, doDelete, doMove) {
+		$.codeActions = {
+			INSERT: 0,
+			DELETE: 1,
+			MOVE: 2,
+			UNLINK: 3,
+			UPDATE: 4
+		};
+
+		function updateCode(zazz_id, $block, type, codeAction) {
 			if (typeof doDelete === 'undefined') {
 				doDelete = false;
 			}
@@ -186,14 +195,19 @@ function doStuff() {
 				page_id: $('#-zazz-page-id').val(),
 				zazz_order: $block.attr('data-zazz-order')
 			};
-			if (doDelete) {
+			if (codeAction === $.codeActions.DELETE) {
 				array['deleted'] = true;
 				array['code'] = $block.val();
-			} else if (doMove) {
+			} else if (codeAction === $.codeActions.MOVE) {
 				array['moveTo'] = $.move.to;
 				array['zazz_order'] = $.move.from;
-			} else {
-				array['insert'] = insert;
+			} else if (codeAction === $.codeActions.INSERT) {
+				array['insert'] = true;
+				array['code'] = $block.val();
+			} else if (codeAction === $.codeActions.UNLINK) {
+				array['unlink'] = true;
+			} else if (codeAction === $.codeActions.UPDATE) {
+				array['insert'] = false;
 				array['code'] = $block.val();
 			}
 			$('#-zazz-loader-bar').promote();
@@ -215,6 +229,7 @@ function doStuff() {
 								addJSCode($(this).val());
 							});
 						}
+						showWidthAndHeight();
 					});
 		}
 
@@ -248,21 +263,21 @@ function doStuff() {
 		//A somewhat fix for textarea scrolling.
 		function textareaScroll() {
 			//if(!$.ignoreCodeFocus) {
-				var $this = $(this);
-				var $scroller = $this.parent().parent();
-				var scrollOffset = $scroller.children(':visible').first().offset().left;
-				var left = $this.offset().left - scrollOffset;
-				var width = $this.outerWidth();
-				var scrollLeft = $scroller.scrollLeft();
-				var scrollWidth = $scroller.outerWidth();
-				if (left < scrollLeft) {
-					//alert('Left: ' + left + ' Scroll Left: ' + scrollLeft + ' Scroll Offset: ' +scrollOffset);
-					$scroller.scrollLeft(left);
-				} else if (scrollLeft + scrollWidth < left + width) {
-					//Add enough to get textarea fully into view.
-					//alert('SL: ' + scrollLeft + ' SW: ' + scrollWidth + ' L: ' + left + ' W: ' + width);
-					$scroller.scrollLeft(scrollLeft + left + width - scrollWidth);
-				}
+			var $this = $(this);
+			var $scroller = $this.parent().parent();
+			var scrollOffset = $scroller.children(':visible').first().offset().left;
+			var left = $this.offset().left - scrollOffset;
+			var width = $this.outerWidth();
+			var scrollLeft = $scroller.scrollLeft();
+			var scrollWidth = $scroller.outerWidth();
+			if (left < scrollLeft) {
+				//alert('Left: ' + left + ' Scroll Left: ' + scrollLeft + ' Scroll Offset: ' +scrollOffset);
+				$scroller.scrollLeft(left);
+			} else if (scrollLeft + scrollWidth < left + width) {
+				//Add enough to get textarea fully into view.
+				//alert('SL: ' + scrollLeft + ' SW: ' + scrollWidth + ' L: ' + left + ' W: ' + width);
+				$scroller.scrollLeft(scrollLeft + left + width - scrollWidth);
+			}
 			//};
 		}
 
@@ -357,9 +372,10 @@ function doStuff() {
 			var zazz_id = $.last_div.attr('data-zazz-id');
 			window.onbeforeunload = null;
 			if ($.changed && !$.ignoreCodeFocus) {
-				updateCode(zazz_id, $this, type, false);
+				updateCode(zazz_id, $this, type, $.codeActions.UPDATE);
 				$.changed = false;
 			}
+			$('.-zazz-editor-container').hide();
 			$this.attr('data-zazz-cursor', $this.prop("selectionStart")).attr('data-zazz-scroll', $this.scrollTop());
 		}).on('focus', '.-zazz-code-block', function() {
 			var $textarea = $(this);
@@ -372,11 +388,17 @@ function doStuff() {
 					$textarea.scrollTop(parseInt($textarea.attr('data-zazz-scroll')));
 				}
 			}, 1);
+
+			if ($textarea.hasClass('-zazz-html-code') && $.last_div.attr('data-zazz-id') !== "begin-project" &&
+					$.last_div.attr('data-zazz-id') !== "end-project") {
+				$.htmlEdit = $textarea;
+				$('.-zazz-editor-container').css('display','inline-block');
+			}
 		});
 
 		function setBoxShadow($div) {
 			//#ffff4f
-			$div.css('box-shadow', '0px 0px 100px blue inset');
+			$div.css('box-shadow', '0px 0px 100px #aaaaaa inset');
 		}
 
 		$.codeColumns = 0;
@@ -390,6 +412,10 @@ function doStuff() {
 
 		$.ignoreCodeFocus = false;
 		function computeCodeLayout(zazz_id) {
+			//If true then computeCodeLayout() has already been called.
+			if ($.ignoreCodeFocus) {
+				return;
+			}
 			if (typeof zazz_id === 'undefined') {
 				zazz_id = $.last_div.attr('data-zazz-id');
 			}
@@ -420,13 +446,36 @@ function doStuff() {
 			});
 			curr++;
 			var nextColumn = $('#-zazz-code-column-' + curr);
-			while(nextColumn.length !== 0) {
+			while (nextColumn.length !== 0) {
 				nextColumn.hide();
 				curr++;
 				nextColumn = $('#-zazz-code-column-' + curr);
 			}
 			$focus.focus();
 			$.ignoreCodeFocus = false;
+		}
+
+		function showWidthAndHeight() {
+			var $div = $.last_div;
+			if (!$div.parent().hasClass('-zazz-hidden')) {
+				var width = getCSSWidth($div);
+				var end;
+				if (width.indexOf('%') >= 0) {
+					end = '%';
+				} else {
+					end = 'px';
+				}
+				var height = $div.css('min-height');
+				var actualHeight = $div.outerHeight();
+				if (parseInt(height) !== actualHeight) {
+					height += " (" + actualHeight + "px)";
+				}
+				$('.-zazz-fixed-status-btn').html('W: ' +
+						(Math.floor(parseFloat(width) * 100) / 100) + end +
+						" H: " + height);
+			} else {
+				$('.-zazz-fixed-status-btn').html("W: 0 H: 0");
+			}
 		}
 
 		//The callback for when the focus is changed among divs.
@@ -442,12 +491,6 @@ function doStuff() {
 			//$div.css('box-shadow', '0px 0px 100px #ffff00 inset');
 			//Also see update layout.
 			setBoxShadow($div);
-
-			if (!$div.parent().hasClass('-zazz-hidden')) {
-				$('.-zazz-fixed-status-btn').html('W: ' + getCSSWidth($div) + " H: " + $div.css('min-height'));
-			} else {
-				$('.-zazz-fixed-status-btn').html("W: 0 H: 0");
-			}
 
 			var id = $div.attr('data-zazz-id');
 			//Change the ID and class text boxes.
@@ -469,6 +512,9 @@ function doStuff() {
 			computeCodeLayout(id);
 
 			$.last_div = $div;
+
+			showWidthAndHeight();
+
 			return false;
 		});
 		function updatePageInfo(redirect) {
@@ -585,51 +631,61 @@ function doStuff() {
 					Math.round(e.pageX / bodyWidth * 10000) / 100 + ')</td>');
 		});
 		function textareaMouseMove(e) {
-			var myPos = $(this).offset();
-			myPos.bottom = $(this).offset().top + $(this).outerHeight();
-			myPos.right = $(this).offset().left + $(this).outerWidth();
-			myPos.left = $(this).offset().left;
+			var $this = $(this);
+			var myPos = $this.offset();
+			myPos.bottom = $this.offset().top + $this.outerHeight();
+			myPos.right = $this.offset().left + $this.outerWidth();
+			myPos.left = $this.offset().left;
 			if (myPos.bottom > e.pageY && e.pageY > myPos.bottom - 15 && myPos.right > e.pageX &&
 					e.pageX > myPos.right - 15) {
-				$(this).css({cursor: "e-resize"});
-			} else if (18 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.left + 18 > e.pageX &&
+				$this.css({cursor: "e-resize"});
+			} else if (!$this.hasClass('-zazz-css-code') &&
+					18 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.left + 18 > e.pageX &&
 					e.pageX > myPos.left) {
-				$(this).css({cursor: "pointer"});
+				$this.css({cursor: "pointer"});
 			} else {
-				$(this).css({cursor: ""});
+				$this.css({cursor: ""});
 			}
 		}
 
-		function textareaMouseMoveNoRemove(e) {
-			var myPos = $(this).offset();
-			myPos.bottom = $(this).offset().top + $(this).outerHeight();
-			myPos.right = $(this).offset().left + $(this).outerWidth();
-			if (myPos.bottom > e.pageY && e.pageY > myPos.bottom - 15 && myPos.right > e.pageX &&
-					e.pageX > myPos.right - 15) {
-				$(this).css({cursor: "e-resize"});
-			} else {
-				$(this).css({cursor: ""});
-			}
+		function confirmUnlock($textarea) {
+			var $this = $textarea;
+			var id = $.last_div.attr('data-zazz-id');
+			confirm('Warning', 'This code is linked to the template page (' + $('#-zazz-template-name').html()
+					+ ') and cannot be edited. ' +
+					'Zazz can unlink the code so that you can edit it, but then changes to the template will ' +
+					'not propagate to ' + id + ' of this page.',
+					function() {
+						updateCode(id, $this, getBlockType($this), $.codeActions.UNLINK);
+						$('.-zazz-code-block-' + id).each(function() {
+							$(this).removeClass('-zazz-code-locked').removeAttr('readonly');
+						});
+						$('#-zazz-modal-confirm').hide();
+					});
+			return;
 		}
 
 		function textareaClick(e) {
-			var myPos = $(this).offset();
-			myPos.left = $(this).offset().left;
+			var $this = $(this);
+			if ($this.hasClass('-zazz-code-locked')) {
+				confirmUnlock($this);
+			}
+
+			var myPos = $this.offset();
+			myPos.left = $this.offset().left;
 			if (18 + myPos.top > e.pageY && e.pageY > myPos.top && myPos.left + 18 > e.pageX &&
 					e.pageX > myPos.left) {
-				var $block = $(this);
+				var $block = $this;
 				var id = getZazzID($block);
-				updateCode(id, $block, getBlockType($block), false, true);
-				$(this).remove();
+				updateCode(id, $block, getBlockType($block), $.codeActions.DELETE);
+				$this.remove();
 				computeCodeLayout();
 			}
 		}
 
-		var noCSS = ".-zazz-html-code, .-zazz-php-code, .-zazz-mysql-code, .-zazz-js-code";
 		$(".-zazz-code-blocks")
-				.on('mousemove', noCSS, textareaMouseMove)
-				.on('click', noCSS, textareaClick)
-				.on('mousemove', ".-zazz-css-code", textareaMouseMoveNoRemove);
+				.on('mousemove', '.-zazz-code-block', textareaMouseMove)
+				.on('click', '.-zazz-code-block', textareaClick)
 		//$("textarea").mousemove(textareaMouseMove);
 		//$("textarea").click(textareaClick);
 
@@ -709,29 +765,29 @@ function doStuff() {
 		$('#-zazz-modal-database-edit').click(function() {
 			$('#-zazz-modal-database-form').submit();
 		});
-		
+
 		function moveCode(e) {
 			var $target = $(e.target);
-			if($target.hasClass('-zazz-code-block')) {
-				if(typeof $.move.from === "undefined") {
-					if($target.hasClass("-zazz-css-code")) {
+			if ($target.hasClass('-zazz-code-block')) {
+				if (typeof $.move.from === "undefined") {
+					if ($target.hasClass("-zazz-css-code")) {
 						warn('Warning', 'Cannot move CSS block.');
 					} else {
 						$.move.from = $target;
 					}
-				} else if($target[0] !== $.move.from[0]) {
+				} else if ($target[0] !== $.move.from[0]) {
 					$.move.to = parseInt($target.attr('data-zazz-order')) + 1;
 					var $textarea = $.move.from;
 					$.move.from = $textarea.attr('data-zazz-order');
-					updateCode($.last_div.attr('data-zazz-id'), $textarea, getBlockType($textarea), false, 
-						false, true);
-					if($.move.to === 1) {
+					updateCode($.last_div.attr('data-zazz-id'), $textarea, getBlockType($textarea),
+							$.codeActions.MOVE);
+					if ($.move.to === 1) {
 						$('#-zazz-code-column-0').prepend($textarea);
 					} else {
 						$textarea.insertAfter($target);
 					}
 					$textarea.attr('data-zazz-order', parseInt($target.attr('data-zazz-order')) + 1);
-					$textarea.nextAll().each(function(){
+					$textarea.nextAll().each(function() {
 						$(this).attr('data-zazz-order', parseInt($(this).attr('data-zazz-order')) + 1);
 					});
 					delete $.move.to;
@@ -740,15 +796,15 @@ function doStuff() {
 					$('.-zazz-move-btn').removeClass('-zazz-active-btn');
 				}
 				return false;
-			} else if(!$target.hasClass('-zazz-move-btn')) {
-				if(typeof $.move.from === 'undefined') {
+			} else if (!$target.hasClass('-zazz-move-btn')) {
+				if (typeof $.move.from === 'undefined') {
 					delete $.move.from;
 				}
 				$(document).off('click', moveCode);
 				$('.-zazz-move-btn').removeClass('-zazz-active-btn');
 			}
 		}
-		
+
 		$.move = new Array();
 		$('.-zazz-move-btn').click(function() {
 			$(this).addClass('-zazz-active-btn');
@@ -775,7 +831,7 @@ function doStuff() {
 		function createDiv(id, type) {
 			var div = $('<div></div>').addClass(type).attr("id", id);
 			if (type === "-zazz-element") {
-				div.attr('tabindex', '10').attr('data-zazz-order', '1').attr("data-zazz-id", id);
+				div.attr('tabindex', '10').attr("data-zazz-id", id);
 				addCSSCodeBlock(id);
 			}
 			return div;
@@ -818,8 +874,8 @@ function doStuff() {
 					}
 
 					var divWidth = $div.outerWidth();
-					var mouseOffsetLeft = e.pageX - $div.offset().left;
-					var mouseOffsetRight = divWidth - mouseOffsetLeft;
+					var mouseOffsetLeft = Math.round(e.pageX - $div.offset().left);
+					var mouseOffsetRight = Math.round(divWidth - mouseOffsetLeft);
 					var $other_div = createDiv('element-' + $.element_id, '-zazz-element');
 					$.element_id++;
 					if (fixedWidth) {
@@ -919,8 +975,8 @@ function doStuff() {
 					//Now we need to fix the heights of the divs by splitting across the point that was clicked.
 					var old_height = $div.outerHeight();
 					var top = $div.offset().top;
-					var mouseOffsetTop = e.pageY - top;
-					var mouseOffsetBottom = old_height - (e.pageY - top);
+					var mouseOffsetTop = Math.round(e.pageY - top);
+					var mouseOffsetBottom = Math.round(old_height - (e.pageY - top));
 					$div.css('min-height', mouseOffsetTop);
 					$other_div.css('min-height', mouseOffsetBottom);
 					if ($div.css('z-index') !== 'auto') {
@@ -945,6 +1001,7 @@ function doStuff() {
 						this.first_div = div;
 					} else if (div[0] !== this.first_div[0]) {
 						var $second_div = $(div);
+						var second_div_id = $second_div.attr('data-zazz-id');
 						var $first_div = $(this.first_div);
 						var $second_parent = $second_div.parent();
 						var $first_parent = $first_div.parent();
@@ -1027,6 +1084,10 @@ function doStuff() {
 						} else {
 							warn("Error", "These elements are neither in the same row or column.");
 						}
+						//Delete absorbed code blocks.
+						$('.-zazz-code-block-' + second_div_id).each(function() {
+							updateCode(second_div_id, $(this), getBlockType($(this)), $.codeActions.DELETE);
+						});
 						//Set focus and delete the stored first div.
 						$first_div.focus();
 						delete this.first_div;
@@ -1053,7 +1114,7 @@ function doStuff() {
 				} else if (document.activeElement.id === '-zazz-switch-project-btn') {
 					$('#-zazz-modal-view-projects').show().center();
 				} else if (document.activeElement.id === '-zazz-delete-project-btn') {
-					if ($("#-zazz-modal-view-pages .-zazz-links a").length > 1) {
+					if ($("#-zazz-modal-view-pages .-zazz-links a").length >= 1) {
 						confirm('Are you sure?', 'By deleting this project, you will remove all code and pages.',
 								function() {
 									$('#-zazz-loader-bar').promote();
@@ -1082,9 +1143,13 @@ function doStuff() {
 					$('#-zazz-modal-deploy-confirm').center().show();
 					$('#-zazz-dropdown-build').hide();
 				} else if (document.activeElement.id === '-zazz-view-btn') {
-					setTimeout(function() { $('#-zazz-dropdown-build').hide(); }, 500);
+					setTimeout(function() {
+						$('#-zazz-dropdown-build').hide();
+					}, 500);
 				} else if (document.activeElement.id === '-zazz-export-btn') {
-					setTimeout(function() { $('#-zazz-dropdown-build').hide(); }, 500); 
+					setTimeout(function() {
+						$('#-zazz-dropdown-build').hide();
+					}, 500);
 				} else {
 					$('#-zazz-dropdown-build').hide();
 				}
@@ -1116,15 +1181,21 @@ function doStuff() {
 				} else if (document.activeElement.id === '-zazz-switch-page-btn') {
 					$('#-zazz-modal-view-pages').show().center();
 				} else if (document.activeElement.id === '-zazz-delete-page-btn') {
-					if ($("#-zazz-modal-view-pages .-zazz-links a").length > 1) {
+					if ($("#-zazz-modal-view-pages .-zazz-links a").length >= 1) {
 						confirm('Are you sure?', 'By deleting this page, you will remove all code.',
 								function() {
 									$('#-zazz-loader-bar').promote();
 									$.post('/zazz/ajax/page.php', {
 										page_id: $('#-zazz-page-id').val(),
 										deleted: 'true'
-									}, function() {
-										window.location.href = "/zazz/index.php";
+									}, function(data) {
+										$('#-zazz-loader-bar').demote();
+										$('#-zazz-modal-confirm').hide();
+										if (trim(data) !== '') {
+											warn('Error', data);
+										} else {
+											window.location.href = "/zazz/index.php";
+										}
 									});
 								});
 					} else {
@@ -1177,6 +1248,12 @@ function doStuff() {
 			$('#-zazz-upload-form').submit();
 		});
 		function addCodeBlock(className, forID) {
+			var $locked = $('.-zazz-code-block:visible').first();
+			if ($locked.hasClass('-zazz-code-locked')) {
+				confirmUnlock($locked);
+				return;
+			}
+
 			var $forID = $('.-zazz-element[data-zazz-id="' + forID + '"]');
 			var order;
 			if ($forID.length === 0) {
@@ -1190,13 +1267,26 @@ function doStuff() {
 			return $textarea;
 		}
 
+		$('.-zazz-editor-btn').click(function() {
+			tinymce.activeEditor.setContent($.htmlEdit.val());
+			$('#-zazz-modal-html-editor').center().show();
+		});
+
+		$('#-zazz-html-editor-code').click(function() {
+			$.htmlEdit.html(tinymce.activeEditor.getContent());
+			$('#-zazz-modal-html-editor').hide();
+			updateCode($.last_div.attr('data-zazz-id'), $.htmlEdit, 'html', $.codeActions.UPDATE);
+			computeCodeHeight($.htmlEdit);
+			computeCodeLayout();
+		});
+
 		function addCodeButton(type) {
 			var id = $.last_div.attr("data-zazz-id");
 			var $block = addCodeBlock('-zazz-' + type + '-code', id);
 			$('.-zazz-code-blocks').append($block);
 			computeCodeHeight($block);
 			$block.fadeIn(300).focus();
-			updateCode(id, $block, type, true);
+			updateCode(id, $block, type, $.codeActions.INSERT);
 			computeCodeLayout();
 		}
 
@@ -1215,8 +1305,9 @@ function doStuff() {
 		function addCSSCodeBlock(id) {
 			var $block = addCodeBlock('-zazz-css-code', id);
 			$block.val('#' + id + ' {\n\n' + '}');
-			$('.-zazz-code-blocks').append($block);
-			updateCode(id, $block, 'css', true);
+			$('.-zazz-code-blocks').prepend($block);
+			$block.hide();
+			updateCode(id, $block, 'css', $.codeActions.INSERT);
 		}
 
 		function start() {
@@ -1242,6 +1333,17 @@ function doStuff() {
 				warn('Error',
 						'Could not find jQuery file specified in HTML header. Loaded a copy from Zazz instead.');
 			}
+
+			tinymce.init({
+				height : 400,
+				selector: "#-zazz-html-editor",
+				plugins: [
+					"advlist autolink lists link charmap print preview anchor",
+					"searchreplace visualblocks code fullscreen",
+					"insertdatetime media table contextmenu paste"
+				],
+				toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
+			});
 		}
 
 		start();
@@ -1321,8 +1423,8 @@ function initJQuery() {
 	if (typeof(jQuery) === 'undefined') {
 		if (!jQueryScriptOutputted) {
 			jQueryScriptOutputted = true;
-			document.write('<script type="text/javascript" ' +
-					'src="/zazz/js/jquery-1.10.2.js"></script>');
+			document.write('<script type="text/javascript" src="/zazz/js/jquery-1.10.2.js">' + 
+					'</script><script src="/zazz/js/tinymce.min.js" type="text/javascript"></script>');
 		}
 		setTimeout("initJQuery()", 50);
 	} else {

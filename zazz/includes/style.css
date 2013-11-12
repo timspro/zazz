@@ -8,7 +8,7 @@
 }
 
 body {
-	background-color: #6699ff;
+	background-color: #dddddd;
 	overflow: hidden;
 }
 
@@ -57,16 +57,16 @@ body {
 	height: auto;
 	display: none;
 	z-index: 50;
-	background-color: black;
+	background-color: #111111;
 	text-align: center;
 	border-radius: 10px;
-	box-shadow: 0px 10px 20px #2f2f2f;
-	border: solid 1px black;
+	box-shadow: 0px 3px 6px #444444;
 	overflow: hidden;
 }
 
 .-zazz-modal .-zazz-links a:link, .-zazz-modal .-zazz-links a:visited {
 	color: white;
+	text-decoration: none;
 }
 
 .-zazz-modal .-zazz-links a:hover {
@@ -78,20 +78,21 @@ body {
 }
 
 .-zazz-modal-header {
-	background-color: #303030;
-	color: white;
+	background-color: #eeeeee;
+	color: #111111;
 	font-family: arial;
 	font-size: 20px;
 	height: 35px;
 	padding: 5px;
 	width: 100%;
+	border: #cccccc solid 1px;
 }
 
 .-zazz-modal-body {
 	padding: 10px;
 	width: 100%;
 	height: auto;
-	color: white;
+	color: #eeeeee;
 	font-family: arial;
 }
 
@@ -107,6 +108,11 @@ body {
 	padding: 5px;
 	font-family: arial;
 	font-size: 14px;
+}
+
+.-zazz-modal select {
+	font-family: arial;
+	font-size: 14px;	
 }
 
 .-zazz-modal input[type="text"], *.-zazz-modal input[type="password"] {
@@ -141,15 +147,21 @@ body {
 #-zazz-modal-mouse {
 	width: 300px;
 	margin: 10px;
-	background-color: #303030;
+	background-color: #eeeeee;
+	border: #cccccc 1px solid;
+}
+
+#-zazz-modal-mouse .-zazz-modal-body {
+  color: #222222;
+	font-size: 14px;
 }
 
 .-zazz-modal-files {
 	padding: 10px 0px;
 	width: 100%;
 	height: 100%;
-	background-color: black;
-	color: white;
+	background-color: #111111;
+	color: #eeeeee;
 	font-family: arial;
 	text-align: center;
 	overflow-y: auto;
@@ -158,11 +170,12 @@ body {
 .-zazz-modal-files table {
 	width: 100%;
 	text-align: center;
-	color: white;
+	color: #eeeeee;
 }
 
 .-zazz-modal-files a:link, .-zazz-modal-files a:visited {
 	color: white;
+	text-decoration: none;
 }
 
 .-zazz-modal-files a:hover {
@@ -181,8 +194,6 @@ body {
 	height: 26px;
 }
 
-
-
 /*------------------------------------------NAVBAR------------------------------------------------*/
 
 .-zazz-navbar input {
@@ -190,6 +201,9 @@ body {
 	border: 1px #c8c8c8 solid;
 	padding: 5px;
 	margin-right: 8px;
+	margin-top: 1px;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 14px;
 }
 
 .-zazz-navbar select {
@@ -198,6 +212,8 @@ body {
 	padding: 5px;
 	margin-right: 8px;
 	width: 80px;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 14px;
 }
 
 .-zazz-navbar {
@@ -251,10 +267,6 @@ body {
 
 .-zazz-btn:hover {
 	background-color: #d4d4d4;
-}
-
-.-zazz-code-btn, .-zazz-zazz-btn {
-	font-weight: bold;
 }
 
 .-zazz-btn-group {
@@ -312,7 +324,11 @@ body {
 	line-height: 100%;
 }
 
-#-zazz-fixed, #-zazz-loader-bar {
+#-zazz-modal-html-editor {
+	width: 75%;
+}
+
+#-zazz-fixed, #-zazz-loader-bar, .-zazz-editor-container {
 	display: none;
 	height: 100%;
 }
@@ -323,7 +339,7 @@ body {
 }
 
 .-zazz-fixed-status-btn {
-	width: 160px;
+	width: 210px;
 }
 
 #-zazz-fixed-horizontal {
@@ -338,16 +354,8 @@ body {
 	width: 50px;
 }
 
-.-zazz-id-input {
-	width: 110px;
-	-moz-user-select: none;
-	-khtml-user-select: none;
-	-webkit-user-select: none;
-	-ms-user-select: none;
-}
-
-.-zazz-class-input {
-	width: 165px;
+.-zazz-id-input, .-zazz-class-input {
+	width: 160px;
 	-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
@@ -375,7 +383,7 @@ body {
 
 .-zazz-code-blocks {
 	position: absolute;
-	top: 35px;
+	top: 37px;
 	bottom: 0px;
 	width: 100%;
 	background-color: #111111;
@@ -385,6 +393,7 @@ body {
 
 .-zazz-code-block {
 	width: 100%;
+	max-height: 100%;
 	background-color: transparent;
 	resize: horizontal;
 	overflow: hidden;
@@ -404,6 +413,7 @@ body {
 	white-space: pre;
 }
 
+
 .-zazz-code-column {
 	height: 100%;
 	width: 50%;
@@ -411,7 +421,6 @@ body {
 	vertical-align: top;
 	overflow-y: auto;
 	overflow-x: hidden;
-	padding: 2px 0px;
 }
 
 .-zazz-code-blocks .-zazz-css-code {
@@ -477,6 +486,10 @@ body {
 	width: 50%;
 }
 
+.-zazz-code-locked {
+	background-image: url("images/lock.png");
+}
+
 .-zazz-display {
 	display: none;
 	position: absolute;
@@ -493,12 +506,14 @@ body {
 .-zazz-dropdown {
 	display: none;
 	position: absolute;
-	background-color: #303030;
-	border: black 1px solid;
+	background-color: #eeeeee;
+	border: #cccccc 1px solid;
 	width: 67px;
 	height: auto;
 	display: none;
 	z-index: 50;
 	text-align: center;
-	color: white;
+	color: #111111;
+	font-family: arial;
+	font-size: 14px;
 }

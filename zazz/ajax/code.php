@@ -5,12 +5,14 @@ require_once dirname(__FILE__) . '/../includes/custom/functions.php';
 Authenticate::get()->check(false);
 $user_id = Authenticate::get()->getUser('user_id');
 
+$page_id = intval($_REQUEST['page_id']);
+
 if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['zazz_order'])
-	&& isset($_REQUEST['page_id'])) {
-	$check = verifyPage($_REQUEST['page_id'], $user_id);
+	&& isset($page_id)) {
+	$check = verifyPage($page_id, $user_id);
 	if ($check) {
 		$run = true;
-		$updatePageID = $_REQUEST['page_id'];
+		$updatePageID = $page_id;
 		if ($_REQUEST['zazz_id'] === 'begin-project') {
 			$run = false;
 			$updatePageID = $check[0]['project_start'];
@@ -39,7 +41,7 @@ if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['
 				'page_id = :page_id AND zazz_id = :zazz_id AND zazz_order >= ' . intval($_REQUEST['moveTo']) .
 				' ORDER BY zazz_order DESC; UPDATE code SET zazz_order = ' . intval($_REQUEST['moveTo']) . 
 				' WHERE page_id = :page_id AND zazz_id = :zazz_id AND zazz_order = :zazz_order');
-			$query->bindValue(':page_id', $_REQUEST['page_id']);
+			$query->bindValue(':page_id', $page_id);
 			$query->bindValue(':zazz_id', $_REQUEST['zazz_id']);
 			$zazz_order = intval($_REQUEST['zazz_order']);
 			if($zazz_order >= intval($_REQUEST['moveTo'])) {
@@ -49,14 +51,22 @@ if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['
 			$query->execute();			
 			$query->closeCursor();
 		}
+		
+		if (isset($_REQUEST['unlink'])) {
+			$query = Database::get()->PDO()->prepare('INSERT INTO code (zazz_id, page_id, type, code, ' .
+				'zazz_order) SELECT zazz_id, ' . $page_id . ', type, code, zazz_order FROM code WHERE ' .
+				'page_id = ' . intval($check[0]['template']) . ' AND zazz_id = :zazz_id');
+			$query->bindValue(':zazz_id', $_REQUEST['zazz_id']);
+			$query->execute();			
+		}
 
 		$basedir = dirname(__FILE__) . '/../view/' . $user_id . '/' . $check[0]['project'] . '/';
 		if ($run) {
-			processCode($check[0]['project_start'], $check[0]['project_end'], $_REQUEST['page_id'],
-				$_REQUEST['zazz_id'], $basedir);
+			processCode($check[0]['project_start'], $check[0]['project_end'], $page_id,
+				$_REQUEST['zazz_id'], $basedir, $check[0]['template']);
 		} else {
 			echo getComputedLayout($check[0]['project_start'], $check[0]['project_end'], 
-				$_REQUEST['page_id'], $basedir);
+				$page_id, $basedir, $check[0]['template']);
 		}
 	}
 }

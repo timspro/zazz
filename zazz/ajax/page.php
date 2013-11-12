@@ -4,7 +4,8 @@ require_once dirname(__FILE__) . '/../includes/custom/functions.php';
 
 Authenticate::get()->check(false);
 $user_id = Authenticate::get()->getUser('user_id');
-if (!verifyPage($_REQUEST['page_id'], $user_id)) {
+$check = verifyPage($_REQUEST['page_id'], $user_id);
+if (!$check) {
 	return;
 }
 
@@ -25,13 +26,12 @@ if (isset($_REQUEST['create']) && isset($_REQUEST['page_id'])) {
 		echo 'Must have a page name.';
 		return;
 	}
-	if(!ctype_alnum($_REQUEST['create'])) {
-		echo 'You may only have letters or numbers in the page name.';
+	if(!validateFilename($_REQUEST['create'])) {
+		echo 'You may only have letters, numbers, hyphen, underscore or period in the page name.';
 		return;
 	}
 	try {
-		$project_id = _Page::get()->retrieve('project_id', array(), array('page_id' => $_REQUEST['page_id']));
-		$project_id = $project_id[0]['project_id'];		
+		$project_id = $check[0]['project_id'];		
 		
 		$template = '';
 		if(isset($_REQUEST['template']) && !empty($_REQUEST['template'])) {
@@ -46,8 +46,20 @@ if (isset($_REQUEST['create']) && isset($_REQUEST['page_id'])) {
 }
 
 if (isset($_REQUEST['deleted']) && isset($_REQUEST['page_id'])) {
+	$result = _Page::get()->retrieve('page_id', array(), array('template' => $_REQUEST['page_id']));
+	if(!empty($result)) {
+		echo 'You cannot delete a template if there are still pages referencing it.';
+		return;
+	}
 	_Page::get()->delete(array('page_id' => $_REQUEST['page_id']));
 	_Code::get()->delete(array('page_id' => $_REQUEST['page_id']));
 	_Layout::get()->delete(array('page_id' => $_REQUEST['page_id']));
+	$project_id = intval($check[0]['project_id']);
+	$query = Database::get()->PDO()->prepare("SELECT page_id FROM page WHERE project_id = $project_id AND " . 
+		"page NOT IN ('begin-project', 'end-project')");
+	$query->execute();
+	$result = $query->fetchAll(PDO::FETCH_ASSOC);
+	_Project::get()->update(array('default_page' => $result[0]['page_id']), 
+		array('project_id' => $project_id));
 }
 ?>

@@ -41,6 +41,15 @@ array (
     'Default' => 'b\'1\'',
     'Extra' => '',
   ),
+  'template' => 
+  array (
+    'Field' => 'template',
+    'Type' => 'int(11) unsigned',
+    'Null' => 'NO',
+    'Key' => '',
+    'Default' => '0',
+    'Extra' => '',
+  ),
 ); 
 }
 public function getIndexes() { return 

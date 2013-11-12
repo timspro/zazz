@@ -45,7 +45,7 @@ GRANT ALL PRIVILEGES ON $dbname.* TO '$dbusername'@'localhost';");
 		exit();
 	}
 	
-	$firstProject = 'project-1';
+	$firstProject = 'project';
 	createProject($firstProject, $user_id);
 }
 

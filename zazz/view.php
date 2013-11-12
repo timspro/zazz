@@ -145,7 +145,7 @@ foreach ($generate_pages as $generate_page) {
 	if($page_info['visible'] === '0') {
 		continue;
 	}
-	$page_id = $page_info['page_id'];
+	$page_id = intval($page_info['page_id']);
 	if (empty($page_id)) {
 		//Perhaps just a resource file. Still need to check that the user owns the project and that 
 		//$page doesn't have ..
@@ -180,46 +180,60 @@ foreach ($generate_pages as $generate_page) {
 	$html_header = $project_html_header;
 	$html_footer = $project_html_footer;
 
-	$blocks = _Code::get()->retrieve(array('code', 'type', 'zazz_id'), array(),
-		array('page_id' => $page_id), 'zazz_order');
+	$template = intval($page_info['template']);
+	$query = Database::get()->PDO()->prepare("SELECT code, type, zazz_id,zazz_order FROM code WHERE page_id = 
+		$page_id OR page_id = $template ORDER BY zazz_id ASC, zazz_order ASC, page_id DESC");
+	$query->execute();
+	$blocks = $query->fetchAll(PDO::FETCH_ASSOC);
+	$start_index = array();
+	$end_index = array();
 	for ($i = 0; $i < count($blocks); $i++) {
 		if ($blocks[$i]['zazz_id'] === 'begin-web-page') {
-			$start_index = $i;
-		}
-		if ($blocks[$i]['zazz_id'] === 'end-web-page') {
-			$end_index = $i;
+			$start_index[] = $i;
+			processBlock($blocks[$i], $php_header, $css, $js, $html_header);
+		} else if ($blocks[$i]['zazz_id'] === 'end-web-page') {
+			$end_index[] = $i;
+			processBlock($blocks[$i], $php_footer, $css, $js, $html_footer);
 		}
 	}
 
-	processBlock($blocks[$start_index], $php_header, $css, $js, $html_header);
-	processBlock($blocks[$end_index], $php_footer, $css, $js, $html_footer);
-	unset($blocks[$start_index]);
-	unset($blocks[$end_index]);
+	foreach($start_index as $index) {
+		unset($blocks[$index]);
+	}
+	foreach($end_index as $index) {
+		unset($blocks[$index]);
+	}
 
 	$layout = $html_header . getLayout($page_id) . $html_footer;
 	require_once dirname(__FILE__) . '/includes/custom/simple_html_dom.php';
 	$html = new simple_html_dom();
 	$html->load($layout);
+	$zazz_order = -1;
+	$zazz_id = '!';
 	foreach ($blocks as $block) {
-		switch ($block['type']) {
-			case 'css':
-				$css .= $block['code'] . "\n\n";
-				break;
-			case 'html':
-				addCode($html, $block['zazz_id'], "\n" . $block['code'] . "\n");
-				break;
-			case 'mysql':
-				if (!empty($block['code'])) {
-					$code = prepareQuery($block['code']);
-					addCode($html, $block['zazz_id'], $code);
-				}
-				break;
-			case 'php':
-				addCode($html, $block['zazz_id'], "\n<?php\n" . $block['code'] . "\n?>\n");
-				break;
-			case 'js':
-				$js .= $block['code'] . "\n\n";
-				break;
+		if($zazz_id !== $block['zazz_id'] || $zazz_order !== $block['zazz_order']) {
+			switch ($block['type']) {
+				case 'css':
+					$css .= $block['code'] . "\n\n";
+					break;
+				case 'html':
+					addCode($html, $block['zazz_id'], "\n" . $block['code'] . "\n");
+					break;
+				case 'mysql':
+					if (!empty($block['code'])) {
+						$code = prepareQuery($block['code']);
+						addCode($html, $block['zazz_id'], $code);
+					}
+					break;
+				case 'php':
+					addCode($html, $block['zazz_id'], "\n<?php\n" . $block['code'] . "\n?>\n");
+					break;
+				case 'js':
+					$js .= $block['code'] . "\n\n";
+					break;
+			}
+			$zazz_id = $block['zazz_id'];
+			$zazz_order = $block['zazz_order'];
 		}
 	}
 

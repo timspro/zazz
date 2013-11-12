@@ -1,18 +1,32 @@
 <?php
 
-function getCodeBlocks($page_id, $project_start, $project_end) {
+function getCodeBlocks($page_id, $project_start, $project_end, $template) {
 	$page_id = intval($page_id);
 	$project_start = intval($project_start);
 	$project_end = intval($project_end);
-	$query = Database::get()->PDO()->prepare("SELECT zazz_id, code, type, zazz_order FROM code WHERE " .
-		"page_id = $page_id OR page_id = $project_start OR page_id = $project_end ORDER BY zazz_order");
+	$template = intval($template);
+	$query = Database::get()->PDO()->prepare("SELECT zazz_id, code, type, zazz_order, page_id FROM code WHERE " .
+		"page_id = $page_id OR page_id = $project_start OR page_id = $project_end OR page_id = $template " .
+		"ORDER BY zazz_id ASC, zazz_order ASC, page_id DESC");
 	$query->execute();
 	$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+	$zazz_order = -1;
+	$zazz_id = '!';
 	foreach ($rows as $row) {
-		echo '<textarea class="-zazz-code-block -zazz-' . $row["type"] . '-code 
-							-zazz-code-block-' . $row['zazz_id'] . '" 
-							spellcheck="false" tabindex="10" data-zazz-order="' . $row['zazz_order'] . '" 
-							style="display: none;" wrap="off">' . $row['code'] . '</textarea>';
+		if ($zazz_id !== $row['zazz_id'] || $zazz_order !== $row['zazz_order']) {
+			$uneditable = '';
+			$locked = '';
+			if ($template === intval($row['page_id'])) {
+				$uneditable = 'readonly';
+				$locked = '-zazz-code-locked ';
+			}
+			echo '<textarea class="' . $locked . '-zazz-code-block -zazz-' . $row["type"] . '-code 
+								-zazz-code-block-' . $row['zazz_id'] . '" 
+								spellcheck="false" tabindex="10" data-zazz-order="' . $row['zazz_order'] . '" 
+								style="display: none;" wrap="off" ' . $uneditable . '>' . $row['code'] . '</textarea>';
+			$zazz_id = $row['zazz_id'];
+			$zazz_order = $row['zazz_order'];
+		}
 	}
 }
 
@@ -93,15 +107,29 @@ if (empty($page_info)) {
 	return;
 }
 $page_id = $page_info['page_id'];
+$template = intval($page_info['template']);
+$template_name = '';
+if (!empty($template)) {
+	$template_name = _Page::get()->retrieve('page', array(), array('page_id' => $template));
+	$template_name = $template_name[0]['page'];
+}
 
 $page_id = intval($page_id);
 $project_start = intval($project_start);
 $project_end = intval($project_end);
-$query = Database::get()->PDO()->prepare("SELECT code FROM code WHERE type = 'html' AND page_id IN (" .
-	"$page_id, $project_start, $project_end) AND zazz_id IN ('begin-project', 'end-project'," .
-	"'begin-web-page','end-web-page') ORDER BY zazz_id, zazz_order");
+$query = Database::get()->PDO()->prepare("SELECT code, zazz_id FROM code WHERE type = 'html' AND page_id IN (" .
+	"$page_id, $project_start, $project_end, $template) AND zazz_id IN ('begin-project', 'end-project'," .
+	"'begin-web-page','end-web-page') ORDER BY zazz_id, zazz_order, page_id DESC");
 $query->execute();
-$code = $query->fetchAll(PDO::FETCH_COLUMN, 0);
+$results = $query->fetchAll(PDO::FETCH_ASSOC);
+$zazz_id = '';
+$code = array();
+foreach ($results as $result) {
+	if ($zazz_id !== $result['zazz_id']) {
+		$code[] = $result['code'];
+		$zazz_id = $result['zazz_id'];
+	}
+}
 $frame = implode('', $code);
 
 require_once dirname(__FILE__) . '/includes/custom/simple_html_dom.php';
@@ -109,14 +137,21 @@ $html = new simple_html_dom();
 $html->load($frame);
 if ($html->find('body', 0) && $html->find('head', 0)) {
 	$foundJquery = false;
+	$foundMCE = false;
 	foreach ($html->find('script') as $element) {
 		if (strrpos($element->getAttribute('src'), 'jquery') !== false) {
 			$foundJquery = true;
+		}
+		if (strrpos($element->getAttribute('src'), 'tinymce') !== false) {
+			$foundMCE = true;
 		}
 	}
 	if (!$foundJquery) {
 		$code[2] = '<script src="/zazz/js/jquery-1.10.2.js" type="text/javascript"></script>'
 			. $code[2];
+	}
+	if (!$foundMCE) {
+		$code[2] .= '<script src="/zazz/js/tinymce.min.js" type="text/javascript"></script>';
 	}
 	$bad_html = false;
 	ob_start();
@@ -145,6 +180,14 @@ if ($bad_html) {
 			<div class="-zazz-modal-footer">
 				<input type="button" class="-zazz-modal-close" value="Cancel" />
 				<input type="button" class="-zazz-modal-button" value="Continue" />
+			</div>
+		</div>
+		<div id="-zazz-modal-html-editor" class="-zazz-modal">
+			<div class="-zazz-modal-header">Editor</div>
+			<div class="-zazz-modal-body"><textarea id="-zazz-html-editor"></textarea></div>
+			<div class="-zazz-modal-footer">
+				<input type="button" class="-zazz-modal-close" value="Cancel" />
+				<input type="button" id="-zazz-html-editor-code" class="-zazz-modal-button" value="Code" />
 			</div>
 		</div>
 		<div id="-zazz-modal-deploy-confirm" class="-zazz-modal">
@@ -185,6 +228,16 @@ if ($bad_html) {
 					<tr>
 						<td>Page Height: </td>
 						<td><input id="-zazz-page-height" type="text" /></td>
+					</tr>
+					<tr>
+						<?php
+						if (!empty($template_name)) {
+							?>
+							<td>Template: </td>
+							<td id="-zazz-template-name"><?= $template_name ?></td>
+							<?php
+						}
+						?>
 					</tr>
 				</table>
 			</div>
@@ -338,7 +391,8 @@ if ($bad_html) {
 						<td>Template:</td>
 						<td><select id="-zazz-page-template"><option></option><?php
 								foreach ($viewPages as $viewPage) {
-									if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project') {
+									if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project'
+										&& intval($viewPage['template']) === 0) {
 										echo '<option>' . $viewPage['page'] . '</option>';
 									}
 								}
@@ -419,8 +473,8 @@ if ($bad_html) {
 							></select
 						><span class="-zazz-divider"></span></span
 					><span id="-zazz-fixed-status-btn"
-						><span class="-zazz-fixed-status-btn">W: 0 H: 0</span><span class="-zazz-divider"></span
-					></span>
+								 ><span class="-zazz-fixed-status-btn">W: 0 H: 0</span><span class="-zazz-divider"></span
+						></span>
 				</span>
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span id='-zazz-loader-bar'><span class="-zazz-divider"></span
@@ -430,19 +484,18 @@ if ($bad_html) {
 					><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-upload-btn -zazz-btn">Upload</span
 					><span class="-zazz-divider"></span
-					><!--<span tabindex="10" class="-zazz-save-all-btn -zazz-btn">Layer</span
-					>--><span tabindex="10" class="-zazz-page-btn -zazz-btn">Page</span
+					><span tabindex="10" class="-zazz-page-btn -zazz-btn">Page</span
 					><span tabindex="10" class="-zazz-project-btn -zazz-btn">Project</span
 					><span tabindex="10" class ="-zazz-build-btn -zazz-btn">Build</span
 					><span class="-zazz-divider"></span
 					><a tabindex="10" id="-zazz-logout-btn" class="-zazz-btn"
-								 href="/zazz/logout.php">Logout</a><span class="-zazz-divider"></span>
+							href="/zazz/logout.php">Logout</a><span class="-zazz-divider"></span>
 				</span>
 			</div>
 			<div class="-zazz-content-view">
 				<?php
 				$basedir = dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/';
-				echo getComputedLayout($project_start, $project_end, $page_id, $basedir);
+				echo getComputedLayout($project_start, $project_end, $page_id, $basedir, $template);
 				?>
 			</div>
 		</div>
@@ -456,7 +509,9 @@ if ($bad_html) {
 								 /><span class="-zazz-divider"></span
 					></span>
 				<span class="-zazz-btn-group -zazz-set-right">
-					<span class="-zazz-divider"></span
+					<span class='-zazz-editor-container'><span class="-zazz-divider"></span
+					><span tabindex="10" class="-zazz-editor-btn -zazz-btn">Editor</span
+					></span><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-move-btn -zazz-btn">Move Up</span
 					><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-html-btn -zazz-btn">HTML</span
@@ -468,7 +523,7 @@ if ($bad_html) {
 					><span tabindex="10" class="-zazz-export-btn -zazz-btn">Export</span>--></span>
 			</div>
 			<div class="-zazz-code-blocks"><?php
-				getCodeBlocks($page_id, $project_start, $project_end);
+				getCodeBlocks($page_id, $project_start, $project_end, $template);
 				?></div>
 		</div>
 		<input id="-zazz-page-id" type="hidden" value="<?= $page_id ?>" />

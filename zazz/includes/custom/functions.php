@@ -110,13 +110,13 @@ function getDefaultLayout() {
 	?>
 	<div id="content" class="-zazz-content"
 			 data-zazz-rid='1' data-zazz-gid='1' data-zazz-eid='1'><div class="-zazz-hidden"><div
-				id="begin-project" class="-zazz-element" tabindex="10" data-zazz-id="begin-project" data-zazz-order="1"></div><div
-				id="end-project" class="-zazz-element" tabindex="10" data-zazz-id="end-project" data-zazz-order="1"></div><div
-				id="begin-web-page" class="-zazz-element" tabindex="10" data-zazz-id="begin-web-page" data-zazz-order="1"></div><div
-				id="end-web-page" class="-zazz-element" tabindex="10" data-zazz-id="end-web-page" data-zazz-order="1"></div></div><div 
+				id="begin-project" class="-zazz-element" tabindex="10" data-zazz-id="begin-project"></div><div
+				id="end-project" class="-zazz-element" tabindex="10" data-zazz-id="end-project"></div><div
+				id="begin-web-page" class="-zazz-element" tabindex="10" data-zazz-id="begin-web-page"></div><div
+				id="end-web-page" class="-zazz-element" tabindex="10" data-zazz-id="end-web-page"></div></div><div 
 			id="row-group-0" class="-zazz-row-group"><div 
 				id="row-0" class="-zazz-row"><div 
-					id="element-0" data-zazz-order="1" tabindex="10" class="-zazz-element" data-zazz-id="element-0"
+					id="element-0" tabindex="10" class="-zazz-element" data-zazz-id="element-0"
 					style="min-height: 1000px;"></div
 				></div
 			></div
@@ -152,19 +152,22 @@ body, html {
 }
 
 body {
-  background-color: #6699ff;
+  background-color: #dddddd;
 }
 
 .-zazz-content {
   width: 100%;
   vertical-align: top;
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: white;
 }
 
 .-zazz-element {
   display: inline-block;
   width: 100%;
   vertical-align: top;
-  border: 2px dashed blue;
+  border: 1px solid #c3c3c3;
 }
 
 .-zazz-container {
@@ -245,7 +248,7 @@ function createProject($project_name, $user_id) {
 	$userData = _User::get()->retrieve(array('dbname', 'dbusername', 'dbpassword'), array(),
 		array('user_id' => $user_id));
 	$id = _Project::get()->create(array('project' => $project_name, 'user_id' => $user_id));
-	$page_id = createPage('index.php', $id);
+	$page_id = createPage('home', $id);
 	_User::get()->update(array('active_project' => $id), array('user_id' => $user_id));
 	$start_page_id = _Page::get()->create(array('page' => 'begin-project', 'project_id' => $id));
 	_Code::get()->create(array('zazz_id' => 'begin-project', 'page_id' => $start_page_id,
@@ -265,8 +268,9 @@ function createProject($project_name, $user_id) {
 }
 
 function createPage($page_name, $project_id, $template = '') {
-	$page_id = _Page::get()->create(array('page' => $page_name, 'project_id' => $project_id));
 	if (empty($template)) {
+		$page_id = _Page::get()->create(array('page' => $page_name, 'project_id' => $project_id,
+			'template' => '0'));
 		_Code::get()->create(array('zazz_id' => 'element-0', 'page_id' => $page_id, 'type' => 'css',
 			'code' => "#element-0 {\n\n}", 'zazz_order' => '0'));
 		_Code::get()->create(array('zazz_id' => 'begin-web-page', 'page_id' => $page_id, 'type' => 'css',
@@ -283,34 +287,39 @@ function createPage($page_name, $project_id, $template = '') {
 			array('page' => $template,
 			'project_id' => $project_id));
 		$template = intval($template[0]['page_id']);
-		$page_id = intval($page_id);
-		$query = Database::get()->PDO()->prepare('INSERT INTO code (zazz_id, page_id, type, code, ' .
-			'zazz_order) SELECT zazz_id, ' . $page_id . ', type, code, zazz_order FROM code WHERE ' .
-			'page_id = ' . $template);
-		$query->execute();
+		$page_id = _Page::get()->create(array('page' => $page_name, 'project_id' => $project_id,
+			'template' => $template));
+		$page_id = intval($page_id);	
+//		$query = Database::get()->PDO()->prepare('INSERT INTO code (zazz_id, page_id, type, code, ' .
+//			'zazz_order) SELECT zazz_id, ' . $page_id . ', type, code, zazz_order FROM code WHERE ' .
+//			'page_id = ' . $template);
+//		$query->execute();
 		$layout = _Layout::get()->retrieve('layout', array(), array('page_id' => $template));
 		_Layout::get()->create(array('page_id' => $page_id, 'layout' => $layout[0]['layout']));
 	}
 	return $page_id;
 }
 
-function getPageCode($project_start_id, $project_end_id, $page_id, $zazz_id) {
+function getPageCode($project_start_id, $project_end_id, $page_id, $zazz_id, $template = '') {
 	$project_end_id = intval($project_end_id);
 	$project_start_id = intval($project_start_id);
+	$template = intval($template);
 	$page_id = intval($page_id);
 	//Get the code for the page.
-	$query = Database::get()->PDO()->prepare("(SELECT code, type FROM code WHERE "
-		. "((zazz_id IN ('begin-web-page', 'end-web-page') AND page_id = $page_id) OR "
+	$query = Database::get()->PDO()->prepare("(SELECT code, type, zazz_id, zazz_order FROM code WHERE "
+		. "((zazz_id IN ('begin-web-page', 'end-web-page') AND (page_id = $page_id OR page_id = $template)) OR "
 		. "page_id = $project_start_id OR page_id = $project_end_id) AND type NOT IN ('css','js','html') "
-		. "ORDER BY zazz_id, zazz_order)");
+		. "ORDER BY zazz_id, zazz_order, page_id DESC)");
 	$query->execute();
 	$result = $query->fetchAll(PDO::FETCH_ASSOC);
 	//Get the code for the element.
-	$query = Database::get()->PDO()->prepare("(SELECT code, type FROM code WHERE zazz_id = :zazz_id "
-		. "AND page_id = $page_id AND type NOT IN ('css','js') ORDER BY zazz_order)");
+	$query = Database::get()->PDO()->prepare("(SELECT code, type, zazz_id, zazz_order FROM code WHERE "
+		. "zazz_id = :zazz_id AND (page_id = $page_id OR page_id = $template) AND type NOT IN ('css','js') "
+		. "ORDER BY zazz_id, zazz_order ASC, page_id DESC)");
 	$query->bindValue(':zazz_id', $zazz_id);
 	$query->execute();
-	$result = array_merge($result, $query->fetchAll(PDO::FETCH_ASSOC));
+	$result = array_merge(array_slice($result, 0, 2), $query->fetchAll(PDO::FETCH_ASSOC),
+		array_slice($result, 2));
 	return $result;
 }
 
@@ -341,12 +350,12 @@ function evaluate($ZAZZ_PHP) {
 	eval($ZAZZ_PHP);
 }
 
-function processCode($project_start, $project_end, $page_id, $zazz_id, $basedir) {
+function processCode($project_start, $project_end, $page_id, $zazz_id, $basedir, $template = '') {
 	if ($zazz_id === 'begin-project' || $zazz_id === 'end-project' || $zazz_id === 'begin-web-page' || $zazz_id ===
 		'end-web-page') {
 		return;
 	}
-	$_ZAZZ_BLOCKS = getPageCode($project_start, $project_end, $page_id, $zazz_id);
+	$_ZAZZ_BLOCKS = getPageCode($project_start, $project_end, $page_id, $zazz_id, $template);
 	unset($_REQUEST);
 	unset($_GET);
 	unset($_POST);
@@ -361,10 +370,16 @@ function processCode($project_start, $project_end, $page_id, $zazz_id, $basedir)
 	$php = '';
 	$css = '';
 	$js = '';
+	$zazz_order = -1;
+	$zazz_id = '!';
 	foreach ($_ZAZZ_BLOCKS as $_ZAZZ_BLOCK) {
-		processBlock($_ZAZZ_BLOCK, $php, $css, $js, $php, false);
+		if($zazz_order !== intval($_ZAZZ_BLOCK['zazz_order']) || $zazz_id !== $_ZAZZ_BLOCK['zazz_id']) {
+			processBlock($_ZAZZ_BLOCK, $php, $css, $js, $php, false);
+			$zazz_id = $_ZAZZ_BLOCK['zazz_id'];
+			$zazz_order = intval($_ZAZZ_BLOCK['zazz_order']);
+		}
 	}
-	
+
 	evaluate($php);
 }
 
@@ -387,7 +402,7 @@ function processBlock($block, &$php, &$css, &$js, &$html, $phptags = true) {
 			$css .= $block['code'] . "\n";
 			break;
 		case 'html':
-			if($phptags) {
+			if ($phptags) {
 				$html .= $block['code'] . "\n";
 			} else {
 				$html .= "?>\n" . $block['code'] . "\n<?php\n;\n";
@@ -399,7 +414,7 @@ function processBlock($block, &$php, &$css, &$js, &$html, $phptags = true) {
 			}
 			break;
 		case 'php':
-			if($phptags) {
+			if ($phptags) {
 				$php .= "<?php\n" . $block['code'] . "\n?>\n";
 			} else {
 				$php .= $block['code'] . "\n";
@@ -411,14 +426,14 @@ function processBlock($block, &$php, &$css, &$js, &$html, $phptags = true) {
 	}
 }
 
-function getComputedLayout($project_start, $project_end, $page_id, $basedir) {
+function getComputedLayout($project_start, $project_end, $page_id, $basedir, $template) {
 	require_once dirname(__FILE__) . '/simple_html_dom.php';
 	$layout = new simple_html_dom();
 	$layout->load(getLayout($page_id));
 	foreach ($layout->find('.-zazz-element') as $element) {
 		ob_start();
 		processCode($project_start, $project_end, $page_id, $element->getAttribute('data-zazz-id'),
-			$basedir);
+			$basedir, $template);
 		$element->innertext = ob_get_clean();
 	}
 	return $layout->save();
