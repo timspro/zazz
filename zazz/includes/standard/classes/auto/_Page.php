@@ -35,10 +35,10 @@ array (
   'visible' => 
   array (
     'Field' => 'visible',
-    'Type' => 'bit(1)',
+    'Type' => 'tinyint(1)',
     'Null' => 'NO',
     'Key' => '',
-    'Default' => 'b\'1\'',
+    'Default' => '1',
     'Extra' => '',
   ),
   'template' => 
