@@ -361,8 +361,7 @@ if ($bad_html) {
 						<td><select id='-zazz-default-page'>
 								<?php
 								foreach ($viewPages as $viewPage) {
-									if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project'
-										&& $viewPage['visible'] !== '0') {
+									if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project') {
 										$selected = ($viewPage['page_id'] === $page_info['default_page'] ? 'SELECTED' : '');
 										echo '<option ' . $selected . '>'	. $viewPage['page'] . '</option>' . "\n";
 									}

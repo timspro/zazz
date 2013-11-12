@@ -1282,12 +1282,12 @@ function doStuff() {
 		}
 
 		$('.-zazz-editor-btn').click(function() {
-			tinymce.activeEditor.setContent($.htmlEdit.val());
+			tinymce.get('-zazz-html-editor').setContent($.htmlEdit.val());
 			$('#-zazz-modal-html-editor').center().show();
 		});
 
 		$('#-zazz-html-editor-code').click(function() {
-			$.htmlEdit.html(tinymce.activeEditor.getContent());
+			$.htmlEdit.html(tinymce.get('-zazz-html-editor').getContent());
 			$('#-zazz-modal-html-editor').hide();
 			updateCode($.last_div.attr('data-zazz-id'), $.htmlEdit, 'html', $.codeActions.UPDATE);
 			computeCodeHeight($.htmlEdit);
