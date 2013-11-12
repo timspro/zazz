@@ -80,8 +80,7 @@ if (!file_exists($filename)) {
 //Figure out what pages we need to generate.
 if (isset($_GET['deploy']) || isset($_GET['export'])) {
 	$generate_pages = _Page::get()->retrieve('page', new Join('project_id', _Project::get()),
-		array('project' =>
-		$project));
+		array('project' => $project, 'user_id' => $user_id));
 	for ($i = 0; $i < count($generate_pages); $i++) {
 		if ($generate_pages[$i]['page'] === 'begin-project') {
 			$start = $i;
