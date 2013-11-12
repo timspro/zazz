@@ -87,7 +87,7 @@ if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 <html lang="en">
 <?php require_once dirname(__FILE__) . '/includes/custom/header.php'; ?>
 	<body style="background-color: #CFCFCF;">
-		<form id='-zazz-login' method="post" class="-zazz-modal" style="display: block;">
+		<form id='-zazz-login' method="post" class="-zazz-modal">
 			<div class="-zazz-modal-header">Account Login</div>
 			<div class="-zazz-modal-body">
 				<p><?= $login_error ?></p>
@@ -152,8 +152,8 @@ if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 						$(window).scrollLeft()) + "px");
 				return this;
 			};
-			$('#-zazz-login').center();
-			$('#-zazz-account-create').center()
+			$('#-zazz-login').center().show();
+			$('#-zazz-account-create').center();
 			$('#create-account').click(function() {
 				$('#-zazz-account-create').show();
 			});

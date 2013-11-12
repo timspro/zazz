@@ -9,14 +9,12 @@ require_once dirname(__FILE__) . '/includes/custom/functions.php';
 Authenticate::get()->check();
 $user_id = Authenticate::get()->getUser('user_id');
 
-if (isset($_GET['deploy']) && $_GET['deploy'] !== 
-	/*!_!_!PASSWORD!_!_!*/'NEPOm20dkP_e3ls0elOEMlsoW'/*!_!_!PASSWORD!_!_!*/) {
+if (isset($_GET['deploy']) && $_GET['deploy'] !== /* !_!_!PASSWORD!_!_! */'NEPOm20dkP_e3ls0elOEMlsoW'/* !_!_!PASSWORD!_!_! */) {
 	echo 'You did not enter the right password.';
 	return;
 }
 
-function addCode(&$html, $id, $code) {
-	static $check = array();
+function addCode(&$html, $id, $code, $check) {
 	$element = $html->find('.-zazz-element[data-zazz-id="' . $id . '"]', 0);
 	if (!isset($check[$id])) {
 		$element->innertext = $code;
@@ -46,24 +44,28 @@ function serveFile($resource) {
 	}
 }
 
-//Do we know the project?
-if (!isset($_GET['project'])) {
+function redirectToDefault() {
 	$project = _Project::get()->retrieve(array('project', 'default_page'), array(),
 		array('project_id' => Authenticate::get()->getUser('active_project')));
-	header('Location: /zazz/view/' . $project[0]['project'] . '/' . $project[0]['default_page']);
+	$default_page = _Page::get()->retrieve('page', array(), array('page_id' => $project[0]['default_page']));
+	header('Location: /zazz/view/' . $project[0]['project'] . '/' . $default_page[0]['page']);	
+}
+
+//Do we know the project?
+if (!isset($_GET['project'])) {
+	redirectToDefault();
 	return;
 }
 $project = $_GET['project'];
 
 //Is it a valid project ID?
-$project_id = _Project::get()->retrieve(array('project_id', 'project_start', 'project_end'),
-	array(), array('project' => $project, 'user_id' => $user_id));
+$project_id = _Project::get()->retrieve(array('project_id', 'project_start', 'project_end', 
+	'default_page'), array(), array('project' => $project, 'user_id' => $user_id));
 if (empty($project_id)) {
-	$project = _Project::get()->retrieve(array('project', 'default_page'), array(),
-		array('project_id' => Authenticate::get()->getUser('active_project')));
-	header('Location: /zazz/view/' . $project[0]['project'] . '/' . $project[0]['default_page']);
+	redirectToDefault();
 	return;
 } else {
+	$default_page = $project_id[0]['default_page'];
 	$project_start = $project_id[0]['project_start'];
 	$project_end = $project_id[0]['project_end'];
 	$project_id = $project_id[0]['project_id'];
@@ -94,9 +96,7 @@ if (isset($_GET['deploy']) || isset($_GET['export'])) {
 } else if (isset($_GET['page'])) {
 	$generate_pages = array(array('page' => $_GET['page']));
 } else {
-	$default_page = _Project::get()->retrieve(array('default_page'), array(),
-		array('project_id' => $project_id));
-	header('Location: /zazz/view/' . $project . '/' . $default_page[0]['default_page']);
+	redirectToDefault();
 	return;
 }
 
@@ -142,7 +142,7 @@ file_put_contents($filename . 'includes/footer.php', $project_php_footer);
 foreach ($generate_pages as $generate_page) {
 	$page = $generate_page['page'];
 	$page_info = getPageInformation($project, $page);
-	if($page_info['visible'] === '0') {
+	if ($page_info['visible'] === '0') {
 		continue;
 	}
 	$page_id = intval($page_info['page_id']);
@@ -181,26 +181,35 @@ foreach ($generate_pages as $generate_page) {
 	$html_footer = $project_html_footer;
 
 	$template = intval($page_info['template']);
-	$query = Database::get()->PDO()->prepare("SELECT code, type, zazz_id,zazz_order FROM code WHERE page_id = 
+	$query = Database::get()->PDO()->prepare("SELECT code, type, zazz_id, zazz_order, page_id FROM code WHERE page_id = 
 		$page_id OR page_id = $template ORDER BY zazz_id ASC, zazz_order ASC, page_id DESC");
 	$query->execute();
 	$blocks = $query->fetchAll(PDO::FETCH_ASSOC);
 	$start_index = array();
 	$end_index = array();
+	$foundBegin = 0;
+	$foundEnd = 0;
+
 	for ($i = 0; $i < count($blocks); $i++) {
 		if ($blocks[$i]['zazz_id'] === 'begin-web-page') {
+			if (empty($foundBegin) || $blocks[$i]['page_id'] === $foundBegin) {
+				$foundBegin = $blocks[$i]['page_id'];
+				processBlock($blocks[$i], $php_header, $css, $js, $html_header);
+			}
 			$start_index[] = $i;
-			processBlock($blocks[$i], $php_header, $css, $js, $html_header);
 		} else if ($blocks[$i]['zazz_id'] === 'end-web-page') {
+			if (empty($foundEnd) || $blocks[$i]['page_id'] === $foundEnd) {
+				$foundEnd = $blocks[$i]['page_id'];
+				processBlock($blocks[$i], $php_footer, $css, $js, $html_footer);
+			}
 			$end_index[] = $i;
-			processBlock($blocks[$i], $php_footer, $css, $js, $html_footer);
 		}
 	}
 
-	foreach($start_index as $index) {
+	foreach ($start_index as $index) {
 		unset($blocks[$index]);
 	}
-	foreach($end_index as $index) {
+	foreach ($end_index as $index) {
 		unset($blocks[$index]);
 	}
 
@@ -210,23 +219,24 @@ foreach ($generate_pages as $generate_page) {
 	$html->load($layout);
 	$zazz_order = -1;
 	$zazz_id = '!';
+	$check = array();
 	foreach ($blocks as $block) {
-		if($zazz_id !== $block['zazz_id'] || $zazz_order !== $block['zazz_order']) {
+		if ($zazz_id !== $block['zazz_id'] || $zazz_order !== $block['zazz_order']) {
 			switch ($block['type']) {
 				case 'css':
 					$css .= $block['code'] . "\n\n";
 					break;
 				case 'html':
-					addCode($html, $block['zazz_id'], "\n" . $block['code'] . "\n");
+					addCode($html, $block['zazz_id'], "\n" . $block['code'] . "\n", $check);
 					break;
 				case 'mysql':
 					if (!empty($block['code'])) {
 						$code = prepareQuery($block['code']);
-						addCode($html, $block['zazz_id'], $code);
+						addCode($html, $block['zazz_id'], $code, $check);
 					}
 					break;
 				case 'php':
-					addCode($html, $block['zazz_id'], "\n<?php\n" . $block['code'] . "\n?>\n");
+					addCode($html, $block['zazz_id'], "\n<?php\n" . $block['code'] . "\n?>\n", $check);
 					break;
 				case 'js':
 					$js .= $block['code'] . "\n\n";
@@ -274,10 +284,21 @@ foreach ($generate_pages as $generate_page) {
 //copy($source, $dest);
 
 if (isset($_GET['deploy'])) {
-	deleteFilesIn(dirname(__FILE__) . '/../', array('zazz', 'nbproject', '.git', '.gitignore'));
+	deleteFilesIn(dirname(__FILE__) . '/../',
+		array('zazz', 'nbproject', '.git', '.gitignore',
+		'.htaccess'));
 	recursiveCopy(dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/',
 		dirname(__FILE__) . '/../');
-	header('Location: /' . $_GET['page']);
+	//Update .htaccess with directory index.
+	$contents = file_get_contents(dirname(__FILE__) . '/../.htaccess');
+	$token = '#!_!_!DEFAULTPAGE!_!_!';
+	$quoted_token = preg_quote($token, '/');
+	$default_page_name = _Page::get()->retrieve('page', array(), array('page_id' => $default_page));
+	$contents = preg_replace('/' . $quoted_token . '.*?' . $quoted_token . '/s',
+		$token . "\nDirectoryIndex " . $default_page_name[0]['page'] . "\n" . $token, $contents, 1);
+	file_put_contents(dirname(__FILE__) . '/../.htaccess', $contents);
+	
+	header('Location: /');
 } else if (isset($_GET['export'])) {
 	$filename = dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/';
 	if (!file_exists($filename . 'zip/')) {

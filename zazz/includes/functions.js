@@ -323,6 +323,9 @@ function doStuff() {
 		}
 
 		function computeCodeHeight($textarea) {
+			if($textarea.hasClass('-zazz-css-code')) {
+				return;
+			}
 			var value = $textarea.val();
 			var count = 1;
 			var start = value.indexOf('\n');
@@ -536,12 +539,20 @@ function doStuff() {
 		}
 
 		function updateProjectInfo(redirect) {
-			var project = $('#-zazz-project-name').val();
+			var array;
+			if(redirect) {
+				array = {
+					project: $('#-zazz-project-name').val(),
+					page_id: $('#-zazz-page-id').val()
+				};
+			} else {
+				array = {
+					default_page: $('#-zazz-default-page').val(),
+					page_id: $('#-zazz-page-id').val()
+				};
+			}
 			$('#-zazz-loader-bar').promote();
-			$.post('/zazz/ajax/project.php', {
-				project: project,
-				page_id: $('#-zazz-page-id').val()
-			}, function(data) {
+			$.post('/zazz/ajax/project.php', array, function(data) {
 				$('#-zazz-loader-bar').demote();
 				if (trim(data) !== "") {
 					$('#-zazz-modal-project .-zazz-modal-message').html(data);
@@ -573,6 +584,9 @@ function doStuff() {
 		});
 		$('#-zazz-page-visible').change(function() {
 			updatePageInfo(false);
+		});
+		$('#-zazz-default-page').change(function() {
+			updateProjectInfo(false);
 		});
 
 		$('#-zazz-deploy-link').click(function() {

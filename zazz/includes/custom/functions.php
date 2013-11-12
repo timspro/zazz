@@ -276,7 +276,7 @@ function createPage($page_name, $project_id, $template = '') {
 		_Code::get()->create(array('zazz_id' => 'begin-web-page', 'page_id' => $page_id, 'type' => 'css',
 			'code' => "/* Put page-wide CSS here. */", 'zazz_order' => '0'));
 		_Code::get()->create(array('zazz_id' => 'begin-web-page', 'page_id' => $page_id, 'type' => 'html',
-			'code' => getDefaultHTMLStartPage(), 'zazz_order' => '0'));
+			'code' => getDefaultHTMLStartPage(), 'zazz_order' => '1'));
 		_Code::get()->create(array('zazz_id' => 'end-web-page', 'page_id' => $page_id, 'type' => 'html',
 			'code' => getDefaultHTMLEndPage(), 'zazz_order' => '0'));
 

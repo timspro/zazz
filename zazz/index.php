@@ -356,6 +356,20 @@ if ($bad_html) {
 						<td>Project Name:</td>
 						<td><input id="-zazz-project-name" type="text" value="<?= $project ?>"/></td>
 					</tr>
+					<tr>
+						<td>Default Page:</td>
+						<td><select id='-zazz-default-page'>
+								<?php
+								foreach ($viewPages as $viewPage) {
+									if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project'
+										&& $viewPage['visible'] !== '0') {
+										$selected = ($viewPage['page_id'] === $page_info['default_page'] ? 'SELECTED' : '');
+										echo '<option ' . $selected . '>'	. $viewPage['page'] . '</option>' . "\n";
+									}
+								}
+								?>
+							</select></td>
+					</tr>
 				</table>
 			</div>
 			<div class="-zazz-modal-footer">
@@ -510,8 +524,8 @@ if ($bad_html) {
 					></span>
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span class='-zazz-editor-container'><span class="-zazz-divider"></span
-					><span tabindex="10" class="-zazz-editor-btn -zazz-btn">Editor</span
-					></span><span class="-zazz-divider"></span
+						><span tabindex="10" class="-zazz-editor-btn -zazz-btn">Editor</span
+						></span><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-move-btn -zazz-btn">Move Up</span
 					><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-html-btn -zazz-btn">HTML</span
