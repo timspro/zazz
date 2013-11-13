@@ -1,6 +1,6 @@
 <?php
-$deployPassword = 'NEPOm20dkP_e3ls0elOEMlsoW';
-$globalPassword = 'B9)#@Psls0DS{ksmL:EoDZspwq';
+$deployPassword = '';
+$globalPassword = '';
 $databasePassword = '';
 $deletePassword = '';
 

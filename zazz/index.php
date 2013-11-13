@@ -1,12 +1,11 @@
 <?php
 
-function getCodeBlocks($page_id, $project_start, $project_end, $template) {
+function getCodeBlocks($page_id, $project_start, $project_end, $allTemplates) {
 	$page_id = intval($page_id);
 	$project_start = intval($project_start);
 	$project_end = intval($project_end);
-	$template = intval($template);
 	$query = Database::get()->PDO()->prepare("SELECT zazz_id, code, type, zazz_order, page_id FROM code WHERE " .
-		"page_id = $page_id OR page_id = $project_start OR page_id = $project_end OR page_id = $template " .
+		"page_id = $page_id OR page_id = $project_start OR page_id = $project_end OR page_id IN $allTemplates " .
 		"ORDER BY zazz_id ASC, zazz_order ASC, page_id DESC");
 	$query->execute();
 	$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -16,7 +15,7 @@ function getCodeBlocks($page_id, $project_start, $project_end, $template) {
 		if ($zazz_id !== $row['zazz_id'] || $zazz_order !== $row['zazz_order']) {
 			$uneditable = '';
 			$locked = '';
-			if ($template === intval($row['page_id'])) {
+			if (strrpos($allTemplates, $row['page_id']) !== false) {
 				$uneditable = 'readonly';
 				$locked = '-zazz-code-locked ';
 			}
@@ -114,11 +113,12 @@ if (!empty($template)) {
 	$template_name = $template_name[0]['page'];
 }
 
-$page_id = intval($page_id);
+$allTemplates = getTemplates($page_id);
+
 $project_start = intval($project_start);
 $project_end = intval($project_end);
-$query = Database::get()->PDO()->prepare("SELECT code, zazz_id FROM code WHERE type = 'html' AND page_id IN (" .
-	"$page_id, $project_start, $project_end, $template) AND zazz_id IN ('begin-project', 'end-project'," .
+$query = Database::get()->PDO()->prepare("SELECT code, zazz_id FROM code WHERE type = 'html' AND (page_id IN (" .
+	"$page_id, $project_start, $project_end) OR page_id IN $allTemplates) AND zazz_id IN ('begin-project', 'end-project'," .
 	"'begin-web-page','end-web-page') ORDER BY zazz_id, zazz_order, page_id DESC");
 $query->execute();
 $results = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -404,8 +404,7 @@ if ($bad_html) {
 						<td>Template:</td>
 						<td><select id="-zazz-page-template"><option></option><?php
 								foreach ($viewPages as $viewPage) {
-									if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project'
-										&& intval($viewPage['template']) === 0) {
+									if ($viewPage['page'] !== 'begin-project' && $viewPage['page'] !== 'end-project') {
 										echo '<option>' . $viewPage['page'] . '</option>';
 									}
 								}
@@ -536,7 +535,7 @@ if ($bad_html) {
 					><span tabindex="10" class="-zazz-export-btn -zazz-btn">Export</span>--></span>
 			</div>
 			<div class="-zazz-code-blocks"><?php
-				getCodeBlocks($page_id, $project_start, $project_end, $template);
+				getCodeBlocks($page_id, $project_start, $project_end, $allTemplates);
 				?></div>
 		</div>
 		<input id="-zazz-page-id" type="hidden" value="<?= $page_id ?>" />

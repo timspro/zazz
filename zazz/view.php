@@ -180,9 +180,9 @@ foreach ($generate_pages as $generate_page) {
 	$html_header = $project_html_header;
 	$html_footer = $project_html_footer;
 
-	$template = intval($page_info['template']);
+	$allTemplates = getTemplates($page_id);
 	$query = Database::get()->PDO()->prepare("SELECT code, type, zazz_id, zazz_order, page_id FROM code WHERE page_id = 
-		$page_id OR page_id = $template ORDER BY zazz_id ASC, zazz_order ASC, page_id DESC");
+		$page_id OR page_id IN $allTemplates ORDER BY zazz_id ASC, zazz_order ASC, page_id DESC");
 	$query->execute();
 	$blocks = $query->fetchAll(PDO::FETCH_ASSOC);
 	$start_index = array();
@@ -276,6 +276,10 @@ foreach ($generate_pages as $generate_page) {
 
 	$php .= $html->save();
 
+	if(!file_exists(dirname($filename . $page))) {
+    mkdir(dirname($filename . $page), 0777, true);
+	}
+	
 	file_put_contents($filename . $page, $php_header . $php . $php_footer);
 }
 

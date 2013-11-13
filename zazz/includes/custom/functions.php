@@ -3,6 +3,7 @@ require_once dirname(__FILE__) . '/../standard/classes/auto/_Layout.php';
 require_once dirname(__FILE__) . '/../standard/classes/auto/_Project.php';
 require_once dirname(__FILE__) . '/../standard/classes/auto/_Code.php';
 require_once dirname(__FILE__) . '/../standard/classes/auto/_Page.php';
+require_once dirname(__FILE__) . '/../standard/classes/auto/_Template.php';
 
 function getLayout($page_id) {
 	$result = _Layout::get()->retrieve(array('layout'), array(), array('page_id' => $page_id));
@@ -289,11 +290,17 @@ function createPage($page_name, $project_id, $template = '') {
 		$template = intval($template[0]['page_id']);
 		$page_id = _Page::get()->create(array('page' => $page_name, 'project_id' => $project_id,
 			'template' => $template));
-		$page_id = intval($page_id);	
+		$page_id = intval($page_id);
+//		Copy Code:
 //		$query = Database::get()->PDO()->prepare('INSERT INTO code (zazz_id, page_id, type, code, ' .
 //			'zazz_order) SELECT zazz_id, ' . $page_id . ', type, code, zazz_order FROM code WHERE ' .
 //			'page_id = ' . $template);
 //		$query->execute();
+		$query = Database::get()->PDO()->prepare('INSERT INTO template (page_id, template_id) ' .
+			'SELECT ' . $page_id . ', template_id FROM template WHERE page_id = ' . $template);
+		$query->execute();
+		_Template::get()->create(array('page_id' => $page_id, 'template_id' => $template));
+
 		$layout = _Layout::get()->retrieve('layout', array(), array('page_id' => $template));
 		_Layout::get()->create(array('page_id' => $page_id, 'layout' => $layout[0]['layout']));
 	}
@@ -306,15 +313,16 @@ function getPageCode($project_start_id, $project_end_id, $page_id, $zazz_id, $te
 	$template = intval($template);
 	$page_id = intval($page_id);
 	//Get the code for the page.
+	$allTemplates = getTemplates($page_id);
 	$query = Database::get()->PDO()->prepare("(SELECT code, type, zazz_id, zazz_order FROM code WHERE "
-		. "((zazz_id IN ('begin-web-page', 'end-web-page') AND (page_id = $page_id OR page_id = $template)) OR "
+		. "((zazz_id IN ('begin-web-page', 'end-web-page') AND (page_id = $page_id OR page_id IN $allTemplates)) OR "
 		. "page_id = $project_start_id OR page_id = $project_end_id) AND type NOT IN ('css','js','html') "
 		. "ORDER BY zazz_id, zazz_order, page_id DESC)");
 	$query->execute();
 	$result = $query->fetchAll(PDO::FETCH_ASSOC);
 	//Get the code for the element.
 	$query = Database::get()->PDO()->prepare("(SELECT code, type, zazz_id, zazz_order FROM code WHERE "
-		. "zazz_id = :zazz_id AND (page_id = $page_id OR page_id = $template) AND type NOT IN ('css','js') "
+		. "zazz_id = :zazz_id AND (page_id = $page_id OR page_id IN $allTemplates) AND type NOT IN ('css','js') "
 		. "ORDER BY zazz_id, zazz_order ASC, page_id DESC)");
 	$query->bindValue(':zazz_id', $zazz_id);
 	$query->execute();
@@ -373,7 +381,7 @@ function processCode($project_start, $project_end, $page_id, $zazz_id, $basedir,
 	$zazz_order = -1;
 	$zazz_id = '!';
 	foreach ($_ZAZZ_BLOCKS as $_ZAZZ_BLOCK) {
-		if($zazz_order !== intval($_ZAZZ_BLOCK['zazz_order']) || $zazz_id !== $_ZAZZ_BLOCK['zazz_id']) {
+		if ($zazz_order !== intval($_ZAZZ_BLOCK['zazz_order']) || $zazz_id !== $_ZAZZ_BLOCK['zazz_id']) {
 			processBlock($_ZAZZ_BLOCK, $php, $css, $js, $php, false);
 			$zazz_id = $_ZAZZ_BLOCK['zazz_id'];
 			$zazz_order = intval($_ZAZZ_BLOCK['zazz_order']);
@@ -439,11 +447,29 @@ function getComputedLayout($project_start, $project_end, $page_id, $basedir, $te
 	return $layout->save();
 }
 
-function validateFilename($filename) {
-	if (preg_replace('/[^a-zA-Z0-9-_\.]/', '', $filename) !== $filename || str_replace('..', '',
-			$filename) !== $filename) {
-		return false;
+function validateFilename($filename, $slash = false) {
+	if(!$slash) {
+		if (preg_replace('/[^a-zA-Z0-9-_\.]/', '', $filename) !== $filename || str_replace('..', '',
+				$filename) !== $filename) {
+			return false;
+		}
+	} else {
+		if (preg_replace('/[^a-zA-Z0-9-_\/\.]/', '', $filename) !== $filename || str_replace('..', '',
+				$filename) !== $filename || substr($filename, 0, 1) === '/') {
+			return false;
+		}
 	}
 	return true;
+}
+
+function getTemplates($page_id) {
+	$page_id = intval($page_id);
+	$query = Database::get()->PDO()->prepare("SELECT template_id FROM template WHERE page_id = $page_id");
+	$query->execute();
+	$allTemplates = $query->fetchAll(PDO::FETCH_COLUMN, 0);
+	if(empty($allTemplates)) {
+		return ' ( 0 ) ';
+	}
+	return ' ( ' . implode(', ', $allTemplates) . ' ) ';
 }
 ?>
