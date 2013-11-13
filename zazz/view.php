@@ -141,9 +141,6 @@ file_put_contents($filename . 'includes/footer.php', $project_php_footer);
 foreach ($generate_pages as $generate_page) {
 	$page = $generate_page['page'];
 	$page_info = getPageInformation($project, $page);
-	if (empty($page_info['visible'])) {
-		continue;
-	}
 	$page_id = intval($page_info['page_id']);
 	if (empty($page_id)) {
 		//Perhaps just a resource file. Still need to check that the user owns the project and that 
@@ -165,7 +162,11 @@ foreach ($generate_pages as $generate_page) {
 		}
 		return;
 	}
-
+	//Don't show hidden pages.
+	if (empty($page_info['visible'])) {
+		continue;
+	}	
+	
 //-------------------------------------INITIALIZE------------------------------------------
 
 	$css = '';
