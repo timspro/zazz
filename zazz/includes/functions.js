@@ -588,6 +588,12 @@ function doStuff() {
 		$('#-zazz-default-page').change(function() {
 			updateProjectInfo(false);
 		});
+		$('#-zazz-view-btn').click(function() {
+			if($('#-zazz-page-visible').val() === 'No') {
+				warn('Warning', 'You cannot view a page that is not visible.');
+				return false;
+			}
+		});
 
 		$('#-zazz-deploy-link').click(function() {
 			$(this).attr('href', '/zazz/view/' + $('#-zazz-project-name').val() + '/' +

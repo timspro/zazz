@@ -14,6 +14,9 @@ DirectoryIndex good
 Options -Indexes
 Options +FollowSymlinks
 
+RewriteEngine On
+RewriteBase /
+
 # First rewrite to HTTPS:
 # Don't put www. here. If it is already there it will be included, if not
 # the subsequent rule will catch it.
