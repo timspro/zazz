@@ -214,7 +214,8 @@ function doStuff() {
 			$.post('/zazz/ajax/code.php', array,
 					function(data) {
 						$('#-zazz-loader-bar').demote();
-
+						var $content = $('.-zazz-content');
+						$content.css('height', $content.outerHeight());
 						if (zazz_id === 'begin-project' || zazz_id === 'end-project' || zazz_id === 'begin-web-page' || zazz_id ===
 								'end-web-page') {
 							if (type === 'html') {
@@ -229,6 +230,7 @@ function doStuff() {
 								addJSCode($(this).val());
 							});
 						}
+						$content.css('height','');
 						showWidthAndHeight();
 					});
 		}
@@ -323,7 +325,7 @@ function doStuff() {
 		}
 
 		function computeCodeHeight($textarea) {
-			if($textarea.hasClass('-zazz-css-code')) {
+			if ($textarea.hasClass('-zazz-css-code')) {
 				return;
 			}
 			var value = $textarea.val();
@@ -395,7 +397,7 @@ function doStuff() {
 			if ($textarea.hasClass('-zazz-html-code') && $.last_div.attr('data-zazz-id') !== "begin-project" &&
 					$.last_div.attr('data-zazz-id') !== "end-project") {
 				$.htmlEdit = $textarea;
-				$('.-zazz-editor-container').css('display','inline-block');
+				$('.-zazz-editor-container').css('display', 'inline-block');
 			}
 		});
 
@@ -540,7 +542,7 @@ function doStuff() {
 
 		function updateProjectInfo(redirect) {
 			var array;
-			if(redirect) {
+			if (redirect) {
 				array = {
 					project: $('#-zazz-project-name').val(),
 					page_id: $('#-zazz-page-id').val()
@@ -589,7 +591,7 @@ function doStuff() {
 			updateProjectInfo(false);
 		});
 		$('#-zazz-view-btn').click(function() {
-			if($('#-zazz-page-visible').val() === 'No') {
+			if ($('#-zazz-page-visible').val() === 'No') {
 				warn('Warning', 'You cannot view a page that is not visible.');
 				return false;
 			}
@@ -697,9 +699,11 @@ function doStuff() {
 					e.pageX > myPos.left) {
 				var $block = $this;
 				var id = getZazzID($block);
-				updateCode(id, $block, getBlockType($block), $.codeActions.DELETE);
-				$this.remove();
-				computeCodeLayout();
+				confirm('Warning', 'Continuing will delete this code block permanently.', function() {
+					updateCode(id, $block, getBlockType($block), $.codeActions.DELETE);
+					$this.remove();
+					computeCodeLayout();
+				});
 			}
 		}
 
@@ -1355,7 +1359,7 @@ function doStuff() {
 			}
 
 			tinymce.init({
-				height : 400,
+				height: 400,
 				selector: "#-zazz-html-editor",
 				plugins: [
 					"advlist autolink lists link charmap print preview anchor",
@@ -1443,7 +1447,7 @@ function initJQuery() {
 	if (typeof(jQuery) === 'undefined') {
 		if (!jQueryScriptOutputted) {
 			jQueryScriptOutputted = true;
-			document.write('<script type="text/javascript" src="/zazz/js/jquery-1.10.2.js">' + 
+			document.write('<script type="text/javascript" src="/zazz/js/jquery-1.10.2.js">' +
 					'</script><script src="/zazz/js/tinymce.min.js" type="text/javascript"></script>');
 		}
 		setTimeout("initJQuery()", 50);
