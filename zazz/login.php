@@ -55,7 +55,7 @@ if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 	$username = $_REQUEST['login_email'];
 	$password = $_REQUEST['login_password'];
 	if (isset($_REQUEST['create'])) {
-		if ($_REQUEST['global'] !== /*!_!_!PASSWORD!_!_!*/'B9)#@Psls0DS{ksmL:EoDZspwq'/*!_!_!PASSWORD!_!_!*/) {
+		if ($_REQUEST['global'] !== /*!_!_!PASSWORD!_!_!*/''/*!_!_!PASSWORD!_!_!*/) {
 			$error = "The global password is incorrect.";
 		} else if (strlen($username) < 6) {
 			$error = "Your username is too short.";
