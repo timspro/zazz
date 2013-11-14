@@ -214,8 +214,7 @@ function doStuff() {
 			$.post('/zazz/ajax/code.php', array,
 					function(data) {
 						$('#-zazz-loader-bar').demote();
-						var $content = $('.-zazz-content');
-						$content.css('height', $content.outerHeight());
+						var $container;
 						if (zazz_id === 'begin-project' || zazz_id === 'end-project' || zazz_id === 'begin-web-page' || zazz_id ===
 								'end-web-page') {
 							if (type === 'html') {
@@ -223,14 +222,34 @@ function doStuff() {
 								//so just refresh the page rather that try to fix that.
 								location.reload();
 							}
-							$('.-zazz-content-view').first().html(data);
+							$container = $('.-zazz-content-view');
+							$container.first().html(data);
 						} else {
-							$('.-zazz-element[data-zazz-id="' + zazz_id + '"]').html(data);
+							$container = $('.-zazz-element[data-zazz-id="' + zazz_id + '"]');
+							$container.html(data);
 							$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function() {
 								addJSCode($(this).val());
 							});
 						}
-						$content.css('height','');
+						//The following fixes the content height while images are loading to prevent the page 
+						//from scrolling somewhere else.
+						var imageLoads = [];
+						var $content = $('.-zazz-content');
+						$content.css('height', $content.outerHeight());
+						$container.find("img").each(function() {
+							var deferred = $.Deferred();
+							$(this).on('load', function() {
+								deferred.resolve();
+							});
+							//Image was cached?
+							if (this.complete) {
+								$(this).trigger('load');
+							}
+							imageLoads.push(deferred);
+						});
+						$.when(undefined, imageLoads).done(function() {
+							$content.css('height', '');
+						});
 						showWidthAndHeight();
 					});
 		}
