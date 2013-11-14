@@ -214,7 +214,7 @@ function doStuff() {
 			$.post('/zazz/ajax/code.php', array,
 					function(data) {
 						$('#-zazz-loader-bar').demote();
-						var $container;
+						var contentHeight = $('.-zazz-content').outerHeight();
 						if (zazz_id === 'begin-project' || zazz_id === 'end-project' || zazz_id === 'begin-web-page' || zazz_id ===
 								'end-web-page') {
 							if (type === 'html') {
@@ -222,35 +222,21 @@ function doStuff() {
 								//so just refresh the page rather that try to fix that.
 								location.reload();
 							}
-							$container = $('.-zazz-content-view');
-							$container.first().html(data);
+							$('.-zazz-content-view').first().html(data);
 						} else {
-							$container = $('.-zazz-element[data-zazz-id="' + zazz_id + '"]');
-							$container.html(data);
+							$('.-zazz-element[data-zazz-id="' + zazz_id + '"]').html(data);
 							$('.-zazz-code-block-' + zazz_id).filter('.-zazz-js-code').each(function() {
 								addJSCode($(this).val());
 							});
 						}
 						//The following fixes the content height while images are loading to prevent the page 
 						//from scrolling somewhere else.
-						var imageLoads = [];
 						var $content = $('.-zazz-content');
-						$content.css('height', $content.outerHeight());
-						$container.find("img").each(function() {
-							var deferred = $.Deferred();
-							$(this).on('load', function() {
-								deferred.resolve();
-							});
-							//Image was cached?
-							if (this.complete) {
-								$(this).trigger('load');
-							}
-							imageLoads.push(deferred);
-						});
-						$.when(undefined, imageLoads).done(function() {
+						$content.css('height', contentHeight);
+						$(data).load(function() {
 							$content.css('height', '');
+							showWidthAndHeight();
 						});
-						showWidthAndHeight();
 					});
 		}
 
@@ -435,11 +421,11 @@ function doStuff() {
 		}
 
 		$.ignoreCodeFocus = false;
-		function computeCodeLayout(zazz_id) {
+		function computeCodeLayout(zazz_id, keepFocus) {
 			//If true then computeCodeLayout() has already been called.
 			if ($.ignoreCodeFocus) {
 				return;
-			}
+			}			
 			if (typeof zazz_id === 'undefined') {
 				zazz_id = $.last_div.attr('data-zazz-id');
 			}
@@ -475,7 +461,9 @@ function doStuff() {
 				curr++;
 				nextColumn = $('#-zazz-code-column-' + curr);
 			}
-			$focus.focus();
+			if(keepFocus) {
+				$focus.focus();
+			}
 			$.ignoreCodeFocus = false;
 		}
 
@@ -721,6 +709,7 @@ function doStuff() {
 				confirm('Warning', 'Continuing will delete this code block permanently.', function() {
 					updateCode(id, $block, getBlockType($block), $.codeActions.DELETE);
 					$this.remove();
+					$('#-zazz-modal-confirm').hide();
 					computeCodeLayout();
 				});
 			}
@@ -728,7 +717,7 @@ function doStuff() {
 
 		$(".-zazz-code-blocks")
 				.on('mousemove', '.-zazz-code-block', textareaMouseMove)
-				.on('click', '.-zazz-code-block', textareaClick)
+				.on('click', '.-zazz-code-block', textareaClick);
 		//$("textarea").mousemove(textareaMouseMove);
 		//$("textarea").click(textareaClick);
 
@@ -1306,7 +1295,7 @@ function doStuff() {
 			}
 			var $textarea = $('<textarea></textarea>').addClass('-zazz-code-block')
 					.addClass(className).addClass('-zazz-code-block-' + forID).attr('spellcheck', false)
-					.attr('tabindex', '10').attr('data-zazz-order', order);
+					.attr('tabindex', '10').attr('data-zazz-order', order).attr('wrap', 'off');
 			return $textarea;
 		}
 
@@ -1328,21 +1317,21 @@ function doStuff() {
 			var $block = addCodeBlock('-zazz-' + type + '-code', id);
 			$('.-zazz-code-blocks').append($block);
 			computeCodeHeight($block);
-			$block.fadeIn(300).focus();
+			$block.fadeIn().css('display', 'block').focus();
 			updateCode(id, $block, type, $.codeActions.INSERT);
-			computeCodeLayout();
+			computeCodeLayout($.last_div.attr('data-zazz-id'), false);
 		}
 
-		$('.-zazz-html-btn').click(function() {
+		$('.-zazz-html-btn').click(function(e) {
 			addCodeButton('html');
 		});
-		$('.-zazz-php-btn').click(function() {
+		$('.-zazz-php-btn').click(function(e) {
 			addCodeButton('php');
 		});
-		$('.-zazz-mysql-btn').click(function() {
+		$('.-zazz-mysql-btn').click(function(e) {
 			addCodeButton('mysql');
 		});
-		$('.-zazz-js-btn').click(function() {
+		$('.-zazz-js-btn').click(function(e) {
 			addCodeButton('js');
 		});
 		function addCSSCodeBlock(id) {
