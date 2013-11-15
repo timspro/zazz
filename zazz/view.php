@@ -9,7 +9,7 @@ require_once dirname(__FILE__) . '/includes/custom/functions.php';
 Authenticate::get()->check();
 $user_id = Authenticate::get()->getUser('user_id');
 
-if (isset($_GET['deploy']) && $_GET['deploy'] !== /*!_!_!PASSWORD!_!_!*/''/*!_!_!PASSWORD!_!_!*/) {
+if (isset($_GET['deploy']) && $_GET['deploy'] !== /* !_!_!PASSWORD!_!_! */''/* !_!_!PASSWORD!_!_! */) {
 	echo 'You did not enter the right password.';
 	return;
 }
@@ -26,6 +26,16 @@ function addCode(&$html, $id, $code, $check) {
 
 function serveFile($resource) {
 	if (file_exists($resource)) {
+    session_cache_limiter(false);
+		header('Cache-Control: private;');
+	
+		// Checking if the client is validating his cache and if it is current.
+		if (isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) && (strtotime($_SERVER["HTTP_IF_MODIFIED_SINCE"]) == filemtime($resource))) {
+			// Client's cache IS current, so we just respond '304 Not Modified'.
+			header('Last-Modified: ' . gmdate('D, d M Y H:i:s', filemtime($resource)) . ' GMT', true, 304);
+			return true;
+		}
+
 		$extension = pathinfo($resource, PATHINFO_EXTENSION);
 		if ($extension === 'css') {
 			$mime = 'text/css';
@@ -36,8 +46,11 @@ function serveFile($resource) {
 			$mime = finfo_file($finfo, $resource);
 			finfo_close($finfo);
 		}
+
+		header('Last-Modified: ' . gmdate('D, d M Y H:i:s', filemtime($resource)) . ' GMT', true, 200);
+		header('Content-Length: ' . filesize($resource));
 		header("Content-type: " . $mime);
-		readfile($resource);
+		print file_get_contents($resource);
 		return true;
 	} else {
 		return false;
@@ -47,8 +60,9 @@ function serveFile($resource) {
 function redirectToDefault() {
 	$project = _Project::get()->retrieve(array('project', 'default_page'), array(),
 		array('project_id' => Authenticate::get()->getUser('active_project')));
-	$default_page = _Page::get()->retrieve('page', array(), array('page_id' => $project[0]['default_page']));
-	header('Location: /zazz/view/' . $project[0]['project'] . '/' . $default_page[0]['page']);	
+	$default_page = _Page::get()->retrieve('page', array(),
+		array('page_id' => $project[0]['default_page']));
+	header('Location: /zazz/view/' . $project[0]['project'] . '/' . $default_page[0]['page']);
 }
 
 //Do we know the project?
@@ -59,7 +73,7 @@ if (!isset($_GET['project'])) {
 $project = $_GET['project'];
 
 //Is it a valid project ID?
-$project_id = _Project::get()->retrieve(array('project_id', 'project_start', 'project_end', 
+$project_id = _Project::get()->retrieve(array('project_id', 'project_start', 'project_end',
 	'default_page'), array(), array('project' => $project, 'user_id' => $user_id));
 if (empty($project_id)) {
 	redirectToDefault();
@@ -165,8 +179,8 @@ foreach ($generate_pages as $generate_page) {
 	//Don't show hidden pages.
 	if (empty($page_info['visible'])) {
 		continue;
-	}	
-	
+	}
+
 //-------------------------------------INITIALIZE------------------------------------------
 
 	$css = '';
@@ -276,10 +290,10 @@ foreach ($generate_pages as $generate_page) {
 
 	$php .= $html->save();
 
-	if(!file_exists(dirname($filename . $page))) {
-    mkdir(dirname($filename . $page), 0777, true);
+	if (!file_exists(dirname($filename . $page))) {
+		mkdir(dirname($filename . $page), 0777, true);
 	}
-	
+
 	file_put_contents($filename . $page, $php_header . $php . $php_footer);
 }
 
@@ -301,7 +315,7 @@ if (isset($_GET['deploy'])) {
 	$contents = preg_replace('/' . $quoted_token . '.*?' . $quoted_token . '/s',
 		$token . "\nDirectoryIndex " . $default_page_name[0]['page'] . "\n" . $token, $contents, 1);
 	file_put_contents(dirname(__FILE__) . '/../.htaccess', $contents);
-	
+
 	header('Location: /');
 } else if (isset($_GET['export'])) {
 	$filename = dirname(__FILE__) . '/view/' . $user_id . '/' . $project . '/';

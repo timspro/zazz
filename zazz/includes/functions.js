@@ -231,11 +231,24 @@ function doStuff() {
 						}
 						//The following fixes the content height while images are loading to prevent the page 
 						//from scrolling somewhere else.
+						var $images = $('.-zazz-content').find('img');
+						var count = $images.length;
+						var i = 0;
+						function loadCheck() {
+							i++;
+							if (i === count) {
+								$('.-zazz-content').css('height', '');
+							}
+						}
+
 						var $content = $('.-zazz-content');
-						$content.css('height', contentHeight);
-						$(data).load(function() {
-							$content.css('height', '');
-							showWidthAndHeight();
+						if (count !== 0) {
+							$content.css('height', contentHeight);
+						}
+						$images.load(loadCheck).each(function() {
+							if (this.complete) {
+								loadCheck();
+							}
 						});
 					});
 		}
@@ -421,11 +434,11 @@ function doStuff() {
 		}
 
 		$.ignoreCodeFocus = false;
-		function computeCodeLayout(zazz_id, keepFocus) {
+		function computeCodeLayout(zazz_id) {
 			//If true then computeCodeLayout() has already been called.
 			if ($.ignoreCodeFocus) {
 				return;
-			}			
+			}
 			if (typeof zazz_id === 'undefined') {
 				zazz_id = $.last_div.attr('data-zazz-id');
 			}
@@ -434,15 +447,22 @@ function doStuff() {
 			var columnHeight = 0;
 			var maxHeight = $('.-zazz-code-blocks').outerHeight() - 10;
 			var $focus = $(':focus');
+			var count = 0;
+			var $last;
 			$.ignoreCodeFocus = true;
 			$(".-zazz-code-block-" + zazz_id).each(function() {
 				var $this = $(this);
 				if (!$this.hasClass('-zazz-css-code')) {
+					//$this.css('min-height', '');
 					var height = $this.outerHeight();
 					if (columnHeight === 0 || columnHeight + height < maxHeight) {
 						$column.append($this).show();
 						columnHeight += height;
+						count++;
 					} else {
+						//if (count === 1) {
+						//	$last.css('min-height', '100%');
+						//}
 						curr++;
 						var $next = $('#-zazz-code-column-' + curr);
 						if ($next.length === 0) {
@@ -450,10 +470,15 @@ function doStuff() {
 						}
 						$column = $next;
 						$column.append($this).show();
+						count = 1;
 						columnHeight = height;
 					}
 				}
+				$last = $this;
 			});
+			//if (count === 1) {
+			//	$last.css('min-height', '100%');
+			//}
 			curr++;
 			var nextColumn = $('#-zazz-code-column-' + curr);
 			while (nextColumn.length !== 0) {
@@ -461,9 +486,8 @@ function doStuff() {
 				curr++;
 				nextColumn = $('#-zazz-code-column-' + curr);
 			}
-			if(keepFocus) {
-				$focus.focus();
-			}
+			$focus.focus();
+
 			$.ignoreCodeFocus = false;
 		}
 
@@ -721,7 +745,7 @@ function doStuff() {
 		//$("textarea").mousemove(textareaMouseMove);
 		//$("textarea").click(textareaClick);
 
-		$(".-zazz-code-area .-zazz-navbar").not('input[type="text"]').drag(
+		$(".-zazz-code-area .-zazz-navbar").not('input').drag(
 				function() {
 				},
 				function(e) {
@@ -1317,9 +1341,12 @@ function doStuff() {
 			var $block = addCodeBlock('-zazz-' + type + '-code', id);
 			$('.-zazz-code-blocks').append($block);
 			computeCodeHeight($block);
-			$block.fadeIn().css('display', 'block').focus();
+			$block.fadeIn().css('display', 'block');
 			updateCode(id, $block, type, $.codeActions.INSERT);
-			computeCodeLayout($.last_div.attr('data-zazz-id'), false);
+			computeCodeLayout();
+			setTimeout(function() {
+				$block.focus();
+			}, 1);
 		}
 
 		$('.-zazz-html-btn').click(function(e) {
