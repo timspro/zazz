@@ -468,6 +468,36 @@ if ($bad_html) {
 		<div class="-zazz-horizontal-line-right -zazz-line"> </div>
 		<div class="-zazz-vertical-line-top -zazz-line"> </div>
 		<div class="-zazz-vertical-line-bottom -zazz-line"> </div>
+
+		<div class="-zazz-code-area">
+			<div class="-zazz-navbar">
+				<span class="-zazz-btn-group">
+					<span class="-zazz-id-btn">ID:</span>
+					<input tabindex="10" type="text" class="-zazz-id-input" 
+								 /><span class="-zazz-class-btn">Class(es):</span>
+					<input tabindex="10" type="text" class="-zazz-class-input" 
+								 /><span class="-zazz-divider"></span
+					></span>
+				<span class="-zazz-btn-group -zazz-set-right">
+					<span class='-zazz-editor-container'><span class="-zazz-divider"></span
+						><span tabindex="10" class="-zazz-editor-btn -zazz-btn">Editor</span
+						></span><span class="-zazz-divider"></span
+					><span tabindex="10" class="-zazz-move-btn -zazz-btn">Move Up</span
+					><span class="-zazz-divider"></span
+					><span tabindex="10" class="-zazz-html-btn -zazz-btn">HTML</span
+					><span tabindex="10" class="-zazz-js-btn -zazz-btn">JS</span
+					><span tabindex="10" class="-zazz-php-btn -zazz-btn">PHP</span
+					><span tabindex="10" class="-zazz-mysql-btn -zazz-btn">MySQL</span
+					><span class="-zazz-divider"><!--</span
+					><span tabindex="10" class="-zazz-import-btn -zazz-btn">Import</span
+					><span tabindex="10" class="-zazz-export-btn -zazz-btn">Export</span>--></span>
+			</div>
+			<div class="-zazz-code-blocks"><?php
+				getCodeBlocks($page_id, $project_start, $project_end, $allTemplates);
+				?></div>
+		</div>
+		<input id="-zazz-page-id" type="hidden" value="<?= $page_id ?>" />
+		<input id="-zazz-bad-html" type="hidden" value="<?= $bad_html ?>" />
 		<div class="-zazz-view">
 			<div class="-zazz-navbar">
 				<span class="-zazz-btn-group">
@@ -511,35 +541,6 @@ if ($bad_html) {
 				?>
 			</div>
 		</div>
-		<div class="-zazz-code-area">
-			<div class="-zazz-navbar">
-				<span class="-zazz-btn-group">
-					<span class="-zazz-id-btn">ID:</span>
-					<input tabindex="10" type="text" class="-zazz-id-input" 
-								 /><span class="-zazz-class-btn">Class(es):</span>
-					<input tabindex="10" type="text" class="-zazz-class-input" 
-								 /><span class="-zazz-divider"></span
-					></span>
-				<span class="-zazz-btn-group -zazz-set-right">
-					<span class='-zazz-editor-container'><span class="-zazz-divider"></span
-						><span tabindex="10" class="-zazz-editor-btn -zazz-btn">Editor</span
-						></span><span class="-zazz-divider"></span
-					><span tabindex="10" class="-zazz-move-btn -zazz-btn">Move Up</span
-					><span class="-zazz-divider"></span
-					><span tabindex="10" class="-zazz-html-btn -zazz-btn">HTML</span
-					><span tabindex="10" class="-zazz-js-btn -zazz-btn">JS</span
-					><span tabindex="10" class="-zazz-php-btn -zazz-btn">PHP</span
-					><span tabindex="10" class="-zazz-mysql-btn -zazz-btn">MySQL</span
-					><span class="-zazz-divider"><!--</span
-					><span tabindex="10" class="-zazz-import-btn -zazz-btn">Import</span
-					><span tabindex="10" class="-zazz-export-btn -zazz-btn">Export</span>--></span>
-			</div>
-			<div class="-zazz-code-blocks"><?php
-				getCodeBlocks($page_id, $project_start, $project_end, $allTemplates);
-				?></div>
-		</div>
-		<input id="-zazz-page-id" type="hidden" value="<?= $page_id ?>" />
-		<input id="-zazz-bad-html" type="hidden" value="<?= $bad_html ?>" />
 		<?php
 		if ($bad_html) {
 			?>
