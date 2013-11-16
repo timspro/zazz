@@ -9,7 +9,7 @@ require_once dirname(__FILE__) . '/includes/custom/functions.php';
 Authenticate::get()->check();
 $user_id = Authenticate::get()->getUser('user_id');
 
-if (isset($_GET['deploy']) && $_GET['deploy'] !== /* !_!_!PASSWORD!_!_! */''/* !_!_!PASSWORD!_!_! */) {
+if (isset($_GET['deploy']) && $_GET['deploy'] !== /*!_!_!PASSWORD!_!_!*/''/*!_!_!PASSWORD!_!_!*/) {
 	echo 'You did not enter the right password.';
 	return;
 }
