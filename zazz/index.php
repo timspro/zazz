@@ -340,7 +340,7 @@ if ($bad_html) {
 				</form>
 				<p id="-zazz-uploaded-files"></p>
 				<iframe src='/zazz/ajax/project.php?page_id=<?= $page_id ?>&files=true' 
-								name="-zazz-uploaded-result" frameBorder="0" scrolling="no"></iframe>
+								name="-zazz-uploaded-result" frameBorder="0"></iframe>
 			</div>
 			<div class="-zazz-modal-footer">
 				<input type="button" class="-zazz-modal-close" value="Close" />

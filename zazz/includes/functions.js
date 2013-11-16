@@ -354,10 +354,13 @@ function doStuff() {
 				start = value.indexOf('\n', start + 1);
 			}
 
-			var height = parseInt($textarea.css('line-height')) * count +
+			var maxHeight = $textarea.parent().outerHeight();
+			var textHeight = parseInt($textarea.css('line-height')) * count +
 					parseInt($textarea.css('padding-top')) + parseInt($textarea.css('padding-bottom'));
-			if (parseInt($textarea.css('height')) !== height) {
-				$textarea.css('height', height);
+			var currentHeight = parseInt($textarea.css('height'));
+			if (currentHeight !== textHeight && (currentHeight < maxHeight || textHeight < maxHeight)) {
+				$textarea.css('height', textHeight);
+				//alert('Height changed.' + parseInt($textarea.css('height')));
 				return true;
 			}
 			return false;
