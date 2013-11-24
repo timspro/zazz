@@ -32,14 +32,12 @@ abstract class QueryBuilder extends Object {
 		$columns = $this->getColumns();
 		$data = array_flip($data);
 		$goodData = array_intersect_key($data, $columns);
-		$goodWhere = array_intersect_key($where, $columns);
-		
-		if(count($goodData) === 0){
-			$fields = '*';
-		} else {
-			$fields = implode(',', array_keys($goodData));
+		$goodDataWithTables = array();
+		foreach($goodData as $key => $value) {
+			$goodDataWithTables[] = $table . '.' . $key;
 		}
-		
+		$goodWhere = array_intersect_key($where, $columns);
+				
 		$options = '';
 		if(count($join) > 0) {
 			/* @var Join $element */
@@ -52,10 +50,14 @@ abstract class QueryBuilder extends Object {
 				$joinColumn = $element->getColumn();
 				$joinTable = $element->getTable();
 				$joinTableColumns = $element->getTableColumns();
-				$goodData = array_merge($goodData, array_intersect_key($data, $joinTableColumns));
+				$newData = array_intersect_key($data, $joinTableColumns);
+				foreach($newData as $key => $value) {
+					$goodDataWithTables[] = $joinTable . '.' . $key;
+				}
+				$goodData = array_merge($goodData, $newData);
 				$goodWhere = array_merge($goodWhere, array_intersect_key($where, $joinTableColumns));
 				$options .= $joinTable . ' ON ' . $joinTable . '.' . $joinColumn . ' = ' . $table . '.' .
-					$joinColumn . ' ';  
+					$joinColumn . ' '; 
 			}
 		}
 		if(count($goodWhere) > 0) {
@@ -78,6 +80,12 @@ abstract class QueryBuilder extends Object {
 			}
 		}
 
+		if(count($goodDataWithTables) === 0){
+			$fields = '*';
+		} else {
+			$fields = implode(',', $goodDataWithTables);
+		}
+		
 		$q = Database::get()->PDO()->prepare('SELECT ' . $fields . ' FROM ' . $table . $options);
 		$i = 0;
 		foreach($goodWhere as $key => $value) {

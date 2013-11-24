@@ -7,8 +7,22 @@ $user_id = Authenticate::get()->getUser('user_id');
 
 $page_id = intval($_REQUEST['page_id']);
 
+if(!empty($page_id) && isset($_REQUEST['relink'])) {
+	$check = verifyPage($page_id, $user_id);
+	if($check) {
+		$valid = _Code::get()->retrieve('zazz_id', array(), array('zazz_id' => $_REQUEST['relink'],
+				'page_id' => $check[0]['template']));
+		if(empty($valid)) {
+			echo 'Zazz could not find an element with that ID in the parent template.';
+			return;
+		}
+		_Code::get()->delete(array('zazz_id' => $_REQUEST['relink'], 'page_id' => $page_id));
+	}
+	return;
+}
+
 if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['zazz_order'])
-	&& isset($page_id)) {
+	&& !empty($page_id)) {
 	$check = verifyPage($page_id, $user_id);
 	if ($check) {
 		$run = true;

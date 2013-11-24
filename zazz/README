@@ -1,0 +1,49 @@
+Installation:
+
+Install apache, mysql, and php. There are other guides on the internet that cover this so I won't go into
+that here. On Ubuntu, it is as simple as: sudo apt-get install tasksel; sudo tasksel install lamp-server
+The rest of this guide assumes you have installed these successfully.
+
+Configure your apache so that "zazz" is the root, and enable .htaccess. Note that you could simply move the
+contents of the zazz directory up to "www", but this is not advised since Zazz has functionality that 
+allows it to delete everything in the "zazz" folder except a few files and the subfolder "zazz", so 
+moving the contents up one directory makes it possible that Zazz may delete everything in your "www" folder.
+
+This means that your config file (Debian: /etc/apache2/sites-available/default) should look like this:
+DocumentRoot /var/www/zazz
+        <Directory />
+                Options FollowSymLinks
+                AllowOverride None
+        </Directory>
+        <Directory /var/www/zazz/>
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride All
+                Order allow,deny
+                allow from all
+        </Directory>
+with /var/www changed to /var/www/zazz, /var/www/ changed to /var/www/zazz/, the second AllowOverride None
+changed to AllowOverride All
+
+And you will need to run:
+sudo a2enmod rewrite
+service apache2 restart
+
+Examine the first five lines of zazz/includes/configure.php. You should see:
+$deployPassword = '';
+$globalPassword = '';
+$databasePassword = '';
+$deletePassword = '';
+
+If you are installing Zazz on localhost, the only one you really need to set is databasePassword, and
+that is only if you have a database password for the root database user.
+
+The deployPassword is entered when the current project is written to the root URL. Ignoreable if your the only user.
+The globalPassword is entered when creating new users.
+The databasePassword is the password for the root user.
+The deletePassword is entered when you want to erase all user-generated information in the database and files.
+Note that this is only possible by visiting configure.php?delete=true when configure.php is in the zazz directory.
+
+Move zazz/includes/configure.php to zazz/configure.php and visit the corresponding URL in a
+web browser (for locahost on default port, it would be http://localhost/zazz/configure.php).
+
+Read the output. It will tell you if something went wrong. Otherwise, proceed to zazz/login.php.

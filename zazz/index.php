@@ -481,16 +481,16 @@ if ($bad_html) {
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span class='-zazz-editor-container'><span class="-zazz-divider"></span
 						><span tabindex="10" class="-zazz-editor-btn -zazz-btn">Editor</span
-						></span><span class="-zazz-divider"></span
+						></span><?php if(!empty($template)) {?><span class="-zazz-divider"></span
+					><span tabindex="10" class="-zazz-relink-btn -zazz-btn">Relink</span
+						><?php } ?><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-move-btn -zazz-btn">Move Up</span
 					><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-html-btn -zazz-btn">HTML</span
 					><span tabindex="10" class="-zazz-js-btn -zazz-btn">JS</span
 					><span tabindex="10" class="-zazz-php-btn -zazz-btn">PHP</span
 					><span tabindex="10" class="-zazz-mysql-btn -zazz-btn">MySQL</span
-					><span class="-zazz-divider"><!--</span
-					><span tabindex="10" class="-zazz-import-btn -zazz-btn">Import</span
-					><span tabindex="10" class="-zazz-export-btn -zazz-btn">Export</span>--></span>
+					><span class="-zazz-divider"></span>
 			</div>
 			<div class="-zazz-code-blocks"><?php
 				getCodeBlocks($page_id, $project_start, $project_end, $allTemplates);

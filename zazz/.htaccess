@@ -13,16 +13,6 @@ Options +FollowSymlinks
 RewriteEngine On
 RewriteBase /
 
-# First rewrite to HTTPS:
-# Don't put www. here. If it is already there it will be included, if not
-# the subsequent rule will catch it.
-RewriteCond %{HTTPS} off
-RewriteCond %{HTTP_HOST} ^timsprowl.com$ [NC]
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-# Now, rewrite any request to the wrong domain to not use www.
-RewriteCond %{HTTP_HOST} ^www.timsprowl.com$ [NC]
-RewriteRule ^(.*)$ http://timsprowl.com%{REQUEST_URI} [R=301,L]
-
 #All accesses need to be proxied in some way so that credentials can be checked.
 RewriteRule ^view/(.*?)/(.*?)$ zazz/view.php?project=$1&page=$2 [QSA,L]
 
