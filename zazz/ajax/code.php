@@ -10,10 +10,14 @@ $page_id = intval($_REQUEST['page_id']);
 if(!empty($page_id) && isset($_REQUEST['relink'])) {
 	$check = verifyPage($page_id, $user_id);
 	if($check) {
-		$valid = _Code::get()->retrieve('zazz_id', array(), array('zazz_id' => $_REQUEST['relink'],
-				'page_id' => $check[0]['template']));
+		$query = Database::get()->PDO()->prepare('SELECT zazz_id FROM code INNER JOIN template ON ' .
+				'template.template_id = code.page_id WHERE zazz_id = :relink AND template.page_id = :id');
+		$query->bindValue(':relink', $_REQUEST['relink']);
+		$query->bindValue(':id', $page_id);
+		$query->execute();
+		$valid = $query->fetchAll(); 
 		if(empty($valid)) {
-			echo 'Zazz could not find an element with that ID in the parent template.';
+			echo 'Zazz could not find an element with that ID in any of the parent templates.';
 			return;
 		}
 		_Code::get()->delete(array('zazz_id' => $_REQUEST['relink'], 'page_id' => $page_id));
@@ -68,8 +72,9 @@ if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['
 		
 		if (isset($_REQUEST['unlink'])) {
 			$query = Database::get()->PDO()->prepare('INSERT INTO code (zazz_id, page_id, type, code, ' .
-				'zazz_order) SELECT zazz_id, ' . $page_id . ', type, code, zazz_order FROM code WHERE ' .
-				'page_id = ' . intval($check[0]['template']) . ' AND zazz_id = :zazz_id');
+				'zazz_order) SELECT zazz_id, ' . $page_id . ', type, code, zazz_order FROM code ' .
+				'INNER JOIN template ON code.page_id = template.template_id ' . 
+				'WHERE template.page_id = ' . $page_id. ' AND zazz_id = :zazz_id');
 			$query->bindValue(':zazz_id', $_REQUEST['zazz_id']);
 			$query->execute();			
 		}
