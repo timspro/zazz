@@ -297,6 +297,7 @@ body {
 
 .-zazz-view {
 	height: 65%;
+	position: relative;
 }
 
 .-zazz-content-view {
@@ -317,6 +318,13 @@ body {
 .-zazz-hidden div {
 	width: 1px;
 	height: 1px;
+	position: fixed;
+	top: 100px;
+	left: 0;
+}
+
+.-zazz-relink {
+	display: none;
 }
 
 /*-----------------------------------CODE AREA/SPECIAL NAVBAR-------------------------------------*/

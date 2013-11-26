@@ -570,6 +570,14 @@ function doStuff() {
 				});
 			}
 
+			if(!$('.-zazz-code-block:visible').first().hasClass('-zazz-code-locked')) {
+				$('.-zazz-relink').each(function() {
+					$(this).css('display', 'inline-block');
+				});
+			} else {
+				$('.-zazz-relink').hide();
+			}
+
 			computeCodeLayout(id);
 
 			$.last_div = $div;

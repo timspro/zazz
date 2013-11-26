@@ -481,8 +481,8 @@ if ($bad_html) {
 				<span class="-zazz-btn-group -zazz-set-right">
 					<span class='-zazz-editor-container'><span class="-zazz-divider"></span
 						><span tabindex="10" class="-zazz-editor-btn -zazz-btn">Editor</span
-						></span><?php if(!empty($template)) {?><span class="-zazz-divider"></span
-					><span tabindex="10" class="-zazz-relink-btn -zazz-btn">Relink</span
+						></span><?php if(!empty($template)) {?><span class="-zazz-divider -zazz-relink"></span
+					><span tabindex="10" class="-zazz-relink-btn -zazz-btn -zazz-relink">Relink</span
 						><?php } ?><span class="-zazz-divider"></span
 					><span tabindex="10" class="-zazz-move-btn -zazz-btn">Move Up</span
 					><span class="-zazz-divider"></span
