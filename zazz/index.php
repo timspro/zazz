@@ -137,22 +137,22 @@ $html = new simple_html_dom();
 $html->load($frame);
 if ($html->find('body', 0) && $html->find('head', 0)) {
 	$foundJquery = false;
-	$foundMCE = false;
+	//$foundMCE = false;
 	foreach ($html->find('script') as $element) {
 		if (strrpos($element->getAttribute('src'), 'jquery') !== false) {
 			$foundJquery = true;
 		}
-		if (strrpos($element->getAttribute('src'), 'tinymce') !== false) {
-			$foundMCE = true;
-		}
+		//if (strrpos($element->getAttribute('src'), 'tinymce') !== false) {
+		//	$foundMCE = true;
+		//}
 	}
 	if (!$foundJquery) {
 		$code[2] = '<script src="/zazz/js/jquery-1.10.2.js" type="text/javascript"></script>'
 			. $code[2];
 	}
-	if (!$foundMCE) {
-		$code[2] .= '<script src="/zazz/js/tinymce.min.js" type="text/javascript"></script>';
-	}
+	//if (!$foundMCE) {
+	//	$code[2] .= '<script src="/zazz/js/tinymce.min.js" type="text/javascript"></script>';
+	//}
 	$bad_html = false;
 	ob_start();
 } else {

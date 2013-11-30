@@ -438,7 +438,7 @@ function doStuff() {
 			if ($textarea.hasClass('-zazz-html-code') && $.last_div.attr('data-zazz-id') !== "begin-project" &&
 					$.last_div.attr('data-zazz-id') !== "end-project") {
 				$.htmlEdit = $textarea;
-				$('.-zazz-editor-container').css('display', 'inline-block');
+				//$('.-zazz-editor-container').css('display', 'inline-block');
 			}
 		});
 
@@ -1402,12 +1402,12 @@ function doStuff() {
 		}
 
 		$('.-zazz-editor-btn').click(function() {
-			tinymce.get('-zazz-html-editor').setContent($.htmlEdit.val());
+			//tinymce.get('-zazz-html-editor').setContent($.htmlEdit.val());
 			$('#-zazz-modal-html-editor').center().show();
 		});
 
 		$('#-zazz-html-editor-code').click(function() {
-			$.htmlEdit.html(tinymce.get('-zazz-html-editor').getContent());
+			//$.htmlEdit.html(tinymce.get('-zazz-html-editor').getContent());
 			$('#-zazz-modal-html-editor').hide();
 			updateCode($.last_div.attr('data-zazz-id'), $.htmlEdit, 'html', $.codeActions.UPDATE);
 			computeCodeHeight($.htmlEdit);
@@ -1471,6 +1471,7 @@ function doStuff() {
 						'Could not find jQuery file specified in HTML header. Loaded a copy from Zazz instead.');
 			}
 
+			/*
 			tinymce.init({
 				height: 400,
 				selector: "#-zazz-html-editor",
@@ -1481,6 +1482,7 @@ function doStuff() {
 				],
 				toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
 			});
+			*/
 		}
 
 		start();
@@ -1576,8 +1578,8 @@ function initJQuery() {
 	if (typeof (jQuery) === 'undefined') {
 		if (!jQueryScriptOutputted) {
 			jQueryScriptOutputted = true;
-			document.write('<script type="text/javascript" src="/zazz/js/jquery-1.10.2.js">' +
-					'</script><script src="/zazz/js/tinymce.min.js" type="text/javascript"></script>');
+			document.write('<script type="text/javascript" src="/zazz/js/jquery-1.10.2.js"></script>');
+			//		'<script src="/zazz/js/tinymce.min.js" type="text/javascript"></script>');
 		}
 		setTimeout("initJQuery()", 50);
 	} else {
