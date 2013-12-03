@@ -364,7 +364,7 @@ function doStuff() {
 
 		function computeCodeHeight($textarea) {
 			if ($textarea.hasClass('-zazz-css-code')) {
-				return;
+				return false;
 			}
 			var value = $textarea.val();
 			var count = 1;
@@ -1488,7 +1488,7 @@ function doStuff() {
 		start();
 
 		/*--------------------------------------Keyboard Shortcuts--------------------------------------*/
-
+		//Tab
 		$(document).keyup(function(e) {
 			if (e.which === 13 || e.keyCode === 13) {
 				var $modal = $('.-zazz-modal:visible');
@@ -1521,7 +1521,7 @@ function doStuff() {
 					}
 				}
 			}
-
+			//Enter
 			if (e.keyCode === 27 || e.which === 27) {
 				var $modal = $('.-zazz-modal:visible');
 				if ($modal.length !== 0) {
