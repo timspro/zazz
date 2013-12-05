@@ -393,6 +393,7 @@ function doStuff() {
 				computeCodeLayout();
 			}
 		}).on('keypress', function(e) {
+			//Backspace and delete
 			if (e.keyCode === 8 || e.which === 8 || e.keyCode === 46 || e.which === 46) {
 				$.changed = true;
 				warnUnload();
@@ -1488,8 +1489,8 @@ function doStuff() {
 		start();
 
 		/*--------------------------------------Keyboard Shortcuts--------------------------------------*/
-		//Tab
 		$(document).keyup(function(e) {
+			//Enter
 			if (e.which === 13 || e.keyCode === 13) {
 				var $modal = $('.-zazz-modal:visible');
 				if ($modal.length !== 0) {
@@ -1507,6 +1508,7 @@ function doStuff() {
 					} else {
 						//Autoindent
 						setTimeout(function() {
+							var scroll = $focus.scrollTop();
 							var position = $focus.prop("selectionStart");
 							var text = $focus.val();
 							var start = text.substr(0, position);
@@ -1517,11 +1519,12 @@ function doStuff() {
 							$focus.val(start + whitespace + end);
 							$focus[0].setSelectionRange(start.length + whitespace.length,
 									start.length + whitespace.length);
+							$focus.scrollTop(scroll);
 						}, 1);
 					}
 				}
 			}
-			//Enter
+			//Escape
 			if (e.keyCode === 27 || e.which === 27) {
 				var $modal = $('.-zazz-modal:visible');
 				if ($modal.length !== 0) {
