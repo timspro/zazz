@@ -64,7 +64,7 @@ if (!isset($_GET['project']) || empty($_GET['project'])) {
 		return;
 	}
 	$check = _Project::get()->retrieve('project_id', array(),
-		array('project' => $project[0]['project']));
+		array('project' => $project[0]['project'], 'user_id' => $user_id));
 	if (empty($check)) {
 		echo 'There has been a serious error.';
 		return;
@@ -74,7 +74,7 @@ if (!isset($_GET['project']) || empty($_GET['project'])) {
 }
 $project = $_GET['project'];
 $project_id = _Project::get()->retrieve(array('project_id', 'default_page', 'project_start',
-	'project_end'), array(), array('project' => $project));
+	'project_end'), array(), array('project' => $project, 'user_id' => $user_id));
 if (empty($project_id)) {
 	header('Location: /zazz/index.php');
 	return;

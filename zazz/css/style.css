@@ -145,7 +145,7 @@ body {
 	color: black;
 }
 
-#-zazz-modal-confirm {
+#-zazz-modal-confirm, #-zazz-modal-alert {
 	z-index: 100;
 }
 

@@ -159,7 +159,8 @@ foreach ($generate_pages as $generate_page) {
 	if (empty($page_id)) {
 		//Perhaps just a resource file. Still need to check that the user owns the project and that 
 		//$page doesn't have ..
-		$result = _Project::get()->retrieve('user_id', array(), array('project' => $project));
+		$result = _Project::get()->retrieve('user_id', array(), array('project' => $project,
+				'user_id' => $user_id));
 		if (empty($result) || $result[0]['user_id'] !== $user_id) {
 			echo 'Could not find project specified.';
 			return;

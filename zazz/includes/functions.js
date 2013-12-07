@@ -1367,7 +1367,7 @@ function doStuff() {
 			if (index < 0) {
 				index = filename.lastIndexOf('\\');
 				if (index < 0) {
-					$('#-zazz-upload-filename').val(filename);
+					$('#-zazz-upload-server').val(filename);
 					return;
 				}
 			}
@@ -1378,9 +1378,14 @@ function doStuff() {
 			$('#-zazz-modal-upload').center().show();
 		});
 		$('#-zazz-upload-do-it').click(function() {
-			$('#-zazz-upload-name').val($('#-zazz-upload-server').val());
-			$('#-zazz-upload-page-id').val($('#-zazz-page-id').val());
-			$('#-zazz-upload-form').submit();
+			if(trim($('#-zazz-upload-server').val()) === '' || 
+					trim($('#-zazz-upload-filename').val()) === '') {
+				warn('Error', 'Upload a file first and give it a name.');
+			} else {
+				$('#-zazz-upload-name').val($('#-zazz-upload-server').val());
+				$('#-zazz-upload-page-id').val($('#-zazz-page-id').val());
+				$('#-zazz-upload-form').submit();
+			}
 		});
 		function addCodeBlock(className, forID) {
 			var $locked = $('.-zazz-code-block:visible').first();
