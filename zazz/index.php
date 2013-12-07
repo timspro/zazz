@@ -197,7 +197,7 @@ if ($bad_html) {
 				<table>
 					<tr>
 						<td>Deploy Password: </td>
-						<td><input id="-zazz-deploy-password" type="text" /></td>
+						<td><input id="-zazz-deploy-password" type="password" /></td>
 					</tr>
 				</table>
 			</div>
