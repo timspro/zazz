@@ -180,12 +180,13 @@ class Authenticate extends Object {
 	 * 
 	 * @param string Username (Can have extra whitespace)
 	 * @param string Password (Can have extra whitespace)
+	 * @param boolean When true, causes login not to check password.
 	 * @return boolean True or false based of success of function
 	 */
-	public function login($username, $password) {
+	public function login($username, $password, $force = false) {
 		$username = trim(strtolower($username));
 		$password = trim($password);
-		if (empty($username) || empty($password)) {
+		if (empty($username) || (empty($password) && !$force)) {
 			$this->error = self::$ERROR_MESSAGE[0];
 			return false;
 		}
@@ -214,8 +215,8 @@ class Authenticate extends Object {
 			return false;
 		}
 
-		if (crypt($password, self::SALT_PREFIX . $hashed_password) !== self::SALT_PREFIX .
-			$hashed_password) {
+		if ((crypt($password, self::SALT_PREFIX . $hashed_password) !== self::SALT_PREFIX .
+			$hashed_password) && !$force) {
 			$login_error_count++;
 			$q = $this->userQB->update(array(self::LOGIN_ERROR_FIELD => $login_error_count, 
 				self::LOCKOUT => date("Y-m-d H:i:s")),
@@ -240,6 +241,21 @@ class Authenticate extends Object {
 		$this->userData = $r[0];
 
 		return true;
+	}
+	
+	/**
+	 * Change the password for the logged in user to a new password.
+	 * @param type $newPassword The new password
+	 * @return boolean
+	 */
+	public function changePassword($newPassword) {
+		if($this->loggedIn()) {
+			$hash = Authenticate::blowfish($newPassword);
+			$this->userQB->update(array(self::PASSWORD_FIELD => $hash), 
+					array(self::USERNAME_FIELD => $this->userData[self::USERNAME_FIELD]));
+			return true;
+		}
+		return false;
 	}
 
 	/**
