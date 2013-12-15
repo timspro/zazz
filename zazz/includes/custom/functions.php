@@ -418,7 +418,11 @@ function processBlock($block, &$php, &$css, &$js, &$html, $phptags = true) {
 			break;
 		case 'mysql':
 			if (!empty($block['code'])) {
-				$php .= prepareQuery($block['code']);
+				if($phptags) {
+					$php .= prepareQuery($block['code']);
+				} else {
+					$php .= "?>\n" . prepareQuery($block['code']) . "\n<?php\n;\n";
+				}
 			}
 			break;
 		case 'php':

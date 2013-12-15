@@ -41,7 +41,8 @@ if (isset($_REQUEST['type']) && isset($_REQUEST['zazz_id']) && isset($_REQUEST['
 			$run = false;
 		}
 		if (isset($_REQUEST['deleted'])) {
-			_Code::get()->delete($_REQUEST);
+			_Code::get()->delete(array('zazz_id' => $_REQUEST['zazz_id'], 'page_id' => $updatePageID, 
+				'type' =>	$_REQUEST['type'], 'zazz_order' => $_REQUEST['zazz_order']));
 		} else if (isset($_REQUEST['code'])) {
 			if ($_REQUEST['insert'] === 'true') {
 				_Code::get()->create(array('code' => $_REQUEST['code'],
