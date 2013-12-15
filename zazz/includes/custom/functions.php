@@ -355,7 +355,14 @@ function zipFolder($source, $destination) {
 }
 
 function evaluate($ZAZZ_PHP) {
-	eval($ZAZZ_PHP);
+	Logger::get()->setIgnore(true);
+	try {
+		eval($ZAZZ_PHP);
+	} catch(Exception $e) {
+		echo 'There was a PHP error on line ' . $e->getLine() . ': <br>' . $e->getMessage() .
+			'<br><br> Code: <br><p style="white-space: pre">' . htmlspecialchars($ZAZZ_PHP) . '</p>';
+	}
+	Logger::get()->setIgnore(false);
 }
 
 function processCode($project_start, $project_end, $page_id, $zazz_id, $basedir, $template = '') {

@@ -30,6 +30,7 @@ class Logger extends Object {
 	 * @var _Log $logger
 	 */
 	private $logger;
+	private $ignore;
 	
 	/**
 	 * Constructs an instance of the Logger and sets the appropiate error handlers to catch PHP 
@@ -40,6 +41,7 @@ class Logger extends Object {
 		
 		$loggerClass = self::LOGGER_CLASS;
 		$this->logger = $loggerClass::get();
+		$this->ignore = false;
 		
 		error_reporting(E_ALL);
 		if(defined('DEVELOPER')) {
@@ -52,6 +54,10 @@ class Logger extends Object {
 		}
 	}
 
+	public function setIgnore($ignore) {
+		$this->ignore = $ignore;
+	}
+	
 	public function fatal_handler() {
 		$errfile = "unknown file";
 		$errstr = "shutdown";
@@ -62,36 +68,41 @@ class Logger extends Object {
 
 		//If it is null, then there is no error. Just the script ending ("shutting down").
 		if ($error !== NULL) {
-			$errno = $error["type"];
-			$errfile = $error["file"];
-			$errline = $error["line"];
-			$errstr = $error["message"];
-		
-			$logger = Logger::get();
-			if(strpos($errstr, "Uncaught exception 'PDOException'") !== false) {
-				$query = CustomPDO::getLastQuery();
-				$errstr = "Query:\n" . $query . "\nError:\n" . $errstr;
-				if(defined('DEVELOPER')) {
-					echo '<div style="background-color:#f57900;border: 1px solid black;padding:5px"> Query: ' . 
-							$query . '</div>';
-				}
-			}
-			$logger->log($errno . ": In " . $errfile . "\nOn line: " . $errline . ":\n" . $errstr,
-					Logger::CRASH);
+			if(!$this->ignore) {
+				$errno = $error["type"];
+				$errfile = $error["file"];
+				$errline = $error["line"];
+				$errstr = $error["message"];
 
+				$logger = Logger::get();
+				if(strpos($errstr, "Uncaught exception 'PDOException'") !== false) {
+					$query = CustomPDO::getLastQuery();
+					$errstr = "Query:\n" . $query . "\nError:\n" . $errstr;
+					if(defined('DEVELOPER')) {
+						echo '<div style="background-color:#f57900;border: 1px solid black;padding:5px"> Query: ' . 
+								$query . '</div>';
+					}
+				}
+				$logger->log($errno . ": In " . $errfile . "\nOn line: " . $errline . ":\n" . $errstr,
+						Logger::CRASH);
+			}
+			
 			//Returning false passes the error along.
-			if(defined('DEVELOPER')) {
+			if(defined('DEVELOPER') || $this->ignore) {
 				return false;
 			}
 		}
 	}
 
 	public function error_handler($errno, $errstr, $errfile, $errline) {
-		Logger::get()->log($errno . ": In " . $errfile . "\nOn line: " . $errline . ":\n" . $errstr,
+		if(!$this->ignore) {
+			Logger::get()->log($errno . ": In " . $errfile . "\nOn line: " . $errline . 
+					":\n" . $errstr,
 				Logger::CRASH);
-
+		}
+		
 		//Returninf false passes the error along.
-		if(defined('DEVELOPER')) { 
+		if(defined('DEVELOPER') || $this->ignore) { 
 			return false;
 		}
 	}
