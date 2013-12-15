@@ -360,7 +360,8 @@ function evaluate($ZAZZ_PHP) {
 		eval($ZAZZ_PHP);
 	} catch(Exception $e) {
 		echo 'There was a PHP error on line ' . $e->getLine() . ': <br>' . $e->getMessage() .
-			'<br><br> Code: <br><p style="white-space: pre">' . htmlspecialchars($ZAZZ_PHP) . '</p>';
+			'<br><br> Code: <br><p style="white-space: pre; font-size: 12pt">' . 
+				htmlspecialchars($ZAZZ_PHP) . '</p>';
 	}
 	Logger::get()->setIgnore(false);
 }
