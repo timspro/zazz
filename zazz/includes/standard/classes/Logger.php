@@ -31,6 +31,7 @@ class Logger extends Object {
 	 */
 	private $logger;
 	private $ignore;
+	private $message;
 	
 	/**
 	 * Constructs an instance of the Logger and sets the appropiate error handlers to catch PHP 
@@ -56,6 +57,10 @@ class Logger extends Object {
 
 	public function setIgnore($ignore) {
 		$this->ignore = $ignore;
+	}
+	
+	public function setMessage($message) {
+		$this->message = $message;
 	}
 	
 	public function fatal_handler() {
@@ -102,7 +107,11 @@ class Logger extends Object {
 		}
 		
 		//Returninf false passes the error along.
-		if(defined('DEVELOPER') || $this->ignore) { 
+		if(defined('DEVELOPER') || $this->ignore) {
+			if(!empty($this->message)) {
+				echo $this->message;
+				$this->message = '';
+			}
 			return false;
 		}
 	}
