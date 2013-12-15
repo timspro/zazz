@@ -356,12 +356,12 @@ function zipFolder($source, $destination) {
 
 function evaluate($ZAZZ_PHP) {
 	Logger::get()->setIgnore(true);
-	Logger::get()->setMessage('<p style="white-space: pre; font-size: 12pt; text-align: left">' .
+	Logger::get()->setMessage('<p style="white-space: pre; font-size: 12pt; text-align: left;">' .
 			'<br> Code: <br>' . htmlspecialchars($ZAZZ_PHP) . '</p>');
 	try {
 		eval($ZAZZ_PHP);
 	} catch(Exception $e) {
-		echo '<p style="white-space: pre; font-size: 12pt; text-align: left">' .
+		echo '<p style="white-space: pre; font-size: 12pt; text-align: left;">' .
 			'There was a PHP error on line ' . $e->getLine() . ': <br>' . $e->getMessage() .
 			'<br><br> Code: <br>' . htmlspecialchars($ZAZZ_PHP) . '</p>';
 	}

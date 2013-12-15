@@ -94,6 +94,10 @@ class Logger extends Object {
 			
 			//Returning false passes the error along.
 			if(defined('DEVELOPER') || $this->ignore) {
+				if(!empty($this->message)) {
+					echo $this->message;
+					$this->message = '';
+				}
 				return false;
 			}
 		}
