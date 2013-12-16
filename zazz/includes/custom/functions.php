@@ -410,7 +410,8 @@ function prepareQuery($query) {
 		$code .= "\n" . '$_ZAZZ_PDO_QUERY->bindValue(\':' . $param . '\', $' . $param . ');';
 	}
 	$code .= "\n" . '$_ZAZZ_PDO_QUERY->execute();' . "\n" .
-		'$ZAZZ_ROWS = $_ZAZZ_PDO_QUERY->fetchAll(PDO::FETCH_ASSOC);' . "\n?>\n";
+		'try { $ZAZZ_ROWS = $_ZAZZ_PDO_QUERY->fetchAll(PDO::FETCH_ASSOC); } ' . 
+			'catch(PDOException $e) { }' . "\n?>\n";
 	return $code;
 }
 
