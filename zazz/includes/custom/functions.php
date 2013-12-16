@@ -73,7 +73,7 @@ function GetParametersForQuery($string) {
 			if ($char === ":") {
 				$parameter = true;
 			} else if ($parameter) {
-				if (!ctype_space($char)) {
+				if (ctype_alnum($char)) {
 					$current .= $char;
 				} else {
 					$params[] = $current;
