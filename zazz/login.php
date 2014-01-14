@@ -51,7 +51,7 @@ GRANT ALL PRIVILEGES ON $dbname.* TO '$dbusername'@'localhost';");
 $error = '';
 $login_error = '';
 $password_error = '';
-$global_password = /* !_!_!PASSWORD!_!_! */''/* !_!_!PASSWORD!_!_! */;
+$global_password = /*!_!_!PASSWORD!_!_!*/''/*!_!_!PASSWORD!_!_!*/;
 if (isset($_REQUEST['login_email']) && isset($_REQUEST['login_password'])) {
 	$username = $_REQUEST['login_email'];
 	$password = $_REQUEST['login_password'];
