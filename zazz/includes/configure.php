@@ -1,8 +1,14 @@
 <?php
-$deployPassword = '';
-$globalPassword = '';
+
+function generateRandomString() {
+	$strong = false;
+	return substr(str_replace('/', '_', str_replace('+', '$', base64_encode(openssl_random_pseudo_bytes(16, $strong)))), 0, 16);
+}
+
+$deployPassword = generateRandomString();
+$globalPassword = generateRandomString();
 $databasePassword = '';
-$deletePassword = '';
+$deletePassword = generateRandomString();
 
 session_start();
 session_destroy();
